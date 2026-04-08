@@ -1,14 +1,21 @@
 const Database = require('better-sqlite3');
 const path = require('path');
+const { seedDemoData } = require('./demoData');
 
 let db;
 function getDb() {
   if (!db) {
-    const dbPath = process.env.COLLATERAL_DB_PATH || path.join(__dirname, '../../data.db');
+    const isServerlessRuntime = process.env.VERCEL === '1' || Boolean(process.env.AWS_EXECUTION_ENV);
+    const dbPath =
+      process.env.COLLATERAL_DB_PATH ||
+      (isServerlessRuntime
+        ? '/tmp/collateral-demo.db'
+        : path.join(__dirname, '../../data.db'));
     db = new Database(dbPath);
     db.pragma('journal_mode = WAL');
     db.pragma('foreign_keys = ON');
     initSchema(db);
+    ensureSeedData(db);
   }
   return db;
 }
@@ -96,6 +103,14 @@ function initSchema(db) {
   // Additive migrations — safe to run on existing databases
   try { db.exec(`ALTER TABLE assets ADD COLUMN integration_json TEXT DEFAULT NULL`); } catch {}
   try { db.exec(`ALTER TABLE repos  ADD COLUMN integration_json TEXT DEFAULT NULL`); } catch {}
+}
+
+function ensureSeedData(db) {
+  const hasUsers = db.prepare('SELECT COUNT(*) AS count FROM users').get().count > 0;
+  const hasAssets = db.prepare('SELECT COUNT(*) AS count FROM assets').get().count > 0;
+  if (!hasUsers || !hasAssets) {
+    seedDemoData(db, { includeUsers: true });
+  }
 }
 
 module.exports = { getDb, closeDb };
