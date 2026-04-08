@@ -1,12 +1,18 @@
+import { mockApi } from "@/integrations/mockApi";
+
 const BASE =
   import.meta.env.VITE_API_URL ||
-  (import.meta.env.DEV ? 'http://localhost:3001' : '/api');
+  (import.meta.env.DEV ? "http://localhost:3001" : "");
+const USE_REMOTE_API = Boolean(BASE);
 
 function getToken() {
   return localStorage.getItem('co_token');
 }
 
 async function request(method, path, body) {
+  if (!USE_REMOTE_API) {
+    throw new Error("Remote API disabled");
+  }
   const headers = { 'Content-Type': 'application/json' };
   const token = getToken();
   if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -28,7 +34,7 @@ async function request(method, path, body) {
   return res.json();
 }
 
-export const api = {
+const remoteApi = {
   login:  (email, password) => request('POST', '/auth/login', { email, password }),
   me:     () => request('GET', '/auth/me'),
 
@@ -62,10 +68,10 @@ export const api = {
   downloadCsvTemplate: () => {
     const token = getToken();
     const link = document.createElement('a');
-    link.href = `${BASE}/admin/csv-template`;
-    // attach token via query param for file download (headers not supported on anchor)
     link.href = `${BASE}/admin/csv-template?token=${token}`;
     link.download = 'collateral_import_template.csv';
     link.click();
   },
 };
+
+export const api = USE_REMOTE_API ? remoteApi : mockApi;
