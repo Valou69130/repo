@@ -1,0 +1,57 @@
+// Role-based permission matrix
+// Each role has explicit capabilities — used throughout the UI to show/hide and disable controls.
+
+export const ROLE_PERMS = {
+  "Treasury Manager": {
+    canCreateRepo:        true,
+    canCloseRepo:         true,
+    canRolloverRepo:      true,
+    canApproveTopUp:      false,
+    canSubstitute:        true,
+    canAdvanceSettlement: false,
+    canImportAssets:      false,
+    canExport:            true,
+    readOnly:             false,
+    description:          "Full trade lifecycle authority. Approves and executes collateral substitutions. Cannot approve margin calls.",
+  },
+  "Collateral Manager": {
+    canCreateRepo:        false,
+    canCloseRepo:         false,
+    canRolloverRepo:      false,
+    canApproveTopUp:      true,
+    canSubstitute:        true,
+    canAdvanceSettlement: false,
+    canImportAssets:      true,
+    canExport:            true,
+    readOnly:             false,
+    description:          "Manages collateral allocation, top-ups, and substitutions. Cannot book or close trades.",
+  },
+  "Operations Analyst": {
+    canCreateRepo:        false,
+    canCloseRepo:         false,
+    canRolloverRepo:      false,
+    canApproveTopUp:      false,
+    canSubstitute:        false,
+    canAdvanceSettlement: true,
+    canImportAssets:      false,
+    canExport:            true,
+    readOnly:             false,
+    description:          "Manages settlement instruction lifecycle. Read-only for trade and collateral decisions.",
+  },
+  "Risk Reviewer": {
+    canCreateRepo:        false,
+    canCloseRepo:         false,
+    canRolloverRepo:      false,
+    canApproveTopUp:      false,
+    canSubstitute:        false,
+    canAdvanceSettlement: false,
+    canImportAssets:      false,
+    canExport:            true,
+    readOnly:             true,
+    description:          "Read-only access to all data. Can export reports but cannot initiate any actions.",
+  },
+};
+
+export function getPermissions(role) {
+  return ROLE_PERMS[role] ?? ROLE_PERMS["Risk Reviewer"];
+}
