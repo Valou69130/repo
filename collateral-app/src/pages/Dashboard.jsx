@@ -711,33 +711,33 @@ function ActionCard({ item, onAct }) {
       : "bg-blue-100 text-blue-700 border border-blue-200";
 
   return (
-    <div className={`rounded-md border ${cfg.border} ${cfg.bg} p-4 flex flex-col gap-3`}>
+    <div className={`rounded-[1.5rem] border ${cfg.border} ${cfg.bg} p-5 flex flex-col gap-4 shadow-sm`}>
       {/* Header row */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className={`h-6 w-6 rounded flex items-center justify-center flex-shrink-0 ${cfg.badge} border`}>
-            <Icon className="h-3.5 w-3.5" />
+          <div className={`flex h-10 w-10 items-center justify-center rounded-2xl flex-shrink-0 ${cfg.badge} border`}>
+            <Icon className="h-4 w-4" />
           </div>
           <div className="min-w-0">
-            <div className="font-semibold text-slate-900 text-sm leading-tight">{item.title}</div>
-            <div className="text-[11px] text-slate-500 mt-0.5 font-mono">{item.linked}</div>
+            <div className="font-semibold text-slate-900 text-base leading-tight">{item.title}</div>
+            <div className="text-[11px] text-slate-500 mt-1 font-mono">{item.linked}</div>
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${severityBadge}`}>
+          <span className={`text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full ${severityBadge}`}>
             {item.severity}
           </span>
         </div>
       </div>
 
       {/* Recommendation */}
-      <div className="grid gap-2 md:grid-cols-2">
-        <div className="rounded border border-white/80 bg-white/60 px-3 py-2.5 min-w-0">
-          <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-1">Recommendation</div>
+      <div className="grid gap-3 md:grid-cols-2">
+        <div className="rounded-2xl border border-white/80 bg-white/65 px-4 py-3 min-w-0">
+          <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Recommendation</div>
           <div className="text-sm text-slate-800 leading-relaxed break-words">{item.recommendation}</div>
         </div>
-        <div className="rounded border border-white/80 bg-white/60 px-3 py-2.5 min-w-0">
-          <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-1">Rationale</div>
+        <div className="rounded-2xl border border-white/80 bg-white/65 px-4 py-3 min-w-0">
+          <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Rationale</div>
           <div className="text-xs text-slate-600 leading-relaxed break-words">{item.rationale}</div>
         </div>
       </div>
@@ -749,7 +749,7 @@ function ActionCard({ item, onAct }) {
       <IntegrationContextBar integration={item.integration} />
 
       {/* Workflow state bar */}
-      <div className="rounded border border-white/80 bg-white/50 px-3 py-2.5 overflow-hidden">
+      <div className="rounded-2xl border border-white/80 bg-white/55 px-4 py-3 overflow-hidden">
         <WorkflowStateBar
           state={item.workflowState ?? "detected"}
           detectedAt={item.detectedAt}
@@ -764,7 +764,7 @@ function ActionCard({ item, onAct }) {
           {/* Secondary action — outline style */}
           <button
             onClick={() => onAct(item.repoId)}
-            className="h-7 px-3 rounded text-xs font-medium transition flex items-center gap-1.5 border border-slate-300 bg-white/70 text-slate-700 hover:bg-white hover:border-slate-400"
+            className="flex h-9 items-center gap-1.5 rounded-xl border border-slate-300 bg-white/70 px-3.5 text-xs font-medium text-slate-700 transition hover:border-slate-400 hover:bg-white"
           >
             <cfg.secondaryIcon className="h-3 w-3 opacity-70" />
             {cfg.secondaryLabel}
@@ -772,7 +772,7 @@ function ActionCard({ item, onAct }) {
           {/* Primary action — solid colored */}
           <button
             onClick={() => onAct(item.repoId)}
-            className={`h-7 px-3 rounded text-xs font-semibold transition flex items-center gap-1.5 ${cfg.cta}`}
+            className={`flex h-9 items-center gap-1.5 rounded-xl px-3.5 text-xs font-semibold transition shadow-sm ${cfg.cta}`}
           >
             <cfg.primaryIcon className="h-3 w-3" />
             {cfg.primaryLabel}
@@ -789,38 +789,41 @@ function RecommendedActions({ items, onAct }) {
   const warnCount  = items.filter((i) => i.severity === "Warning").length;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {/* Section header */}
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <Bot className="h-5 w-5 text-slate-700" />
-            <h2 className="text-base font-semibold text-slate-900 tracking-tight">Recommended Actions</h2>
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-sm">
+            <Bot className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-base font-semibold tracking-tight text-slate-900">Recommended Actions</h2>
+            <div className="mt-0.5 text-xs text-slate-500">Highest-priority interventions generated from the current repo and collateral state.</div>
           </div>
           <div className="flex items-center gap-1.5">
             {critCount > 0 && (
-              <span className="text-[10px] font-bold bg-red-500 text-white px-2 py-0.5 rounded-full">
+              <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white">
                 {critCount} critical
               </span>
             )}
             {warnCount > 0 && (
-              <span className="text-[10px] font-bold bg-amber-400 text-white px-2 py-0.5 rounded-full">
+              <span className="rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-bold text-white">
                 {warnCount} warning
               </span>
             )}
             {items.length === 0 && (
-              <span className="text-[10px] font-bold bg-emerald-500 text-white px-2 py-0.5 rounded-full">
+              <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-bold text-white">
                 All clear
               </span>
             )}
           </div>
         </div>
-        <span className="text-[10px] text-slate-400 font-mono">Computed {now}</span>
+        <span className="text-[10px] font-mono text-slate-400">Computed {now}</span>
       </div>
 
       {/* Action cards */}
       {items.length === 0 ? (
-        <div className="rounded-md border border-emerald-200 bg-emerald-50 px-5 py-6 flex items-center gap-3">
+        <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-6">
           <CheckCircle2 className="h-5 w-5 text-emerald-600 flex-shrink-0" />
           <div>
             <div className="font-semibold text-emerald-800 text-sm">All positions are within parameters</div>
@@ -828,7 +831,7 @@ function RecommendedActions({ items, onAct }) {
           </div>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {items.map((item) => (
             <ActionCard key={item.id} item={item} onAct={onAct} />
           ))}
