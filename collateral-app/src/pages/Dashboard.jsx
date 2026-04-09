@@ -1402,14 +1402,14 @@ export function Dashboard({
 
       {/* ── Portfolio charts ── */}
       <div className="grid gap-6 xl:grid-cols-2">
-        <Card className="rounded-md shadow-sm">
-          <CardHeader>
+        <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
+          <CardHeader className="pb-4">
             <CardTitle>Portfolio Allocation</CardTitle>
             <CardDescription>Market value by encumbrance status</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-6">
-              <div style={{ height: 180, width: 180, flexShrink: 0 }}>
+            <div className="flex items-center gap-8">
+              <div className="rounded-[1.5rem] border border-slate-100 bg-slate-50/70 p-4" style={{ height: 212, width: 212, flexShrink: 0 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -1431,7 +1431,7 @@ export function Dashboard({
               </div>
               <div className="flex-1 space-y-3">
                 {statusBreakdown.map((entry) => (
-                  <div key={entry.name} className="flex items-center justify-between gap-3">
+                  <div key={entry.name} className="flex items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-slate-50/60 px-4 py-3">
                     <div className="flex items-center gap-2">
                       <div
                         className="w-2.5 h-2.5 rounded-full flex-shrink-0"
@@ -1455,13 +1455,13 @@ export function Dashboard({
           </CardContent>
         </Card>
 
-        <Card className="rounded-md shadow-sm">
-          <CardHeader>
+        <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
+          <CardHeader className="pb-4">
             <CardTitle>Repo Coverage Ratios</CardTitle>
             <CardDescription>Posted vs required collateral — 103% minimum threshold</CardDescription>
           </CardHeader>
           <CardContent>
-            <div style={{ height: 180 }}>
+            <div className="rounded-[1.5rem] border border-slate-100 bg-slate-50/60 p-3" style={{ height: 228 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={coverageData} margin={{ top: 4, right: 8, left: -24, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
@@ -1487,7 +1487,7 @@ export function Dashboard({
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <div className="flex items-center gap-5 mt-2 text-xs text-slate-500">
+            <div className="mt-4 flex flex-wrap items-center gap-5 text-xs text-slate-500">
               <span className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />≥103% compliant
               </span>
@@ -1504,14 +1504,15 @@ export function Dashboard({
 
       {/* ── Collateral overview + Maturity ladder ── */}
       <div className="grid gap-6 xl:grid-cols-3">
-        <Card className="xl:col-span-2 rounded-md shadow-sm">
-          <CardHeader>
+        <Card className="xl:col-span-2 rounded-[1.5rem] border-slate-200 shadow-sm">
+          <CardHeader className="pb-4">
             <CardTitle>Collateral Overview</CardTitle>
             <CardDescription>
               Haircut-adjusted visibility across the current inventory pool.
             </CardDescription>
           </CardHeader>
           <CardContent>
+            <div className="overflow-hidden rounded-[1.25rem] border border-slate-100">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -1541,26 +1542,27 @@ export function Dashboard({
                 ))}
               </TableBody>
             </Table>
+            </div>
           </CardContent>
         </Card>
 
-        <Card className="rounded-md shadow-sm">
-          <CardHeader>
+        <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
+          <CardHeader className="pb-4">
             <CardTitle>Maturity Ladder</CardTitle>
             <CardDescription>Upcoming cash &amp; collateral flows</CardDescription>
           </CardHeader>
-          <CardContent className="p-0">
+          <CardContent className="px-4 pb-4 pt-0">
             {maturityLadder.length === 0 ? (
               <div className="text-center text-slate-400 text-sm py-8">No upcoming maturities</div>
             ) : (
-              <div className="divide-y">
+              <div className="space-y-3">
                 {maturityLadder.map((d) => {
                   const daysAway = Math.ceil(
                     (new Date(d.date) - new Date()) / 86400000
                   );
                   return (
-                    <div key={d.date} className="px-5 py-3.5 hover:bg-slate-50 transition-colors">
-                      <div className="flex items-center justify-between mb-1.5">
+                    <div key={d.date} className="rounded-[1.25rem] border border-slate-100 bg-slate-50/60 px-4 py-4 transition-colors hover:bg-slate-50">
+                      <div className="mb-3 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span
                             className={`text-xs font-bold ${
@@ -1585,14 +1587,14 @@ export function Dashboard({
                           {d.repos.join(", ")}
                         </span>
                       </div>
-                      <div className="flex justify-between text-xs">
-                        <div>
+                      <div className="grid grid-cols-2 gap-3 text-xs">
+                        <div className="rounded-xl bg-white/80 px-3 py-3">
                           <div className="text-slate-400">Cash Due</div>
-                          <div className="font-semibold text-slate-700">{fmtMoney(d.cash)}</div>
+                          <div className="mt-1 font-semibold text-slate-700">{fmtMoney(d.cash)}</div>
                         </div>
-                        <div className="text-right">
+                        <div className="rounded-xl bg-white/80 px-3 py-3 text-right">
                           <div className="text-slate-400">Collateral</div>
-                          <div className="font-semibold text-emerald-600">
+                          <div className="mt-1 font-semibold text-emerald-600">
                             +{fmtMoney(d.collateral)}
                           </div>
                         </div>
@@ -1610,8 +1612,8 @@ export function Dashboard({
       <EodSummary repos={repos} assets={assets} />
 
       {/* ── Active repo timeline ── */}
-      <Card className="rounded-md shadow-sm">
-        <CardHeader>
+      <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
+        <CardHeader className="pb-4">
           <CardTitle>Active Repo Timeline</CardTitle>
           <CardDescription>
             Lifecycle stage, coverage, and maturity at a glance across all open transactions.
@@ -1647,7 +1649,7 @@ export function Dashboard({
                   <button
                     key={r.id}
                     onClick={() => openRepo(r.id)}
-                    className="rounded border text-left bg-white hover:bg-slate-50 transition-colors overflow-hidden w-full"
+                    className="w-full overflow-hidden rounded-[1.25rem] border border-slate-200 bg-white text-left transition-colors hover:bg-slate-50 shadow-sm"
                   >
                     <div className="h-1 w-full" style={{ backgroundColor: accentColor }} />
                     <div className="p-4 space-y-4">
