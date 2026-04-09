@@ -163,28 +163,58 @@ export function Repos({ repos, assets, openRepo, createDemoRepo, role, permissio
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight">Repo Transactions</h1>
-        <p className="mt-1 text-slate-500">Create, allocate, approve, and track secured funding workflows.</p>
+      <div className="relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-[linear-gradient(135deg,#f8fbff_0%,#eef6ff_42%,#f8fafc_100%)] px-6 py-6 shadow-sm">
+        <div className="absolute right-0 top-0 h-36 w-36 rounded-full bg-blue-200/35 blur-3xl" />
+        <div className="absolute bottom-0 left-12 h-28 w-28 rounded-full bg-emerald-100/60 blur-3xl" />
+        <div className="relative flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/80 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-blue-700 shadow-sm">
+              <Star className="h-3.5 w-3.5" />
+              Secured funding workflow
+            </div>
+            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900">Repo Transactions</h1>
+            <p className="mt-2 max-w-2xl text-slate-600">
+              Create, allocate, approve, and track secured funding flows from trade terms through collateral basket selection and booking.
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Open repos</div>
+              <div className="mt-1 text-lg font-semibold text-slate-900">{repos.filter((r) => r.state !== "Closed").length}</div>
+              <div className="mt-1 text-xs text-slate-500">Current active funding lines</div>
+            </div>
+            <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Available assets</div>
+              <div className="mt-1 text-lg font-semibold text-slate-900">{assets.filter((a) => a.status === "Available").length}</div>
+              <div className="mt-1 text-xs text-slate-500">Eligible inventory for allocation</div>
+            </div>
+            <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Counterparties</div>
+              <div className="mt-1 text-lg font-semibold text-slate-900">{counterpartyNames.length}</div>
+              <div className="mt-1 text-xs text-slate-500">Profiles with limits and criteria</div>
+            </div>
+          </div>
+        </div>
       </div>
       <RoleBanner role={role} perms={permissions} />
 
       <Tabs defaultValue="book" className="space-y-4">
-        <TabsList className="rounded">
+        <TabsList className="rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
           <TabsTrigger value="book">New Repo</TabsTrigger>
           <TabsTrigger value="list">Repo Book</TabsTrigger>
         </TabsList>
 
         {/* ── CREATE REPO ─────────────────────────────────────────── */}
         <TabsContent value="book">
-          <Card className="rounded-md shadow-sm">
-            <CardHeader>
+          <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
+            <CardHeader className="pb-5">
               <CardTitle>Create Repo Transaction</CardTitle>
               <CardDescription>Multi-step workflow: trade terms → eligibility → collateral basket → approval.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
 
               {/* Step indicator — institutional horizontal bar */}
+              <div className="rounded-[1.25rem] border border-slate-100 bg-slate-50/70 px-4 py-4">
               <div className="flex items-center gap-0">
                 {STEPS.map((s, i) => {
                   const active = s.n === step;
@@ -210,6 +240,7 @@ export function Repos({ repos, assets, openRepo, createDemoRepo, role, permissio
                     </div>
                   );
                 })}
+              </div>
               </div>
 
               {/* Step 1 — Trade Terms */}
@@ -475,15 +506,15 @@ export function Repos({ repos, assets, openRepo, createDemoRepo, role, permissio
 
         {/* ── REPO BOOK ──────────────────────────────────────────────── */}
         <TabsContent value="list">
-          <Card className="rounded-md shadow-sm">
-            <CardContent className="p-4 flex gap-3 flex-col md:flex-row md:items-center border-b">
+          <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
+            <CardContent className="border-b p-4 flex gap-3 flex-col md:flex-row md:items-center">
               <div className="relative flex-1 max-w-sm">
                 <Search className="h-4 w-4 absolute left-3 top-3 text-slate-400" />
                 <Input value={search} onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search repo ID or counterparty…" className="pl-9 rounded-md" />
+                  placeholder="Search repo ID or counterparty…" className="pl-9 rounded-xl" />
               </div>
               <Select value={stateFilter} onValueChange={setStateFilter}>
-                <SelectTrigger className="w-[180px] rounded-md">
+                <SelectTrigger className="w-[180px] rounded-xl">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="All states" />
                 </SelectTrigger>
@@ -498,6 +529,7 @@ export function Repos({ repos, assets, openRepo, createDemoRepo, role, permissio
               <div className="text-xs text-slate-400 ml-auto">{filteredRepos.length} of {repos.length} repos</div>
             </CardContent>
             <CardContent className="p-0">
+              <div className="overflow-hidden rounded-b-[1.5rem]">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -541,6 +573,7 @@ export function Repos({ repos, assets, openRepo, createDemoRepo, role, permissio
                   })}
                 </TableBody>
               </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

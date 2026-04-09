@@ -174,33 +174,41 @@ export function RepoDetail({ repo, assets, closeRepo, topUpRepo, substituteColla
   return (
     <div className="space-y-6">
       <RoleBanner role={role} perms={permissions} />
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Repo Lifecycle — {repo.id}</h1>
-          <p className="mt-1 text-slate-500">{repo.counterparty} · {fmtMoney(repo.amount, repo.currency)} · {repo.startDate} → {repo.maturityDate}</p>
-        </div>
-        <div className="flex gap-2 flex-wrap">
+      <div className="relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-[linear-gradient(135deg,#f8fbff_0%,#eef6ff_42%,#f8fafc_100%)] px-6 py-6 shadow-sm">
+        <div className="absolute right-0 top-0 h-36 w-36 rounded-full bg-blue-200/35 blur-3xl" />
+        <div className="absolute bottom-0 left-10 h-28 w-28 rounded-full bg-emerald-100/60 blur-3xl" />
+        <div className="relative flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/80 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-blue-700 shadow-sm">
+              <Clock3 className="h-3.5 w-3.5" />
+              Repo lifecycle
+            </div>
+            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900">Repo Lifecycle — {repo.id}</h1>
+            <p className="mt-2 text-slate-600">{repo.counterparty} · {fmtMoney(repo.amount, repo.currency)} · {repo.startDate} → {repo.maturityDate}</p>
+          </div>
+          <div className="flex gap-2 flex-wrap">
           {repo.state !== "Closed" && canRollover && (
-            <Button variant="outline" className="rounded-md" onClick={() => { setRollRate(String(repo.rate)); setRollSheetOpen(true); }}>
+            <Button variant="outline" className="rounded-xl bg-white/80" onClick={() => { setRollRate(String(repo.rate)); setRollSheetOpen(true); }}>
               <RefreshCw className="h-4 w-4 mr-2" /> Roll Repo
             </Button>
           )}
           {repo.state !== "Closed" && canTopUp && (
-            <Button variant="outline" className="rounded-md"
+            <Button variant="outline" className="rounded-xl bg-white/80"
               onClick={() => availableAsset && topUpRepo(repo.id, availableAsset.id)}>
               Request Top-Up
             </Button>
           )}
           {repo.state !== "Closed" && canSubstitute && (
-            <Button variant="outline" className="rounded-md" onClick={() => setSubSheetOpen(true)}>
+            <Button variant="outline" className="rounded-xl bg-white/80" onClick={() => setSubSheetOpen(true)}>
               <GitCompareArrows className="h-4 w-4 mr-2" /> Substitute Collateral
             </Button>
           )}
           {repo.state !== "Closed" && canClose && (
-            <Button className="rounded-md" onClick={() => closeRepo(repo.id)}>
+            <Button className="rounded-xl" onClick={() => closeRepo(repo.id)}>
               Prepare Unwind / Close
             </Button>
           )}
+          </div>
         </div>
       </div>
 
@@ -217,19 +225,19 @@ export function RepoDetail({ repo, assets, closeRepo, topUpRepo, substituteColla
 
       <div className="grid gap-6 xl:grid-cols-3">
         {/* Lifecycle */}
-        <Card className="xl:col-span-2 rounded-md shadow-sm">
-          <CardHeader>
+        <Card className="xl:col-span-2 rounded-[1.5rem] border-slate-200 shadow-sm">
+          <CardHeader className="pb-4">
             <CardTitle>Lifecycle Timeline</CardTitle>
             <CardDescription>Full workflow history from booking to unwind — each step linked to SaFIR events and audit trail.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="rounded-b-[1.5rem] bg-slate-50/35">
             <LifecycleTimeline repo={repo} />
           </CardContent>
         </Card>
 
         {/* Settlement */}
-        <Card className="rounded-md shadow-sm">
-          <CardHeader>
+        <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
+          <CardHeader className="pb-4">
             <CardTitle>Settlement Status</CardTitle>
             <CardDescription>Instruction lifecycle, custody confirmation, and integration state.</CardDescription>
           </CardHeader>
@@ -253,8 +261,8 @@ export function RepoDetail({ repo, assets, closeRepo, topUpRepo, substituteColla
 
       {/* Collateral basket + Margin */}
       <div className="grid gap-6 xl:grid-cols-3">
-        <Card className="xl:col-span-2 rounded-md shadow-sm">
-          <CardHeader>
+        <Card className="xl:col-span-2 rounded-[1.5rem] border-slate-200 shadow-sm">
+          <CardHeader className="pb-4">
             <CardTitle>Collateral Basket</CardTitle>
             <CardDescription>Assets currently locked in custody to support this transaction.</CardDescription>
           </CardHeader>
@@ -262,7 +270,7 @@ export function RepoDetail({ repo, assets, closeRepo, topUpRepo, substituteColla
             {basket.length === 0 ? (
               <div className="text-sm text-slate-400 italic">No assets allocated.</div>
             ) : basket.map((a) => (
-              <div key={a.id} className="rounded border p-4 flex items-center justify-between gap-4">
+              <div key={a.id} className="flex items-center justify-between gap-4 rounded-[1.25rem] border border-slate-100 bg-slate-50/60 p-4">
                 <div>
                   <div className="font-medium text-slate-900">{a.name}</div>
                   <div className="text-xs text-slate-400 font-mono">{a.isin} · {a.custody}</div>
@@ -276,8 +284,8 @@ export function RepoDetail({ repo, assets, closeRepo, topUpRepo, substituteColla
           </CardContent>
         </Card>
 
-        <Card className="rounded-md shadow-sm">
-          <CardHeader>
+        <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
+          <CardHeader className="pb-4">
             <CardTitle>Margin Status</CardTitle>
             <CardDescription>Live coverage and exposure metrics.</CardDescription>
           </CardHeader>
@@ -307,7 +315,7 @@ export function RepoDetail({ repo, assets, closeRepo, topUpRepo, substituteColla
       </div>
 
       {/* Notes */}
-      <Card className="rounded-md shadow-sm">
+      <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
         <CardHeader>
           <CardTitle>Activity Notes</CardTitle>
           <CardDescription>{repo.notes}</CardDescription>
@@ -316,7 +324,7 @@ export function RepoDetail({ repo, assets, closeRepo, topUpRepo, substituteColla
 
       {/* Pending substitutions */}
       {repoPending.length > 0 && (
-        <Card className="rounded-md shadow-sm border-violet-200">
+        <Card className="rounded-[1.5rem] border-violet-200 shadow-sm">
           <CardHeader>
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -333,7 +341,7 @@ export function RepoDetail({ repo, assets, closeRepo, topUpRepo, substituteColla
           </CardHeader>
           <CardContent className="space-y-4">
             {repoPending.map((sub) => (
-              <div key={sub.id} className="rounded border border-violet-100 bg-violet-50 p-4 space-y-3">
+              <div key={sub.id} className="rounded-[1.25rem] border border-violet-100 bg-violet-50 p-4 space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <div className="font-semibold text-slate-900 text-sm">
