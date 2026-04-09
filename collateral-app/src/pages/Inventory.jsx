@@ -133,13 +133,7 @@ export function Inventory({ assets, selectedAsset, setSelectedAsset, importAsset
               </SelectContent>
             </Select>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 xl:min-w-[340px]">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3">
-              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Workflow note</div>
-              <div className="mt-2 text-sm font-medium text-slate-800">CSV imports preserve the demo state immediately.</div>
-              <div className="mt-1 text-xs leading-5 text-slate-500">Use the template first to keep issuer, haircut, and eligibility fields aligned with the orchestrator rules.</div>
-            </div>
-            <div className="flex gap-2 self-start sm:justify-end">
+          <div className="flex gap-2 self-start sm:justify-end xl:min-w-[340px]">
             <input type="file" accept=".csv" id="csv-import" className="hidden" onChange={handleImport} />
             <Button variant="outline" className="rounded-xl" onClick={() => api.downloadCsvTemplate()}>
               <Download className="mr-2 h-4 w-4" />
@@ -150,7 +144,6 @@ export function Inventory({ assets, selectedAsset, setSelectedAsset, importAsset
               {importing ? "Importing..." : "Import CSV"}
             </Button>
             <Button className="rounded-xl" onClick={exportCSV}>Export CSV</Button>
-            </div>
           </div>
         </CardContent>
       </Card>
