@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { AlertTriangle, CheckCircle2, Clock3, XCircle, FileWarning, RefreshCw } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock3, Sparkles, XCircle, FileWarning, RefreshCw } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -130,11 +130,33 @@ export function Operations({ repos, assets, permissions }) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight">Settlement / Operations</h1>
-        <p className="mt-1 text-slate-500">
-          Settlement instruction lifecycle, confirmation tracking, and fails management.
-        </p>
+      <div className="relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-[linear-gradient(135deg,#fffaf8_0%,#fff5ef_34%,#f8fafc_100%)] px-6 py-6 shadow-sm">
+        <div className="absolute right-0 top-0 h-36 w-36 rounded-full bg-orange-200/35 blur-3xl" />
+        <div className="absolute bottom-0 left-10 h-28 w-28 rounded-full bg-emerald-100/60 blur-3xl" />
+        <div className="relative flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-white/80 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-orange-700 shadow-sm">
+              <Sparkles className="h-3.5 w-3.5" />
+              Settlement control room
+            </div>
+            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900">Settlement / Operations</h1>
+            <p className="mt-2 max-w-2xl text-slate-600">
+              Oversee instruction progress, isolate exceptions early, and keep counterparties moving through confirmation and settlement without operational drag.
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Exception posture</div>
+              <div className={`mt-1 text-lg font-semibold ${fails.length > 0 ? "text-red-700" : "text-slate-900"}`}>{fails.length > 0 ? "Action required" : "Stable"}</div>
+              <div className="mt-1 text-xs text-slate-500">Critical attention is driven by unsettled confirmations and maturing trades.</div>
+            </div>
+            <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Reconciliation view</div>
+              <div className="mt-1 text-lg font-semibold text-slate-900">{confirmed}/{activeRepos.length || 1}</div>
+              <div className="mt-1 text-xs text-slate-500">Instructions already confirmed against the active settlement book.</div>
+            </div>
+          </div>
+        </div>
       </div>
       <RoleBanner role="Operations Analyst" perms={permissions} />
 
@@ -147,7 +169,7 @@ export function Operations({ repos, assets, permissions }) {
 
       {/* Fails tracker */}
       {fails.length > 0 && (
-        <Card className="rounded-md shadow-sm border-red-200 bg-red-50/40">
+        <Card className="rounded-[1.5rem] shadow-sm border-red-200 bg-red-50/40">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-800">
               <AlertTriangle className="h-4 w-4" /> Settlement Fails Tracker
@@ -204,7 +226,7 @@ export function Operations({ repos, assets, permissions }) {
 
       {/* All instructions */}
       <div className="grid gap-6 xl:grid-cols-3">
-        <Card className="xl:col-span-2 rounded-md shadow-sm">
+        <Card className="xl:col-span-2 rounded-[1.5rem] shadow-sm">
           <CardHeader>
             <CardTitle>Settlement Instructions</CardTitle>
             <CardDescription>Click any row to view the full instruction, MT543 preview, and lifecycle timeline.</CardDescription>
@@ -272,7 +294,7 @@ export function Operations({ repos, assets, permissions }) {
         </Card>
 
         {/* Exceptions panel */}
-        <Card className="rounded-md shadow-sm">
+        <Card className="rounded-[1.5rem] shadow-sm">
           <CardHeader>
             <CardTitle>Operational Exceptions</CardTitle>
             <CardDescription>Breaks and escalations requiring resolution.</CardDescription>
@@ -301,7 +323,10 @@ export function Operations({ repos, assets, permissions }) {
               </div>
             ))}
             {fails.length === 0 && repos.filter((r) => r.state === "Maturing").length === 0 && (
-              <div className="text-center text-slate-400 text-sm py-6">No active exceptions</div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-8 text-center">
+                <div className="text-sm font-medium text-slate-800">No active exceptions</div>
+                <div className="mt-1 text-sm text-slate-500">The current settlement queue is clean, with no maturing trades or unresolved breaks requiring intervention.</div>
+              </div>
             )}
           </CardContent>
         </Card>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { AlertCircle, AlertTriangle, ArrowUpRight, Bell, CheckCircle2, Clock3, Info, X } from "lucide-react";
+import { AlertCircle, AlertTriangle, ArrowUpRight, Bell, CheckCircle2, Clock3, Info, ShieldAlert, Sparkles, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -157,11 +157,33 @@ export function Notifications({ notifications, onDismissNotification, openRepo }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight">Notifications</h1>
-        <p className="mt-1 text-slate-500">
-          Operational alerts, margin call notifications, and settlement exceptions — with SLA tracking and escalation workflow.
-        </p>
+      <div className="relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-[linear-gradient(135deg,#fffdf8_0%,#fff7ed_38%,#f8fafc_100%)] px-6 py-6 shadow-sm">
+        <div className="absolute right-0 top-0 h-36 w-36 rounded-full bg-amber-200/35 blur-3xl" />
+        <div className="absolute bottom-0 left-10 h-28 w-28 rounded-full bg-blue-100/60 blur-3xl" />
+        <div className="relative flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-white/80 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-amber-700 shadow-sm">
+              <Sparkles className="h-3.5 w-3.5" />
+              Alert center
+            </div>
+            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900">Notifications</h1>
+            <p className="mt-2 max-w-2xl text-slate-600">
+              Prioritise critical operational events, respond within SLA, and move from alert intake to acknowledgement or escalation without losing context.
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Current posture</div>
+              <div className={`mt-1 text-lg font-semibold ${critical > 0 ? "text-red-700" : "text-slate-900"}`}>{critical > 0 ? "Elevated" : "Controlled"}</div>
+              <div className="mt-1 text-xs text-slate-500">Critical alerts are highlighted first, with timers keeping the desk focused on response windows.</div>
+            </div>
+            <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Action flow</div>
+              <div className="mt-1 text-lg font-semibold text-slate-900">{acknowledged + escalated}</div>
+              <div className="mt-1 text-xs text-slate-500">Alerts handled in this working session through acknowledgement or escalation.</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
@@ -171,8 +193,39 @@ export function Notifications({ notifications, onDismissNotification, openRepo }
         <KpiCard title="Resolved This Session" value={String(acknowledged + escalated)} description={`${acknowledged} acknowledged · ${escalated} escalated`} icon={CheckCircle2} trendUp={acknowledged + escalated > 0} />
       </div>
 
+      <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
+        <CardContent className="grid gap-4 px-5 py-5 lg:grid-cols-[1.25fr,0.85fr]">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-4">
+            <div className="flex items-center gap-2 text-sm font-medium text-slate-800">
+              <ShieldAlert className="h-4 w-4 text-amber-600" />
+              Response playbook
+            </div>
+            <div className="mt-2 text-sm leading-6 text-slate-600">
+              Treat critical margin, settlement, and limit events as fast-path items. Acknowledge to claim ownership, escalate when desk coordination is needed, and use repo deep-links to jump directly into the affected trade context.
+            </div>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
+            <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">SLA windows</div>
+            <div className="mt-3 grid gap-2">
+              <div className="flex items-center justify-between rounded-xl bg-red-50 px-3 py-2 text-sm">
+                <span className="font-medium text-red-700">Critical</span>
+                <span className="text-red-600">2h acknowledge</span>
+              </div>
+              <div className="flex items-center justify-between rounded-xl bg-amber-50 px-3 py-2 text-sm">
+                <span className="font-medium text-amber-700">Warning</span>
+                <span className="text-amber-600">6h review</span>
+              </div>
+              <div className="flex items-center justify-between rounded-xl bg-blue-50 px-3 py-2 text-sm">
+                <span className="font-medium text-blue-700">Info</span>
+                <span className="text-blue-600">24h review</span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {notifications.length === 0 ? (
-        <Card className="rounded-md shadow-sm">
+        <Card className="rounded-[1.5rem] shadow-sm">
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <CheckCircle2 className="h-10 w-10 text-emerald-400 mb-4" />
             <div className="font-semibold text-slate-700">All clear</div>
@@ -185,7 +238,7 @@ export function Notifications({ notifications, onDismissNotification, openRepo }
             const meta = SEVERITY_META[group.severity];
             const Icon = meta.icon;
             return (
-              <Card key={group.severity} className="rounded-md shadow-sm">
+              <Card key={group.severity} className="rounded-[1.5rem] shadow-sm">
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-2">
                     <Icon className={`h-4 w-4 ${meta.color}`} />
@@ -226,7 +279,7 @@ export function Notifications({ notifications, onDismissNotification, openRepo }
       <Separator />
 
       {/* SLA policy reference */}
-      <Card className="rounded-md border-dashed bg-slate-50">
+      <Card className="rounded-[1.5rem] border-dashed bg-slate-50">
         <CardContent className="p-4">
           <div className="text-xs text-slate-500 space-y-1.5">
             <div className="font-semibold text-slate-700 mb-2">SLA Policy — Internal Operations</div>
