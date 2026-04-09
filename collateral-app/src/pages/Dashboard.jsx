@@ -1289,24 +1289,44 @@ export function Dashboard({
     <div className="space-y-6 w-full max-w-full min-w-0">
 
       {/* ── Page header ── */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
-            Collateral Control Center
-          </h1>
-          <p className="mt-1 text-slate-500">
-            Agent-assisted decision surface — margin monitoring, substitution analysis, and exception handling.
-          </p>
-        </div>
-        <div className="text-right flex-shrink-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-400 font-medium">Session date</div>
-          <div className="text-sm font-semibold text-slate-700 mt-0.5">{today}</div>
-          <div className="flex items-center justify-end gap-1.5 mt-1">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-            </span>
-            <span className="text-[10px] text-emerald-600 font-medium uppercase tracking-wider">Live</span>
+      <div className="relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-[linear-gradient(135deg,#f8fbff_0%,#eef6ff_42%,#f8fafc_100%)] px-6 py-6 shadow-sm">
+        <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-blue-200/35 blur-3xl" />
+        <div className="absolute bottom-0 left-24 h-32 w-32 rounded-full bg-emerald-100/60 blur-3xl" />
+        <div className="relative flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/80 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-blue-700 shadow-sm">
+              <Sparkles className="h-3.5 w-3.5" />
+              Executive overview
+            </div>
+            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900">
+              Collateral Control Center
+            </h1>
+            <p className="mt-2 max-w-2xl text-slate-600">
+              Agent-assisted operating surface for margin monitoring, substitution analysis, settlement pressure, and daily control actions across the repo book.
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Free pool</div>
+              <div className="mt-1 text-lg font-semibold text-slate-900">{fmtMoney(totals.free)}</div>
+              <div className="mt-1 text-xs text-slate-500">Immediately mobilisable collateral</div>
+            </div>
+            <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Open actions</div>
+              <div className="mt-1 text-lg font-semibold text-slate-900">{actionItems.length}</div>
+              <div className="mt-1 text-xs text-slate-500">Recommended interventions and reviews</div>
+            </div>
+            <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm text-right">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Session date</div>
+              <div className="mt-1 text-lg font-semibold text-slate-900">{today}</div>
+              <div className="mt-1 flex items-center justify-end gap-1.5">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                </span>
+                <span className="text-[10px] text-emerald-600 font-medium uppercase tracking-wider">Live</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1341,7 +1361,7 @@ export function Dashboard({
         <KpiCard
           title="Total Collateral Value"
           value={fmtMoney(totals.total)}
-          description="All registered positions"
+          description="All registered positions across the pool"
           icon={Coins}
         />
         <KpiCard
@@ -1360,8 +1380,8 @@ export function Dashboard({
           value={String(totals.active)}
           description={
             totals.deficits > 0
-              ? `${totals.deficits} margin deficit${totals.deficits > 1 ? "s" : ""} — action needed`
-              : "All positions compliant"
+              ? `${totals.deficits} margin deficit${totals.deficits > 1 ? "s" : ""} need attention`
+              : "Open book currently within threshold"
           }
           icon={ArrowRightLeft}
           alert={totals.deficits > 0}
@@ -1369,7 +1389,7 @@ export function Dashboard({
         <KpiCard
           title="Accrued Interest Today"
           value={fmtMoney(totals.accruedToday)}
-          description="Estimated daily interest on open repos"
+          description="Estimated carry contribution on open trades"
           icon={ReceiptText}
         />
       </div>

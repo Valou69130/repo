@@ -40,7 +40,7 @@ export function Login({ onLogin }) {
                 <Landmark className="h-4 w-4" />
               </div>
               <div>
-                <div className="font-semibold tracking-[0.18em] text-white">COLLATERALOS</div>
+                <div className="font-semibold tracking-[0.12em] text-white">CollateralOS</div>
                 <div className="text-[10px] uppercase tracking-[0.22em] text-slate-400">Romania Treasury Pilot</div>
               </div>
             </div>
@@ -86,7 +86,7 @@ export function Login({ onLogin }) {
                   <Landmark className="h-5 w-5" />
                 </div>
                 <div>
-                  <div className="text-sm font-semibold tracking-[0.16em] text-white">COLLATERALOS</div>
+                  <div className="text-sm font-semibold tracking-[0.12em] text-white">CollateralOS</div>
                   <div className="text-xs text-slate-500">Romania Pilot · v1.0</div>
                 </div>
               </div>
