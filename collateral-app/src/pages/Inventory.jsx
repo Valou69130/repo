@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowUpRight, Download, Filter, Search, ShieldCheck, Sparkles, Upload, Vault } from "lucide-react";
+import { ArrowUpRight, Download, Filter, Search, ShieldCheck, Sparkles, Upload } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -77,24 +77,24 @@ export function Inventory({ assets, selectedAsset, setSelectedAsset, importAsset
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/80 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-blue-700 shadow-sm">
-              <Vault className="h-3.5 w-3.5" />
-              Collateral command
+              <Sparkles className="h-3.5 w-3.5" />
+              Inventory command center
             </div>
             <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900">Collateral Inventory</h1>
             <p className="mt-2 max-w-2xl text-slate-600">
-              See what is truly mobilisable right now, which assets are tied up, and where inventory quality or custody mix could constrain the next funding decision.
+              Monitor usable inventory, eligibility quality, and custody concentration before assets are posted into secured funding workflows.
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm">
               <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Eligible buffer</div>
               <div className="mt-1 text-lg font-semibold text-slate-900">{fmtMoney(metrics.readyCollateral)}</div>
-              <div className="mt-1 text-xs text-slate-500">Adjusted value ready to support fresh secured funding</div>
+              <div className="mt-1 text-xs text-slate-500">Adjusted value ready for repo allocation</div>
             </div>
             <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm">
-              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Inventory lens</div>
-              <div className="mt-1 text-lg font-semibold text-slate-900">{filtered.length}/{metrics.totalAssets}</div>
-              <div className="mt-1 text-xs text-slate-500">Assets in the current working view after search and status filters</div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Search scope</div>
+              <div className="mt-1 text-lg font-semibold text-slate-900">{filtered.length}</div>
+              <div className="mt-1 text-xs text-slate-500">Assets currently matching your inventory filters</div>
             </div>
           </div>
         </div>
@@ -135,9 +135,9 @@ export function Inventory({ assets, selectedAsset, setSelectedAsset, importAsset
           </div>
           <div className="grid gap-3 sm:grid-cols-2 xl:min-w-[340px]">
             <div className="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3">
-              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Desk focus</div>
-              <div className="mt-2 text-sm font-medium text-slate-800">Prioritise clean, eligible inventory before term funding windows open.</div>
-              <div className="mt-1 text-xs leading-5 text-slate-500">This view is strongest when treasury can immediately tell which positions are usable, restricted, or operationally trapped.</div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Workflow note</div>
+              <div className="mt-2 text-sm font-medium text-slate-800">CSV imports preserve the demo state immediately.</div>
+              <div className="mt-1 text-xs leading-5 text-slate-500">Use the template first to keep issuer, haircut, and eligibility fields aligned with the orchestrator rules.</div>
             </div>
             <div className="flex gap-2 self-start sm:justify-end">
             <input type="file" accept=".csv" id="csv-import" className="hidden" onChange={handleImport} />
@@ -199,26 +199,6 @@ export function Inventory({ assets, selectedAsset, setSelectedAsset, importAsset
               )}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
-
-      <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
-        <CardContent className="grid gap-4 px-5 py-5 lg:grid-cols-3">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-4">
-            <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Operational read</div>
-            <div className="mt-2 text-sm font-medium text-slate-800">Available assets are the real funding flex.</div>
-            <div className="mt-1 text-xs leading-5 text-slate-500">Use status and eligibility together to distinguish headline inventory from genuinely deployable collateral.</div>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
-            <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Best use case</div>
-            <div className="mt-2 text-sm font-medium text-slate-800">Run this screen before repo creation and substitution decisions.</div>
-            <div className="mt-1 text-xs leading-5 text-slate-500">It gives the desk a fast read on haircut-adjusted capacity and hidden constraints in the collateral pool.</div>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
-            <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Data hygiene</div>
-            <div className="mt-2 text-sm font-medium text-slate-800">Template-driven imports keep this inventory coherent.</div>
-            <div className="mt-1 text-xs leading-5 text-slate-500">Issuer, custody, haircut, and eligibility fields flow directly into downstream checks, so consistency matters here more than volume.</div>
-          </div>
         </CardContent>
       </Card>
 
