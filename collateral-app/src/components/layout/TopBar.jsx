@@ -124,23 +124,27 @@ export function TopBar({
   const critical = notifications.filter((n) => n.severity === "Critical").length;
 
   return (
-    <div className="flex items-center justify-between px-6 py-0 h-12 border-b border-slate-200 bg-white flex-shrink-0 gap-3">
+    <div className="flex items-center justify-between px-6 py-0 h-14 border-b border-slate-200/80 bg-white/95 backdrop-blur flex-shrink-0 gap-3">
       {/* Left: institution context */}
       <div className="flex items-center gap-4 flex-shrink-0">
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-400 uppercase tracking-widest">Institution</span>
           <span className="text-sm font-semibold text-slate-900">Banca Demo Romania</span>
         </div>
-        <div className="h-4 w-px bg-slate-200" />
-        <span className="text-xs text-slate-500 font-mono hidden md:block">
-          LIVE · {new Date().toLocaleDateString("ro-RO", { day: "2-digit", month: "short", year: "numeric" })}
+        <div className="hidden h-4 w-px bg-slate-200 md:block" />
+        <span className="hidden md:inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+          Demo live
+        </span>
+        <span className="hidden font-mono text-xs text-slate-500 xl:block">
+          {new Date().toLocaleDateString("ro-RO", { day: "2-digit", month: "short", year: "numeric" })}
         </span>
       </div>
 
       {/* Centre: global search */}
-      <div className="flex-1 max-w-sm relative" ref={searchRef}>
+      <div className="flex-1 max-w-md relative" ref={searchRef}>
         <button
-          className="w-full flex items-center gap-2 h-8 px-3 bg-slate-100 hover:bg-slate-200 rounded text-xs text-slate-400 transition"
+          className="w-full flex items-center gap-2 h-10 px-3.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs text-slate-400 transition border border-transparent hover:border-slate-200"
           onClick={() => { setSearchOpen(true); setTimeout(() => inputRef.current?.focus(), 50); }}
         >
           <Search className="h-3.5 w-3.5 flex-shrink-0" />
@@ -183,16 +187,16 @@ export function TopBar({
       {/* Right: controls */}
       <div className="flex items-center gap-1 flex-shrink-0">
         {/* Role badge */}
-        <div className="px-3 h-7 flex items-center text-xs font-medium text-slate-600 bg-slate-100 border border-slate-200 rounded mr-2">
+        <div className="mr-2 flex h-8 items-center rounded-xl border border-slate-200 bg-slate-100 px-3.5 text-xs font-medium text-slate-600">
           {role}
         </div>
 
         {/* EoD Lock */}
         <button
-          className={`h-8 px-2.5 flex items-center gap-1.5 text-xs rounded transition disabled:opacity-40 ${
+          className={`h-9 px-3 flex items-center gap-1.5 text-xs rounded-xl transition disabled:opacity-40 ${
             eodDone
               ? "text-emerald-700 bg-emerald-50 border border-emerald-200"
-              : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"
+              : "text-slate-500 border border-transparent hover:text-slate-800 hover:bg-slate-100"
           }`}
           onClick={handleEodLock}
           disabled={eodLocking}
@@ -208,7 +212,7 @@ export function TopBar({
         {/* Bell */}
         <div className="relative" ref={bellRef}>
           <button
-            className={`relative h-8 w-8 flex items-center justify-center rounded hover:bg-slate-100 transition ${critical > 0 ? "text-red-600" : "text-slate-500"}`}
+            className={`relative h-9 w-9 flex items-center justify-center rounded-xl hover:bg-slate-100 transition ${critical > 0 ? "text-red-600" : "text-slate-500"}`}
             onClick={() => setBellOpen((o) => !o)}
           >
             <Bell className="h-4 w-4" />
@@ -258,7 +262,7 @@ export function TopBar({
 
         {/* Reset */}
         <button
-          className="h-8 px-3 flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded transition disabled:opacity-40"
+          className="h-9 rounded-xl px-3 flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition disabled:opacity-40"
           onClick={handleReset}
           disabled={resetting}
         >
@@ -268,7 +272,7 @@ export function TopBar({
 
         {/* Logout */}
         <button
-          className="h-8 w-8 flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded transition"
+          className="h-9 w-9 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition"
           onClick={onLogout}
           title="Sign out"
         >
