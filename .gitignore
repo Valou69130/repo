@@ -1,0 +1,28 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+
+# Temp Office files
+~$*.docx
+~$*.doc
+~$*.xlsx
+~$*.pptx
+
+# Dependency folders
+node_modules/
+collateral-app/node_modules/
+collateral-api/node_modules/
+
+# Frontend build output
+collateral-app/dist/
+collateral-app/dist-ssr/
+
+# Local environment files
+.env
+.env.local
+collateral-api/.env
+
+# SQLite runtime files
+collateral-api/*.db-shm
+collateral-api/*.db-wal
+
