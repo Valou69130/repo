@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { AlertTriangle, Building2, CheckCircle2, ChevronRight, Shield, TrendingUp } from "lucide-react";
+import { AlertTriangle, Building2, CheckCircle2, ChevronRight, Shield, Sparkles, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -99,11 +99,33 @@ export function CounterpartyMonitor({ repos, assets }) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight">Counterparty Monitor</h1>
-        <p className="mt-1 text-slate-500">
-          Credit limit utilisation, bilateral agreement terms, and eligible collateral per counterparty.
-        </p>
+      <div className="relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-[linear-gradient(135deg,#fbfdff_0%,#eff6ff_36%,#f8fafc_100%)] px-6 py-6 shadow-sm">
+        <div className="absolute right-0 top-0 h-36 w-36 rounded-full bg-sky-200/35 blur-3xl" />
+        <div className="absolute bottom-0 left-10 h-28 w-28 rounded-full bg-emerald-100/60 blur-3xl" />
+        <div className="relative flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-white/80 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-sky-700 shadow-sm">
+              <Sparkles className="h-3.5 w-3.5" />
+              Bilateral risk view
+            </div>
+            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900">Counterparty Monitor</h1>
+            <p className="mt-2 max-w-2xl text-slate-600">
+              Understand which names still have balance sheet capacity, where collateral terms are tightening, and which bilateral relationships need intervention before limits become binding.
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Aggregate utilisation</div>
+              <div className="mt-1 text-lg font-semibold text-slate-900">{totals.utilPct}%</div>
+              <div className="mt-1 text-xs text-slate-500">Of total bilateral credit capacity currently in use</div>
+            </div>
+            <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Watchlist</div>
+              <div className={`mt-1 text-lg font-semibold ${totals.breaches > 0 ? "text-amber-700" : "text-slate-900"}`}>{totals.breaches}</div>
+              <div className="mt-1 text-xs text-slate-500">Counterparties approaching or breaching the 90% utilisation threshold</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
@@ -113,7 +135,7 @@ export function CounterpartyMonitor({ repos, assets }) {
         <KpiCard title="Limit Warnings" value={String(totals.breaches)} description="Counterparties ≥ 90% utilised" icon={AlertTriangle} alert={totals.breaches > 0} />
       </div>
 
-      <Card className="rounded-md shadow-sm">
+      <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
         <CardHeader>
           <CardTitle>Counterparty Exposure & Limits</CardTitle>
           <CardDescription>Click a row to view bilateral agreement details, eligible collateral, and concentration checks.</CardDescription>
@@ -169,6 +191,26 @@ export function CounterpartyMonitor({ repos, assets }) {
               })}
             </TableBody>
           </Table>
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
+        <CardContent className="grid gap-4 px-5 py-5 lg:grid-cols-3">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-4">
+            <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">How to read this</div>
+            <div className="mt-2 text-sm font-medium text-slate-800">Exposure is only half the story.</div>
+            <div className="mt-1 text-xs leading-5 text-slate-500">The real constraint is the combination of headroom, accepted collateral types, concentration limits, and current buffer quality across live trades.</div>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
+            <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Desk use</div>
+            <div className="mt-2 text-sm font-medium text-slate-800">Use this before opening new funding lines or expanding an existing name.</div>
+            <div className="mt-1 text-xs leading-5 text-slate-500">A quick read here helps avoid walking into preventable limit breaches or collateral mismatch conversations later in the workflow.</div>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
+            <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">What matters most</div>
+            <div className="mt-2 text-sm font-medium text-slate-800">Counterparties near 90% utilisation deserve immediate attention.</div>
+            <div className="mt-1 text-xs leading-5 text-slate-500">Those relationships are most likely to create approval friction, pricing pressure, or forced collateral reshuffling under stress.</div>
+          </div>
         </CardContent>
       </Card>
 

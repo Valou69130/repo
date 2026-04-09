@@ -30,6 +30,7 @@ import {
   Search,
   Server,
   ShieldCheck,
+  Sparkles,
   X,
   XCircle,
   Zap,
@@ -728,16 +729,33 @@ export function DigitalPositions({ assets: propAssets, audit: propAudit }) {
 
   return (
     <div className="space-y-6">
-      {/* Page header */}
-      <div>
-        <div className="flex items-center gap-2">
-          <Layers className="h-5 w-5 text-slate-600" />
-          <h1 className="text-2xl font-semibold tracking-tight">Digital Position Explorer</h1>
+      <div className="relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-[linear-gradient(135deg,#f8fbff_0%,#eef2ff_34%,#f8fafc_100%)] px-6 py-6 shadow-sm">
+        <div className="absolute right-0 top-0 h-36 w-36 rounded-full bg-indigo-200/35 blur-3xl" />
+        <div className="absolute bottom-0 left-10 h-28 w-28 rounded-full bg-sky-100/60 blur-3xl" />
+        <div className="relative flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white/80 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-indigo-700 shadow-sm">
+              <Sparkles className="h-3.5 w-3.5" />
+              Position intelligence
+            </div>
+            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900">Digital Positions</h1>
+            <p className="mt-2 max-w-2xl text-slate-600">
+              Treat each position as a living operational object with identity, control state, ledger lineage, reconciliation health, and lifecycle evidence in one place.
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Visible scope</div>
+              <div className="mt-1 text-lg font-semibold text-slate-900">{filtered.length}/{positions.length}</div>
+              <div className="mt-1 text-xs text-slate-500">Positions currently in focus after applying search and control filters</div>
+            </div>
+            <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Control signal</div>
+              <div className={`mt-1 text-lg font-semibold ${kpis.breaks > 0 ? "text-red-700" : "text-slate-900"}`}>{kpis.breaks > 0 ? "Breaks present" : "Stable"}</div>
+              <div className="mt-1 text-xs text-slate-500">Reconciliation issues and encumbered states show up immediately in the position layer</div>
+            </div>
+          </div>
         </div>
-        <p className="mt-1 text-slate-500 text-sm max-w-2xl">
-          CollateralPosition as a first-class operational object — settlement identity, ownership chain,
-          encumbrance lifecycle, reconciliation state, and source ledger metadata per position.
-        </p>
       </div>
 
       {/* KPIs */}
@@ -771,7 +789,7 @@ export function DigitalPositions({ assets: propAssets, audit: propAudit }) {
       </div>
 
       {/* Position registry */}
-      <Card className="rounded-md shadow-sm">
+      <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
         <CardHeader className="pb-4">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
@@ -989,6 +1007,26 @@ export function DigitalPositions({ assets: propAssets, audit: propAudit }) {
               </Table>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
+        <CardContent className="grid gap-4 px-5 py-5 lg:grid-cols-3">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-4">
+            <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Why this page matters</div>
+            <div className="mt-2 text-sm font-medium text-slate-800">This is the control layer beneath the collateral story.</div>
+            <div className="mt-1 text-xs leading-5 text-slate-500">It ties together asset identity, encumbrance, repo linkage, ledger references, and event history so the desk can explain what a position is doing right now.</div>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
+            <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Best workflow</div>
+            <div className="mt-2 text-sm font-medium text-slate-800">Start here when something looks wrong downstream.</div>
+            <div className="mt-1 text-xs leading-5 text-slate-500">A margin break, substitution question, or settlement dispute usually becomes easier once you inspect the position object and its lifecycle trail.</div>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
+            <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Operator cue</div>
+            <div className="mt-2 text-sm font-medium text-slate-800">Linked repo and recon state are the fastest diagnostic signals.</div>
+            <div className="mt-1 text-xs leading-5 text-slate-500">Those two fields tell you whether the position is free, in-flight, mismatched, or actively contributing to a secured funding workflow.</div>
+          </div>
         </CardContent>
       </Card>
 
