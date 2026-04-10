@@ -13,6 +13,7 @@ function lazyNamed(loader, exportName) {
 }
 
 const Login = lazyNamed(() => import("@/pages/Login"), "Login");
+const PrivacyPolicy = lazyNamed(() => import("@/pages/PrivacyPolicy"), "PrivacyPolicy");
 const Dashboard = lazyNamed(() => import("@/pages/Dashboard"), "Dashboard");
 const Inventory = lazyNamed(() => import("@/pages/Inventory"), "Inventory");
 const Repos = lazyNamed(() => import("@/pages/Repos"), "Repos");
@@ -90,9 +91,8 @@ function AppContent() {
     dispatch({ type: "USER_LOGGED_IN", payload: loggedInUser });
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("co_token");
-    localStorage.removeItem("co_user");
+  const handleLogout = async () => {
+    await api.logout().catch(() => {});
     dispatch({ type: "USER_LOGGED_OUT" });
   };
 
@@ -341,10 +341,15 @@ function AppContent() {
     }
   };
 
+  const [showPrivacy, setShowPrivacy] = useState(false);
+
   if (!user) {
     return (
       <Suspense fallback={<PageFallback />}>
-        <Login onLogin={handleLogin} />
+        {showPrivacy
+          ? <PrivacyPolicy onClose={() => setShowPrivacy(false)} />
+          : <Login onLogin={handleLogin} onPrivacy={() => setShowPrivacy(true)} />
+        }
       </Suspense>
     );
   }

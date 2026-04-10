@@ -14,8 +14,10 @@ const ROLE_PERMS = {
 };
 
 function requireAuth(req, res, next) {
+  // Prefer httpOnly cookie; fall back to Authorization header for API clients
+  const cookie = req.cookies?.co_token;
   const header = req.headers.authorization;
-  const rawToken = header?.startsWith('Bearer ') ? header.slice(7) : null;
+  const rawToken = cookie || (header?.startsWith('Bearer ') ? header.slice(7) : null);
   if (!rawToken) return res.status(401).json({ error: 'Unauthorized' });
   try {
     req.user = jwt.verify(rawToken, JWT_SECRET);

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/integrations/api";
 
-export function Login({ onLogin }) {
+export function Login({ onLogin, onPrivacy }) {
   const [email, setEmail] = useState("treasury@banca-demo.ro");
   const [password, setPassword] = useState("demo1234");
   const [error, setError] = useState("");
@@ -15,9 +15,7 @@ export function Login({ onLogin }) {
     setError("");
     setLoading(true);
     try {
-      const { token, user } = await api.login(email, password);
-      localStorage.setItem("co_token", token);
-      localStorage.setItem("co_user", JSON.stringify(user));
+      const { user } = await api.login(email, password);
       onLogin(user);
     } catch (err) {
       setError(err.message || "Login failed");
@@ -139,7 +137,14 @@ export function Login({ onLogin }) {
             </form>
 
             <p className="mt-6 text-center text-xs text-slate-600">
-              Banca Demo Romania · Collateral & Repo Platform · Demo environment
+              Banca Demo Romania · Collateral & Repo Platform ·{" "}
+              {onPrivacy ? (
+                <button onClick={onPrivacy} className="underline hover:text-slate-400">
+                  Privacy Policy
+                </button>
+              ) : (
+                "Privacy Policy"
+              )}
             </p>
           </div>
         </div>

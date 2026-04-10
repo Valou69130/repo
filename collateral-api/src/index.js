@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const { rateLimit } = require('express-rate-limit');
+const cookieParser = require('cookie-parser');
 
 function createApp() {
   const app = express();
@@ -13,6 +14,7 @@ function createApp() {
     ? process.env.ALLOWED_ORIGINS.split(',')
     : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:4173'];
   app.use(cors({ origin: allowedOrigins, credentials: true }));
+  app.use(cookieParser());
   app.use(express.json());
 
   const loginLimiter = rateLimit({
@@ -41,11 +43,21 @@ function createApp() {
   return app;
 }
 
+function purgeOldAuditLogs(db) {
+  const cutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+  const { changes } = db.prepare("DELETE FROM audit_events WHERE ts < ?").run(cutoff.slice(0, 16).replace('T', ' '));
+  if (changes > 0) console.log(`Audit retention: purged ${changes} entries older than 90 days`);
+}
+
 if (require.main === module) {
   const app = createApp();
   const PORT = process.env.PORT || 3001;
   app.listen(PORT, () => {
     console.log(`Collateral API → http://localhost:${PORT}`);
+    const { getDb } = require('./db/schema');
+    purgeOldAuditLogs(getDb());
+    // Re-run purge daily
+    setInterval(() => purgeOldAuditLogs(getDb()), 24 * 60 * 60 * 1000);
   });
 }
 
