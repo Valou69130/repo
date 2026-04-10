@@ -103,6 +103,7 @@ function initSchema(db) {
   // Additive migrations — safe to run on existing databases
   try { db.exec(`ALTER TABLE assets ADD COLUMN integration_json TEXT DEFAULT NULL`); } catch {}
   try { db.exec(`ALTER TABLE repos  ADD COLUMN integration_json TEXT DEFAULT NULL`); } catch {}
+  try { db.exec(`ALTER TABLE audit_events ADD COLUMN hash TEXT NOT NULL DEFAULT ''`); } catch {}
 }
 
 function ensureSeedData(db) {

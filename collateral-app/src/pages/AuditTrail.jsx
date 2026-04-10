@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { Download, Filter, Search, Shield, User } from "lucide-react";
+import { CheckCircle2, Download, Filter, Search, Shield, User, XCircle } from "lucide-react";
+import { api } from "@/integrations/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,6 +36,20 @@ export function AuditTrail({ audit }) {
   const [actionFilter, setActionFilter] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [chainStatus, setChainStatus] = useState(null); // null | { valid, totalEntries, firstBrokenId }
+  const [verifying, setVerifying] = useState(false);
+
+  const verifyChain = async () => {
+    setVerifying(true);
+    try {
+      const result = await api.verifyAuditChain();
+      setChainStatus(result);
+    } catch {
+      setChainStatus({ valid: false, totalEntries: audit.length, firstBrokenId: null });
+    } finally {
+      setVerifying(false);
+    }
+  };
 
   const filtered = useMemo(() => {
     return audit.filter((e) => {
@@ -89,6 +104,26 @@ export function AuditTrail({ audit }) {
         <KpiCard title="Total Events" value={String(stats.total)} description="Recorded since session start" icon={Shield} />
         <KpiCard title="Most Active Role" value={stats.topRole} description="Highest event count this session" icon={User} />
         <KpiCard title="Filtered Events" value={String(filtered.length)} description={`${filtered.length} of ${stats.total} shown`} icon={Filter} />
+      </div>
+
+      {/* Chain integrity panel */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <Button variant="outline" size="sm" className="rounded-md" onClick={verifyChain} disabled={verifying}>
+          <Shield className="h-4 w-4 mr-1.5" /> {verifying ? "Verifying…" : "Verify Chain Integrity"}
+        </Button>
+        {chainStatus && (
+          chainStatus.valid ? (
+            <div className="flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-3 py-1.5">
+              <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
+              Chain intact — {chainStatus.totalEntries} entries verified
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-1.5">
+              <XCircle className="h-4 w-4 flex-shrink-0" />
+              Chain broken{chainStatus.firstBrokenId ? ` at entry #${chainStatus.firstBrokenId}` : ""} — tamper detected
+            </div>
+          )
+        )}
       </div>
 
       {/* Filter bar */}
@@ -158,6 +193,7 @@ export function AuditTrail({ audit }) {
                   <TableHead>Previous State</TableHead>
                   <TableHead>New State</TableHead>
                   <TableHead className="max-w-xs">Comment</TableHead>
+                  <TableHead className="w-24">Hash</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -179,6 +215,7 @@ export function AuditTrail({ audit }) {
                     <TableCell className="text-xs text-slate-400">{e.prev ?? "—"}</TableCell>
                     <TableCell className="text-xs text-slate-700 font-medium">{e.next ?? "—"}</TableCell>
                     <TableCell className="text-xs text-slate-500 max-w-xs">{e.comment}</TableCell>
+                    <TableCell className="font-mono text-[10px] text-slate-300" title={e.hash}>{e.hash ? e.hash.slice(0, 8) + "…" : "—"}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

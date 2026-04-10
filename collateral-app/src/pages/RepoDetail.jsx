@@ -345,7 +345,7 @@ export function RepoDetail({ repo, assets, closeRepo, topUpRepo, substituteColla
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <div className="font-semibold text-slate-900 text-sm">
-                      Remove <span className="font-mono">{sub.outAssetId}</span> → Add <span className="font-mono">{sub.inAssetId}</span>
+                      Remove <span className="font-mono">{sub.oldAssetId}</span> → Add <span className="font-mono">{sub.newAssetId}</span>
                     </div>
                     <div className="text-xs text-slate-500 mt-0.5">
                       Proposed by {sub.proposedBy} · {sub.proposedAt}
@@ -364,11 +364,11 @@ export function RepoDetail({ repo, assets, closeRepo, topUpRepo, substituteColla
                     <Button
                       size="sm"
                       className="rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5"
-                      onClick={() => {}}
+                      onClick={() => { onApproveSubstitution(sub.id); }}
                     >
                       <ThumbsUp className="h-3 w-3" /> Approve & Execute
                     </Button>
-                    <Button size="sm" variant="outline" className="rounded text-xs flex items-center gap-1.5" onClick={() => {}}>
+                    <Button size="sm" variant="outline" className="rounded text-xs flex items-center gap-1.5" onClick={() => { onRejectSubstitution(sub.id); }}>
                       <ThumbsDown className="h-3 w-3" /> Reject
                     </Button>
                   </div>

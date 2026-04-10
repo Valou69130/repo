@@ -12,6 +12,7 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { WorkflowStateBadge } from "@/components/shared/WorkflowState";
 import { ImpactPreview } from "@/components/shared/ImpactPreview";
 import { fmtMoney, adjustedValue } from "@/domain/format";
+import { COUNTERPARTY_PROFILES } from "@/domain/counterparties";
 import { RoleBanner } from "@/components/shared/RoleBanner";
 import { useMarginScan, useDispatch } from "@/domain/store";
 import { useMarginWorkflow } from "@/workflows/hooks/useWorkflows";
@@ -377,7 +378,7 @@ export function Margin({ repos, assets, topUpRepo, openRepo, role, permissions }
                       </div>
                       <div className="text-sm text-slate-500 mt-0.5">
                         Deficit: <span className="font-semibold text-red-600">{fmtMoney(Math.abs(r.buffer), r.currency)}</span>
-                        &nbsp;· MTA: 150,000 RON · Rate: {r.rate}%
+                        &nbsp;· MTA: {fmtMoney(COUNTERPARTY_PROFILES[r.counterparty]?.minimumTransferAmount ?? 150000, COUNTERPARTY_PROFILES[r.counterparty]?.currency ?? r.currency)} · Rate: {r.rate}%
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -587,7 +588,7 @@ export function Margin({ repos, assets, topUpRepo, openRepo, role, permissions }
                       <Info label="Required Collateral" value={fmtMoney(selectedRepo.requiredCollateral, selectedRepo.currency)} />
                       <Info label="Posted Collateral" value={fmtMoney(selectedRepo.postedCollateral, selectedRepo.currency)} />
                       <Info label="Coverage" value={`${Math.round((selectedRepo.postedCollateral / selectedRepo.requiredCollateral) * 100)}%`} />
-                      <Info label="Min Transfer Amount" value="150,000 RON" />
+                      <Info label="Min Transfer Amount" value={fmtMoney(COUNTERPARTY_PROFILES[selectedRepo.counterparty]?.minimumTransferAmount ?? 150000, COUNTERPARTY_PROFILES[selectedRepo.counterparty]?.currency ?? selectedRepo.currency)} />
                     </div>
                   </div>
                   <Separator />

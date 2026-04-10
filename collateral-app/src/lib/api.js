@@ -57,8 +57,9 @@ const remoteApi = {
   createRepo: (data) => request('POST', '/repos', data),
   updateRepo: (id, data) => request('PUT', `/repos/${id}`, data),
 
-  getAudit:  () => request('GET', '/audit'),
-  addAudit:  (entry) => request('POST', '/audit', entry),
+  getAudit:         () => request('GET', '/audit'),
+  addAudit:         (entry) => request('POST', '/audit', entry),
+  verifyAuditChain: () => request('GET', '/audit/verify'),
 
   getNotifications:   () => request('GET', '/notifications'),
   addNotification:    (n) => request('POST', '/notifications', n),

@@ -46,7 +46,8 @@ function buildSFTRRow(repo, assets) {
     // Loan data (Table 2)
     principalAmount:        repo.amount,
     currency:               repo.currency,
-    maturityType:           tenor <= 1 ? "ONIC" : tenor <= 7 ? "WEKL" : "OPEN",
+    // ONIC=overnight, FIXD=fixed-term (any defined maturity), OPEN=open-ended (no fixed maturity)
+    maturityType:           tenor <= 1 ? "ONIC" : (repo.maturityDate ? "FIXD" : "OPEN"),
     startDate:              repo.startDate,
     maturityDate:           repo.maturityDate,
     tenor,
