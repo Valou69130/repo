@@ -4,7 +4,7 @@
     {
       "name": "collateral-app",
       "cwd": "collateral-app",
-      "runtimeExecutable": "node",
+      "runtimeExecutable": "/usr/local/bin/node",
       "runtimeArgs": ["node_modules/.bin/vite"],
       "port": 5173,
       "autoPort": false
@@ -12,7 +12,7 @@
     {
       "name": "collateral-api",
       "cwd": "collateral-api",
-      "runtimeExecutable": "node",
+      "runtimeExecutable": "/usr/local/bin/node",
       "runtimeArgs": ["--watch", "src/index.js"],
       "port": 3001,
       "autoPort": false

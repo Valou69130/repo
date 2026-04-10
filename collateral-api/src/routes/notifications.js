@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const { getDb } = require('../db/schema');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireWriteAccess } = require('../middleware/auth');
 const { badRequest, isNonEmptyString } = require('../validation');
 
 router.get('/', requireAuth, (req, res) => {
@@ -8,7 +8,7 @@ router.get('/', requireAuth, (req, res) => {
   res.json(rows.map(r => ({ id: r.id, severity: r.severity, text: r.text, target: r.target, createdAt: r.created_at })));
 });
 
-router.post('/', requireAuth, (req, res) => {
+router.post('/', requireAuth, requireWriteAccess, (req, res) => {
   const { severity, text, target } = req.body;
   const allowedSeverities = new Set(['Critical', 'Warning', 'Info']);
   if (!allowedSeverities.has(severity)) return badRequest(res, 'Invalid notification severity');
@@ -18,7 +18,7 @@ router.post('/', requireAuth, (req, res) => {
   res.status(201).json({ id: result.lastInsertRowid, severity, text, target });
 });
 
-router.delete('/:id', requireAuth, (req, res) => {
+router.delete('/:id', requireAuth, requireWriteAccess, (req, res) => {
   getDb().prepare('DELETE FROM notifications WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
 });

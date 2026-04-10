@@ -65,12 +65,18 @@ const remoteApi = {
 
   resetDemo: () => request('POST', '/admin/reset'),
 
-  downloadCsvTemplate: () => {
-    const token = getToken();
+  downloadCsvTemplate: async () => {
+    const res = await fetch(`${BASE}/admin/csv-template`, {
+      headers: { Authorization: `Bearer ${getToken()}` },
+    });
+    if (!res.ok) throw new Error('Download failed');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = `${BASE}/admin/csv-template?token=${token}`;
+    link.href = url;
     link.download = 'collateral_import_template.csv';
     link.click();
+    URL.revokeObjectURL(url);
   },
 };
 

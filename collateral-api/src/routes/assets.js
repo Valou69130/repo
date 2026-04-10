@@ -1,10 +1,10 @@
 const router = require('express').Router();
 const multer = require('multer');
 const { getDb } = require('../db/schema');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requirePerm, requireWriteAccess } = require('../middleware/auth');
 const { badRequest, isFiniteNumber, isNonEmptyString } = require('../validation');
 
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 2 * 1024 * 1024 } });
 
 function toAsset(row) {
   return {
@@ -21,7 +21,7 @@ router.get('/', requireAuth, (req, res) => {
   res.json(rows.map(toAsset));
 });
 
-router.put('/:id', requireAuth, (req, res) => {
+router.put('/:id', requireAuth, requireWriteAccess, (req, res) => {
   const db = getDb();
   const existing = db.prepare('SELECT * FROM assets WHERE id = ?').get(req.params.id);
   if (!existing) return res.status(404).json({ error: 'Asset not found' });
@@ -42,7 +42,7 @@ router.put('/:id', requireAuth, (req, res) => {
 });
 
 // CSV import — expected columns: Asset ID, ISIN, Name, Type, Currency, Market Value, Haircut %, Eligibility, Custody, Status
-router.post('/import', requireAuth, upload.single('file'), (req, res) => {
+router.post('/import', requireAuth, requirePerm('canImportAssets'), upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
   const db = getDb();
   const lines = req.file.buffer.toString('utf-8').trim().split('\n').filter(Boolean);

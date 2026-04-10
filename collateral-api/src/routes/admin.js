@@ -1,17 +1,18 @@
 const router = require('express').Router();
 const { getDb } = require('../db/schema');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requirePerm } = require('../middleware/auth');
 const { seedDemoData } = require('../db/demoData');
 
 // Full demo reset — wipes all transactional data and reseeds
-router.post('/reset', requireAuth, (req, res) => {
+router.post('/reset', requireAuth, requirePerm('canReset'), (req, res) => {
   const db = getDb();
 
   try {
     seedDemoData(db, { includeUsers: false });
     res.json({ ok: true, message: 'Demo data reset successfully' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Admin reset error:', err);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 

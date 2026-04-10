@@ -23,6 +23,7 @@ collateral-app/dist-ssr/
 collateral-api/.env
 
 # SQLite runtime files
+collateral-api/*.db
 collateral-api/*.db-shm
 collateral-api/*.db-wal
 

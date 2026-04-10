@@ -138,35 +138,6 @@ export function Login({ onLogin }) {
               </Button>
             </form>
 
-            <div className="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70">
-              <div className="border-b border-slate-800 px-4 py-3">
-                <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-slate-500">Demo Accounts · password: demo1234</span>
-              </div>
-              <div className="divide-y divide-slate-800">
-                {[
-                  ["Treasury Manager",   "treasury@banca-demo.ro"],
-                  ["Collateral Manager", "collateral@banca-demo.ro"],
-                  ["Operations Analyst", "operations@banca-demo.ro"],
-                  ["Risk Reviewer",      "risk@banca-demo.ro"],
-                ].map(([role, mail]) => (
-                  <button
-                    key={mail}
-                    type="button"
-                    onClick={() => { setEmail(mail); setPassword("demo1234"); }}
-                    className="flex w-full items-center justify-between px-4 py-3 text-left transition hover:bg-slate-800/80"
-                  >
-                    <div>
-                      <div className="text-sm font-medium text-slate-200">{role}</div>
-                      <div className="mt-0.5 font-mono text-[11px] text-slate-500">{mail}</div>
-                    </div>
-                    <div className="rounded-full border border-slate-700 px-2 py-1 text-[10px] uppercase tracking-wide text-slate-400">
-                      Use
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
             <p className="mt-6 text-center text-xs text-slate-600">
               Banca Demo Romania · Collateral & Repo Platform · Demo environment
             </p>
