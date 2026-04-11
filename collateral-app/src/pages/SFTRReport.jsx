@@ -36,7 +36,7 @@ function buildSFTRRow(repo, assets) {
   return {
     // Counterparty data (Table 1)
     uti:                    `RO-BDEMO-${repo.id}-01`,
-    reportingCptyLei:       "549300BNCDEMORO00018",
+    reportingCptyLei:       "549300BNCDEMORO00066",
     reportingCptyType:      "F",           // Financial counterparty
     otherCptyLei:           profile?.lei ?? `NOCPYLEI${repo.counterparty.slice(0,4).toUpperCase()}`,
     otherCptyType:          "F",
@@ -131,7 +131,7 @@ function buildXML(rows) {
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="urn:esma:sftr:v1 SFTR_v1.xsd">
   <sftr:Header>
-    <sftr:ReportingEntity>${rows[0]?.reportingCptyLei ?? "549300BNCDEMORO00018"}</sftr:ReportingEntity>
+    <sftr:ReportingEntity>${rows[0]?.reportingCptyLei ?? "549300BNCDEMORO00066"}</sftr:ReportingEntity>
     <sftr:ReportDate>${date}</sftr:ReportDate>
     <sftr:TradeRepository>Regis-TR</sftr:TradeRepository>
     <sftr:TotalTrades>${rows.length}</sftr:TotalTrades>
@@ -235,7 +235,7 @@ export function SFTRReport({ repos, assets }) {
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <div className="flex justify-between"><span className="text-slate-500">Legal Entity</span><span className="font-medium">Banca Demo Romania</span></div>
-            <div className="flex justify-between"><span className="text-slate-500">LEI</span><span className="font-mono text-xs">549300BNCDEMORO00018</span></div>
+            <div className="flex justify-between"><span className="text-slate-500">LEI</span><span className="font-mono text-xs">549300BNCDEMORO00066</span></div>
             <div className="flex justify-between"><span className="text-slate-500">Counterparty Type</span><span>Financial (F)</span></div>
             <div className="flex justify-between"><span className="text-slate-500">Trade Repository</span><span>Regis-TR</span></div>
             <div className="flex justify-between"><span className="text-slate-500">Reporting Jurisdiction</span><span>Romania / EU</span></div>
