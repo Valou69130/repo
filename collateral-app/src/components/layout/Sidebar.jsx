@@ -12,6 +12,7 @@ import {
   Scale,
   ShieldCheck,
   Sparkles,
+  TrendingUp,
   Wallet,
 } from "lucide-react";
 
@@ -19,7 +20,8 @@ const SECTIONS = [
   {
     label: "Overview",
     items: [
-      { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { key: "dashboard",      label: "Dashboard",     icon: LayoutDashboard },
+      { key: "business-case",  label: "Business Case", icon: TrendingUp       },
     ],
   },
   {

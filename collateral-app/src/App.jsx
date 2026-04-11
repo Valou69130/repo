@@ -7,6 +7,9 @@ import { getPermissions } from "@/domain/permissions";
 import { api } from "@/integrations/api";
 import { useIntegration } from "@/integrations/useIntegration";
 import { DomainProvider, useDomain, useDispatch } from "@/domain/store";
+import { ChangePasswordModal } from "@/components/shared/ChangePasswordModal";
+import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
+import { COUNTERPARTY_PROFILES } from "@/domain/counterparties";
 
 function lazyNamed(loader, exportName) {
   return lazy(() => loader().then((module) => ({ default: module[exportName] })));
@@ -28,6 +31,7 @@ const Notifications = lazyNamed(() => import("@/pages/Notifications"), "Notifica
 const RegulatoryCompliance = lazyNamed(() => import("@/pages/RegulatoryCompliance"), "RegulatoryCompliance");
 const IntegrationHub = lazyNamed(() => import("@/pages/IntegrationHub"), "IntegrationHub");
 const PortfolioOptimisation = lazyNamed(() => import("@/pages/PortfolioOptimisation"), "PortfolioOptimisation");
+const BusinessCase = lazyNamed(() => import("@/pages/BusinessCase"), "BusinessCase");
 
 function PageFallback() {
   return (
@@ -87,10 +91,6 @@ function AppContent() {
     if (user) loadData();
   }, [user, loadData]);
 
-  const handleLogin = (loggedInUser) => {
-    dispatch({ type: "USER_LOGGED_IN", payload: loggedInUser });
-  };
-
   const handleLogout = async () => {
     await api.logout().catch(() => {});
     dispatch({ type: "USER_LOGGED_OUT" });
@@ -131,16 +131,26 @@ function AppContent() {
     const assetIds = proposedBasket.picked.map((a) => a.id);
     const today = new Date().toISOString().slice(0, 10);
     const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+    const coverageRatio = COUNTERPARTY_PROFILES[counterparty]?.coverageRatio ?? 1.03;
     const newRepo = {
       id, counterparty, amount, currency, rate,
       startDate: today, maturityDate: tomorrow,
       state: "Active",
-      requiredCollateral: Math.round(amount * 1.03),
+      requiredCollateral: Math.round(amount * coverageRatio),
       postedCollateral: Math.round(proposedBasket.adjusted),
-      buffer: Math.round(proposedBasket.adjusted - amount * 1.03),
+      buffer: Math.round(proposedBasket.adjusted - amount * coverageRatio),
       settlement: "Awaiting confirmation",
       assets: assetIds,
       notes: "Created from the simulated treasury booking workflow.",
+      integration: {
+        sourceSystem: "CollateralOS Treasury Booking",
+        sourceLedger: "Internal Treasury Book",
+        settlementState: "pending_confirmation",
+        reconState: "pending",
+        custodyLocation: "SaFIR / BNR Central Registry",
+        lastSyncTs: new Date().toISOString(),
+        externalRef: `INT-TRY-${today.replace(/-/g, "")}-${id}`,
+      },
     };
     dispatch({ type: "REPO_CREATED", payload: newRepo });
     for (const aid of assetIds) {
@@ -204,6 +214,7 @@ function AppContent() {
     const today = new Date().toISOString().slice(0, 10);
     const maturity = new Date(Date.now() + newTermDays * 86400000).toISOString().slice(0, 10);
     const newId = `R-${1000 + repos.length + 50}`;
+    const coverageRatio = COUNTERPARTY_PROFILES[repo.counterparty]?.coverageRatio ?? 1.03;
     const newRepo = {
       id: newId,
       counterparty: repo.counterparty,
@@ -213,12 +224,21 @@ function AppContent() {
       startDate: today,
       maturityDate: maturity,
       state: "Active",
-      requiredCollateral: Math.round(repo.amount * 1.03),
+      requiredCollateral: Math.round(repo.amount * coverageRatio),
       postedCollateral: repo.postedCollateral,
-      buffer: Math.round(repo.postedCollateral - repo.amount * 1.03),
+      buffer: Math.round(repo.postedCollateral - repo.amount * coverageRatio),
       settlement: "Awaiting confirmation",
       assets: repo.assets,
       notes: `Rolled over from ${repoId} at ${newRate}% for ${newTermDays}d.`,
+      integration: {
+        sourceSystem: "CollateralOS Treasury Booking",
+        sourceLedger: "Internal Treasury Book",
+        settlementState: "pending_confirmation",
+        reconState: "pending",
+        custodyLocation: repo.integration?.custodyLocation ?? "SaFIR / BNR Central Registry",
+        lastSyncTs: new Date().toISOString(),
+        externalRef: `INT-TRY-${today.replace(/-/g, "")}-${newId}`,
+      },
     };
     const closed = { ...repo, state: "Closed", settlement: "Confirmed", notes: `${repo.notes} Rolled into ${newId}.` };
     dispatch({ type: "REPO_CREATED", payload: newRepo });
@@ -336,12 +356,20 @@ function AppContent() {
         return <IntegrationHub integration={integration} repos={repos} assets={assets} />;
       case "portfolio-opt":
         return <PortfolioOptimisation repos={repos} assets={assets} openRepo={openRepo} />;
+      case "business-case":
+        return <BusinessCase />;
       default:
         return <Dashboard assets={assets} repos={repos} notifications={notifications} openRepo={openRepo} pendingSubstitutions={pendingSubstitutions} role={role} onApproveSubstitution={approveSubstitution} onRejectSubstitution={rejectSubstitution} onNavigate={setCurrent} />;
     }
   };
 
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [mustChangePassword, setMustChangePassword] = useState(false);
+
+  const handleLogin = (loggedInUser, requiresPwChange = false) => {
+    dispatch({ type: "USER_LOGGED_IN", payload: loggedInUser });
+    if (requiresPwChange) setMustChangePassword(true);
+  };
 
   if (!user) {
     return (
@@ -360,6 +388,10 @@ function AppContent() {
         <div className="text-slate-500 text-sm">Loading...</div>
       </div>
     );
+  }
+
+  if (mustChangePassword) {
+    return <ChangePasswordModal onSuccess={() => setMustChangePassword(false)} />;
   }
 
   return (
@@ -390,7 +422,9 @@ function AppContent() {
           <main className="p-6 md:p-8 flex-1 overflow-auto">
             <ScrollArea className="h-[calc(100vh-96px)] pr-4">
               <Suspense fallback={<PageFallback />}>
-                {renderCurrentPage()}
+                <ErrorBoundary key={current}>
+                  {renderCurrentPage()}
+                </ErrorBoundary>
               </Suspense>
             </ScrollArea>
           </main>
