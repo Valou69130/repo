@@ -11,7 +11,7 @@ const WORKFLOWS = [
     icon: Zap,
     manualMin: 30,
     manualMax: 90,
-    automatedMax: 5,
+    automatedMax: 4,
     manualSteps: 12,
     automatedSteps: 3,
     description: "Select eligible assets, calculate haircut coverage, obtain approval",
@@ -56,7 +56,7 @@ function WorkflowCard({ workflow }) {
   const manualMid = Math.round((manualMin + manualMax) / 2);
   const reduction = Math.round(((manualMid - automatedMax) / manualMid) * 100);
   const stepReduction = Math.round(((manualSteps - automatedSteps) / manualSteps) * 100);
-  const barWidth = Math.round((automatedMax / manualMax) * 100);
+  const barWidth = Math.round((automatedMax / manualMid) * 100);
 
   return (
     <Card className="rounded-md shadow-sm">
@@ -112,10 +112,10 @@ export function BusinessCase() {
   const [hourlyRate, setHourlyRate] = useState(80);
 
   // Annual time saved calculation
-  // basket: saves ~55 min/trade avg; margin: ~2 exceptions/day saves ~165 min/day;
+  // basket: saves ~55 min/trade avg; margin: ~2 exceptions/day saves ~150 min/day;
   // sftr: saves ~165 min/day; settlement: saves ~28 min/trade avg
   const basketSavedMin  = tradesPerDay * 55;
-  const marginSavedMin  = 2 * 165;
+  const marginSavedMin  = 2 * 150;
   const sftrSavedMin    = 165;
   const settleSavedMin  = tradesPerDay * 28;
   const totalSavedMinPerDay = basketSavedMin + marginSavedMin + sftrSavedMin + settleSavedMin;
@@ -179,10 +179,11 @@ export function BusinessCase() {
             <CardContent className="space-y-5">
               <div>
                 <div className="flex justify-between text-xs mb-2">
-                  <label className="font-medium text-slate-600">Repo trades per day</label>
+                  <label htmlFor="trades-per-day" className="font-medium text-slate-600">Repo trades per day</label>
                   <span className="font-semibold text-slate-800">{tradesPerDay}</span>
                 </div>
                 <input
+                  id="trades-per-day"
                   type="range" min={1} max={50} value={tradesPerDay}
                   onChange={(e) => setTradesPerDay(Number(e.target.value))}
                   className="w-full accent-blue-600"
@@ -191,10 +192,11 @@ export function BusinessCase() {
               </div>
               <div>
                 <div className="flex justify-between text-xs mb-2">
-                  <label className="font-medium text-slate-600">Ops team hourly rate (EUR)</label>
+                  <label htmlFor="hourly-rate" className="font-medium text-slate-600">Ops team hourly rate (EUR)</label>
                   <span className="font-semibold text-slate-800">EUR {hourlyRate}</span>
                 </div>
                 <input
+                  id="hourly-rate"
                   type="range" min={40} max={200} step={10} value={hourlyRate}
                   onChange={(e) => setHourlyRate(Number(e.target.value))}
                   className="w-full accent-blue-600"
