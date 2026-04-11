@@ -32,7 +32,7 @@ const TYPE_CFG = {
 function deriveOptimisations(repos, assets) {
   const activeRepos    = repos.filter((r) => r.state !== "Closed");
   const pledgedIds     = new Set(activeRepos.flatMap((r) => r.assets));
-  const TODAY          = "2026-04-06";
+  const TODAY          = new Date().toISOString().slice(0, 10);
   const opps           = [];
 
   // 1 ── Cross-repo rebalancing: deficit vs surplus repos

@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { ArrowRight, Landmark, Lock, Mail, ShieldCheck, Sparkles, TrendingUp } from "lucide-react";
+import { ArrowRight, Landmark, Lock, Mail, ShieldCheck, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/integrations/api";
 
 export function Login({ onLogin, onPrivacy }) {
-  const [email, setEmail] = useState("treasury@banca-demo.ro");
-  const [password, setPassword] = useState("demo1234");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -15,8 +15,8 @@ export function Login({ onLogin, onPrivacy }) {
     setError("");
     setLoading(true);
     try {
-      const { user } = await api.login(email, password);
-      onLogin(user);
+      const { user, mustChangePassword } = await api.login(email, password);
+      onLogin(user, mustChangePassword === true);
     } catch (err) {
       setError(err.message || "Login failed");
     } finally {
@@ -39,16 +39,12 @@ export function Login({ onLogin, onPrivacy }) {
               </div>
               <div>
                 <div className="font-semibold tracking-[0.12em] text-white">CollateralOS</div>
-                <div className="text-[10px] uppercase tracking-[0.22em] text-slate-400">Romania Treasury Pilot</div>
+                <div className="text-[10px] uppercase tracking-[0.22em] text-slate-400">Treasury Operations Platform</div>
               </div>
             </div>
 
             <div className="mt-14 max-w-xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-emerald-200">
-                <Sparkles className="h-3.5 w-3.5" />
-                Live operating demo
-              </div>
-              <h1 className="mt-6 text-4xl font-semibold leading-tight text-white">
+              <h1 className="text-4xl font-semibold leading-tight text-white">
                 Run collateral, repo, and control workflows from one decision surface.
               </h1>
               <p className="mt-5 max-w-lg text-sm leading-7 text-slate-300">
@@ -61,8 +57,8 @@ export function Login({ onLogin, onPrivacy }) {
           <div className="relative grid gap-4 md:grid-cols-3">
             {[
               { icon: ShieldCheck, label: "Coverage monitored", value: "24/7", note: "Margin and exception surveillance" },
-              { icon: TrendingUp, label: "Pilot free pool", value: "RON 26.9M", note: "Visible collateral capacity" },
-              { icon: Sparkles, label: "Action engine", value: "3 agents", note: "Allocation, margin, exceptions" },
+              { icon: TrendingUp, label: "Eligible collateral", value: "RON 26.9M", note: "Visible free pool capacity" },
+              { icon: Landmark, label: "Regulatory scope", value: "EMIR · SFTR", note: "NBR Reg. 5/2013 aligned" },
             ].map(({ icon: Icon, label, value, note }) => (
               <div key={label} className="rounded-2xl border border-white/10 bg-slate-950/40 p-4 backdrop-blur">
                 <div className="flex items-center justify-between">
@@ -85,12 +81,12 @@ export function Login({ onLogin, onPrivacy }) {
                 </div>
                 <div>
                   <div className="text-sm font-semibold tracking-[0.12em] text-white">CollateralOS</div>
-                  <div className="text-xs text-slate-500">Romania Pilot · v1.0</div>
+                  <div className="text-xs text-slate-500">Collateral & Repo Management</div>
                 </div>
               </div>
               <h2 className="mt-6 text-3xl font-semibold text-white">Sign in to the control room</h2>
               <p className="mt-2 text-sm leading-6 text-slate-400">
-                Use a demo role below to enter the platform exactly as treasury, collateral, operations, or risk would see it.
+                Sign in with your institutional credentials to access the platform.
               </p>
             </div>
 
@@ -136,8 +132,33 @@ export function Login({ onLogin, onPrivacy }) {
               </Button>
             </form>
 
-            <p className="mt-6 text-center text-xs text-slate-600">
-              Banca Demo Romania · Collateral & Repo Platform ·{" "}
+            <details className="mt-6 rounded-xl border border-white/6 bg-slate-900/50">
+              <summary className="cursor-pointer px-4 py-2.5 text-xs text-slate-500 select-none hover:text-slate-400">
+                Demo access
+              </summary>
+              <div className="border-t border-white/6 px-4 py-3 space-y-1.5">
+                {[
+                  { role: "Treasury Manager",    email: "treasury@banca-demo.ro"    },
+                  { role: "Collateral Manager",  email: "collateral@banca-demo.ro"  },
+                  { role: "Operations Analyst",  email: "operations@banca-demo.ro"  },
+                  { role: "Risk Reviewer",       email: "risk@banca-demo.ro"        },
+                ].map(({ role, email }) => (
+                  <button
+                    key={email}
+                    type="button"
+                    onClick={() => { setEmail(email); setPassword("demo1234"); }}
+                    className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left hover:bg-white/5"
+                  >
+                    <span className="text-xs text-slate-400">{role}</span>
+                    <span className="font-mono text-[11px] text-slate-600">{email}</span>
+                  </button>
+                ))}
+                <p className="pt-1 text-[11px] text-slate-700">Password: demo1234</p>
+              </div>
+            </details>
+
+            <p className="mt-4 text-center text-xs text-slate-600">
+              CollateralOS · Collateral & Repo Platform ·{" "}
               {onPrivacy ? (
                 <button onClick={onPrivacy} className="underline hover:text-slate-400">
                   Privacy Policy
