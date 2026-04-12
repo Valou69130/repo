@@ -39,6 +39,7 @@ const remoteApi = {
     localStorage.removeItem('co_user');
   },
   me: () => request('GET', '/auth/me'),
+  changePassword: (currentPassword, newPassword) => request('PUT', '/auth/password', { currentPassword, newPassword }),
 
   getAssets:   () => request('GET', '/assets'),
   updateAsset: (id, data) => request('PUT', `/assets/${id}`, data),

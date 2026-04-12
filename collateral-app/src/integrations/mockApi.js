@@ -95,8 +95,17 @@ export const mockApi = {
     };
   },
 
+  async logout() {
+    localStorage.removeItem("co_user");
+  },
+
   async me() {
     return { user: requireAuth() };
+  },
+
+  async changePassword(_currentPassword, _newPassword) {
+    requireAuth();
+    return { ok: true };
   },
 
   async getAssets() {

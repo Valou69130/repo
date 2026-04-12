@@ -14,7 +14,7 @@ import { Input }   from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { SAMPLE_PAYLOADS } from "@/integrations/adapters/mock/TradeIntakeAdapter";
+import { SAMPLE_PAYLOADS } from "@/lib/integration/adapters/mock/TradeIntakeAdapter";
 import { fmtMoney } from "@/domain/format";
 
 // ── Utility helpers ──────────────────────────────────────────────────────────

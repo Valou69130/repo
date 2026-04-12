@@ -5,7 +5,7 @@ import { TopBar } from "@/components/layout/TopBar";
 import { adjustedValue } from "@/domain/format";
 import { getPermissions } from "@/domain/permissions";
 import { api } from "@/integrations/api";
-import { useIntegration } from "@/integrations/useIntegration";
+import { useIntegration } from "@/hooks/useIntegration";
 import { DomainProvider, useDomain, useDispatch } from "@/domain/store";
 import { ChangePasswordModal } from "@/components/shared/ChangePasswordModal";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
