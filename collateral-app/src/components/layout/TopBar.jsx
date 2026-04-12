@@ -1,5 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { Bell, LogOut, RefreshCw, Search, X, AlertTriangle, Info, AlertCircle, Lock, FileText } from "lucide-react";
+import { Bell, LogOut, RefreshCw, Search, X, AlertTriangle, Info, AlertCircle, Lock, FileText, ChevronDown, UserCheck } from "lucide-react";
+
+const DEMO_ROLES = [
+  { name: "Treasury Manager",   email: "treasury@banca-demo.ro" },
+  { name: "Collateral Manager", email: "collateral@banca-demo.ro" },
+  { name: "Operations Analyst", email: "operations@banca-demo.ro" },
+  { name: "Risk Reviewer",      email: "risk@banca-demo.ro" },
+];
 
 const SEVERITY_ICON = {
   Critical: AlertTriangle,
@@ -36,17 +43,19 @@ function SearchResult({ result, onSelect }) {
 
 export function TopBar({
   notifications, role, onLogout, onDismissNotification, onReset,
-  repos, assets, onNavigate, onEodLock,
+  repos, assets, onNavigate, onEodLock, onSwitchRole,
 }) {
   const [bellOpen, setBellOpen]   = useState(false);
   const [resetting, setResetting] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [roleOpen, setRoleOpen]   = useState(false);
   const [query, setQuery]         = useState("");
   const [eodLocking, setEodLocking] = useState(false);
   const [eodDone, setEodDone]     = useState(false);
 
   const bellRef   = useRef(null);
   const searchRef = useRef(null);
+  const roleRef   = useRef(null);
   const inputRef  = useRef(null);
 
   // Close dropdowns on outside click
@@ -54,6 +63,7 @@ export function TopBar({
     function handle(e) {
       if (bellRef.current && !bellRef.current.contains(e.target)) setBellOpen(false);
       if (searchRef.current && !searchRef.current.contains(e.target)) setSearchOpen(false);
+      if (roleRef.current && !roleRef.current.contains(e.target)) setRoleOpen(false);
     }
     document.addEventListener("mousedown", handle);
     return () => document.removeEventListener("mousedown", handle);
@@ -186,9 +196,34 @@ export function TopBar({
 
       {/* Right: controls */}
       <div className="flex items-center gap-1 flex-shrink-0">
-        {/* Role badge */}
-        <div className="mr-2 flex h-8 items-center rounded-xl border border-slate-200 bg-slate-100 px-3.5 text-xs font-medium text-slate-600">
-          {role}
+        {/* Role switcher */}
+        <div className="relative mr-2" ref={roleRef}>
+          <button
+            className="flex h-8 items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-100 px-3 text-xs font-medium text-slate-600 hover:bg-slate-200 transition"
+            onClick={() => setRoleOpen((o) => !o)}
+            title="Switch demo role"
+          >
+            <UserCheck className="h-3 w-3 text-slate-400" />
+            {role}
+            <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform ${roleOpen ? "rotate-180" : ""}`} />
+          </button>
+          {roleOpen && (
+            <div className="absolute right-0 top-9 w-52 bg-white border border-slate-200 shadow-lg z-50 rounded overflow-hidden">
+              <div className="px-3 py-2 border-b border-slate-100">
+                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">Switch demo role</span>
+              </div>
+              {DEMO_ROLES.map((r) => (
+                <button
+                  key={r.name}
+                  className={`w-full text-left px-3 py-2.5 text-xs hover:bg-slate-50 transition flex items-center justify-between ${r.name === role ? "text-blue-700 font-semibold bg-blue-50" : "text-slate-700"}`}
+                  onClick={() => { onSwitchRole?.(r); setRoleOpen(false); }}
+                >
+                  {r.name}
+                  {r.name === role && <span className="text-[10px] text-blue-500">active</span>}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* EoD Lock */}

@@ -60,6 +60,30 @@ function McTimeline({ state }) {
   );
 }
 
+function AgentExplanation({ lines = [] }) {
+  const [open, setOpen] = useState(false);
+  if (!lines.length) return <span className="text-slate-400">—</span>;
+  return (
+    <div>
+      <div className="text-sm text-slate-700 leading-snug">{lines[0]}</div>
+      {lines.length > 1 && !open && (
+        <button onClick={() => setOpen(true)} className="mt-0.5 text-[11px] text-blue-600 hover:text-blue-800 flex items-center gap-0.5">
+          +{lines.length - 1} more <ChevronRight className="h-3 w-3" />
+        </button>
+      )}
+      {open && (
+        <ul className="mt-1 space-y-0.5">
+          {lines.slice(1).map((l, i) => (
+            <li key={i} className="flex gap-1.5 text-xs text-slate-600">
+              <span className="text-slate-300 flex-shrink-0">·</span>{l}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function nextState(current) {
   const idx = MC_STATES.findIndex((s) => s.key === current);
   return idx < MC_STATES.length - 1 ? MC_STATES[idx + 1].key : current;
@@ -288,8 +312,8 @@ export function Margin({ repos, assets, topUpRepo, openRepo, role, permissions }
                       <TableCell>{alert.position.counterparty}</TableCell>
                       <TableCell><SeverityBadge severity={alert.severity} /></TableCell>
                       <TableCell><AlertStateBadge state={alert.state} /></TableCell>
-                      <TableCell className="text-sm text-slate-600 max-w-xs truncate">
-                        {alert.explanation[0] ?? "—"}
+                      <TableCell className="text-sm text-slate-600 max-w-xs">
+                        <AgentExplanation lines={alert.explanation} />
                       </TableCell>
                       <TableCell className="text-sm text-slate-500 max-w-xs truncate">
                         {alert.proposal ? alert.proposal.summary : <span className="text-slate-400 italic">No proposal</span>}

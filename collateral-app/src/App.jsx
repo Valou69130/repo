@@ -96,6 +96,12 @@ function AppContent() {
     dispatch({ type: "USER_LOGGED_OUT" });
   };
 
+  const handleSwitchRole = ({ name, email }) => {
+    const switched = { ...user, name, email, role: name };
+    localStorage.setItem("co_user", JSON.stringify(switched));
+    dispatch({ type: "USER_LOGGED_IN", payload: switched });
+  };
+
   const selectedRepo = repos.find((r) => r.id === selectedRepoId) || null;
 
   const openRepo = (repoId) => {
@@ -408,6 +414,7 @@ function AppContent() {
             repos={repos}
             assets={assets}
             onEodLock={eodLock}
+            onSwitchRole={handleSwitchRole}
             onNavigate={(page, repoId) => {
               if (repoId) { setSelectedRepoId(repoId); }
               setCurrent(page);
