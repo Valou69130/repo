@@ -10,7 +10,7 @@ const USERS = [
   { id: 4, name: "Risk Reviewer", email: "risk@banca-demo.ro", password: "demo1234", role: "Risk Reviewer" },
 ];
 
-const STORAGE_KEY = "collateral_demo_store_v1";
+const STORAGE_KEY = "collateral_demo_store_v2";
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
