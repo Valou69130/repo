@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 export function KpiCard({ title, value, description, icon: Icon, alert, trendUp }) {
   return (
-    <Card className={`overflow-hidden rounded-2xl border shadow-sm ${alert ? "border-red-200 bg-red-50/50" : "border-slate-200 bg-white"}`}>
+    <Card className={`overflow-hidden rounded-lg border shadow-sm ${alert ? "border-red-200 bg-red-50/50" : "border-slate-200 bg-white"}`}>
       <CardContent className="p-5">
         <div className="min-w-0">
             <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">{title}</div>

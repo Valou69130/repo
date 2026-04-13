@@ -25,9 +25,7 @@ const ACTION_TYPE_CFG = {
   "margin-deficit": {
     icon:           ShieldAlert,
     label:          "Margin Deficit",
-    border:         "border-red-200",
-    bg:             "bg-red-50",
-    dot:            "bg-red-500",
+    leftBorder:     "border-l-red-500",
     badge:          "bg-red-100 text-red-700 border-red-200",
     cta:            "bg-red-600 hover:bg-red-700 text-white",
     primaryLabel:   "Execute Top-Up",
@@ -38,9 +36,7 @@ const ACTION_TYPE_CFG = {
   "coverage-watch": {
     icon:           ShieldAlert,
     label:          "Coverage Watch",
-    border:         "border-amber-200",
-    bg:             "bg-amber-50",
-    dot:            "bg-amber-400",
+    leftBorder:     "border-l-amber-400",
     badge:          "bg-amber-100 text-amber-700 border-amber-200",
     cta:            "bg-amber-600 hover:bg-amber-700 text-white",
     primaryLabel:   "Initiate Top-Up",
@@ -51,9 +47,7 @@ const ACTION_TYPE_CFG = {
   "substitution-opportunity": {
     icon:           GitCompareArrows,
     label:          "Substitution Opportunity",
-    border:         "border-amber-200",
-    bg:             "bg-amber-50",
-    dot:            "bg-amber-400",
+    leftBorder:     "border-l-amber-400",
     badge:          "bg-amber-100 text-amber-700 border-amber-200",
     cta:            "bg-amber-600 hover:bg-amber-700 text-white",
     primaryLabel:   "Execute Substitution",
@@ -64,9 +58,7 @@ const ACTION_TYPE_CFG = {
   "release-opportunity": {
     icon:           ArrowUpFromLine,
     label:          "Release Opportunity",
-    border:         "border-blue-200",
-    bg:             "bg-blue-50",
-    dot:            "bg-blue-400",
+    leftBorder:     "border-l-blue-500",
     badge:          "bg-blue-100 text-blue-700 border-blue-200",
     cta:            "bg-blue-600 hover:bg-blue-700 text-white",
     primaryLabel:   "Confirm Unwind",
@@ -77,9 +69,7 @@ const ACTION_TYPE_CFG = {
   "settlement-exception": {
     icon:           ReceiptText,
     label:          "Settlement Exception",
-    border:         "border-amber-200",
-    bg:             "bg-amber-50",
-    dot:            "bg-amber-400",
+    leftBorder:     "border-l-amber-400",
     badge:          "bg-amber-100 text-amber-700 border-amber-200",
     cta:            "bg-amber-600 hover:bg-amber-700 text-white",
     primaryLabel:   "Review Settlement Exception",
@@ -90,9 +80,7 @@ const ACTION_TYPE_CFG = {
   "reconciliation-issue": {
     icon:           CircleAlert,
     label:          "Reconciliation Issue",
-    border:         "border-amber-200",
-    bg:             "bg-amber-50",
-    dot:            "bg-amber-400",
+    leftBorder:     "border-l-amber-400",
     badge:          "bg-amber-100 text-amber-700 border-amber-200",
     cta:            "bg-amber-600 hover:bg-amber-700 text-white",
     primaryLabel:   "Investigate Break",
@@ -103,9 +91,7 @@ const ACTION_TYPE_CFG = {
   "pending-approval": {
     icon:           UserCheck,
     label:          "Pending Approval",
-    border:         "border-violet-200",
-    bg:             "bg-violet-50",
-    dot:            "bg-violet-400",
+    leftBorder:     "border-l-violet-500",
     badge:          "bg-violet-100 text-violet-700 border-violet-200",
     cta:            "bg-violet-600 hover:bg-violet-700 text-white",
     primaryLabel:   "Review & Approve",
@@ -387,17 +373,15 @@ function ActionCard({ item, onAct }) {
       : "bg-blue-100 text-blue-700 border border-blue-200";
 
   return (
-    <div className={`rounded-[1.5rem] border ${cfg.border} ${cfg.bg} p-5 flex flex-col gap-4 shadow-sm`}>
+    <div className={`rounded-lg border border-slate-200 border-l-4 ${cfg.leftBorder} bg-white p-5 flex flex-col gap-4 shadow-sm`}>
       {/* Header row */}
       <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="min-w-0">
-            <div className="font-semibold text-slate-900 text-base leading-tight">{item.title}</div>
-            <div className="text-[11px] text-slate-500 mt-1 font-mono">{item.linked}</div>
-          </div>
+        <div className="min-w-0">
+          <div className="font-semibold text-slate-900 text-base leading-tight">{item.title}</div>
+          <div className="text-[11px] text-slate-500 mt-1 font-mono">{item.linked}</div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className={`text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full ${severityBadge}`}>
+          <span className={`text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded ${severityBadge}`}>
             {item.severity}
           </span>
         </div>
@@ -405,11 +389,11 @@ function ActionCard({ item, onAct }) {
 
       {/* Recommendation */}
       <div className="grid gap-3 md:grid-cols-2">
-        <div className="rounded-2xl border border-white/80 bg-white/65 px-4 py-3 min-w-0">
+        <div className="rounded-md border border-slate-100 bg-slate-50 px-4 py-3 min-w-0">
           <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Recommendation</div>
           <div className="text-sm text-slate-800 leading-relaxed break-words">{item.recommendation}</div>
         </div>
-        <div className="rounded-2xl border border-white/80 bg-white/65 px-4 py-3 min-w-0">
+        <div className="rounded-md border border-slate-100 bg-slate-50 px-4 py-3 min-w-0">
           <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Rationale</div>
           <div className="text-xs text-slate-600 leading-relaxed break-words">{item.rationale}</div>
         </div>
@@ -422,7 +406,7 @@ function ActionCard({ item, onAct }) {
       <IntegrationContextBar integration={item.integration} />
 
       {/* Workflow state bar */}
-      <div className="rounded-2xl border border-white/80 bg-white/55 px-4 py-3 overflow-hidden">
+      <div className="rounded-md border border-slate-100 bg-slate-50 px-4 py-3 overflow-hidden">
         <WorkflowStateBar
           state={item.workflowState ?? "detected"}
           detectedAt={item.detectedAt}
@@ -434,18 +418,16 @@ function ActionCard({ item, onAct }) {
       {/* Footer row — CTAs only */}
       {item.repoId && (
         <div className="flex items-center justify-end gap-2">
-          {/* Secondary action — outline style */}
           <button
             onClick={() => onAct(item.repoId)}
-            className="flex h-9 items-center gap-1.5 rounded-xl border border-slate-300 bg-white/70 px-3.5 text-xs font-medium text-slate-700 transition hover:border-slate-400 hover:bg-white"
+            className="flex h-9 items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3.5 text-xs font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
           >
             <cfg.secondaryIcon className="h-3 w-3 opacity-70" />
             {cfg.secondaryLabel}
           </button>
-          {/* Primary action — solid colored */}
           <button
             onClick={() => onAct(item.repoId)}
-            className={`flex h-9 items-center gap-1.5 rounded-xl px-3.5 text-xs font-semibold transition shadow-sm ${cfg.cta}`}
+            className={`flex h-9 items-center gap-1.5 rounded-md px-3.5 text-xs font-semibold transition shadow-sm ${cfg.cta}`}
           >
             <cfg.primaryIcon className="h-3 w-3" />
             {cfg.primaryLabel}
@@ -463,35 +445,25 @@ export function RecommendedActions({ items, onAct }) {
 
   return (
     <div className="space-y-4">
-      {/* Section header */}
-      <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div>
-            <div className="font-semibold text-slate-900">Agent Recommendations</div>
-            <div className="text-xs text-slate-500 mt-0.5">
-              {items.length === 0
-                ? "No open actions — all positions within parameters"
-                : `${items.length} action${items.length > 1 ? "s" : ""} requiring attention · updated ${now}`}
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {critCount > 0 && (
-            <span className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full bg-red-100 text-red-700 border border-red-200">
-              {critCount} critical
-            </span>
-          )}
-          {warnCount > 0 && (
-            <span className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 border border-amber-200">
-              {warnCount} warning
-            </span>
-          )}
-          {items.length === 0 && (
-            <span className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">
-              All clear
-            </span>
-          )}
-        </div>
+      {/* Section label */}
+      <div className="flex items-center gap-3">
+        <span className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 whitespace-nowrap">Agent Recommendations</span>
+        <div className="flex-1 h-px bg-slate-200" />
+        {critCount > 0 && (
+          <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-red-100 text-red-700 border border-red-200">
+            {critCount} critical
+          </span>
+        )}
+        {warnCount > 0 && (
+          <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-100 text-amber-700 border border-amber-200">
+            {warnCount} warning
+          </span>
+        )}
+        {items.length === 0 && (
+          <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 border border-emerald-200">
+            All clear
+          </span>
+        )}
       </div>
 
       {/* Action cards */}
