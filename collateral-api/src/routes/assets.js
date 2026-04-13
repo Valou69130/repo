@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const multer = require('multer');
 const { getDb } = require('../db/schema');
-const { requireAuth, requirePerm, requireWriteAccess } = require('../middleware/auth');
+const { requireAuth, requirePerm } = require('../middleware/auth');
 const { appendAuditEntry } = require('../middleware/auditHelper');
 const { badRequest, isFiniteNumber, isNonEmptyString } = require('../validation');
 
@@ -64,7 +64,7 @@ router.get('/', requireAuth, (req, res) => {
   });
 });
 
-router.put('/:id', requireAuth, requireWriteAccess, (req, res) => {
+router.put('/:id', requireAuth, requirePerm('canUpdateAsset'), (req, res) => {
   const db = getDb();
   const existing = db.prepare('SELECT * FROM assets WHERE id = ?').get(req.params.id);
   if (!existing) return res.status(404).json({ error: 'Asset not found' });

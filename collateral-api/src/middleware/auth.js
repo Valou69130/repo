@@ -7,10 +7,10 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 // Server-side permission map — mirrors client-side ROLE_PERMS but is authoritative
 const ROLE_PERMS = {
-  'Treasury Manager':   { canCreateRepo: true,  canCloseRepo: true,  canRolloverRepo: true,  canApproveTopUp: false, canSubstitute: true,  canAdvanceSettlement: false, canImportAssets: false, canReset: true,  readOnly: false },
-  'Collateral Manager': { canCreateRepo: false, canCloseRepo: false, canRolloverRepo: false, canApproveTopUp: true,  canSubstitute: true,  canAdvanceSettlement: false, canImportAssets: true,  canReset: false, readOnly: false },
-  'Operations Analyst': { canCreateRepo: false, canCloseRepo: false, canRolloverRepo: false, canApproveTopUp: false, canSubstitute: false, canAdvanceSettlement: true,  canImportAssets: false, canReset: false, readOnly: false },
-  'Risk Reviewer':      { canCreateRepo: false, canCloseRepo: false, canRolloverRepo: false, canApproveTopUp: false, canSubstitute: false, canAdvanceSettlement: false, canImportAssets: false, canReset: false, readOnly: true  },
+  'Treasury Manager':   { canCreateRepo: true,  canCloseRepo: true,  canRolloverRepo: true,  canUpdateRepo: true,  canApproveTopUp: false, canSubstitute: true,  canAdvanceSettlement: false, canImportAssets: false, canUpdateAsset: false, canReset: true,  readOnly: false },
+  'Collateral Manager': { canCreateRepo: false, canCloseRepo: false, canRolloverRepo: false, canUpdateRepo: true,  canApproveTopUp: true,  canSubstitute: true,  canAdvanceSettlement: false, canImportAssets: true,  canUpdateAsset: true,  canReset: false, readOnly: false },
+  'Operations Analyst': { canCreateRepo: false, canCloseRepo: false, canRolloverRepo: false, canUpdateRepo: false, canApproveTopUp: false, canSubstitute: false, canAdvanceSettlement: true,  canImportAssets: false, canUpdateAsset: false, canReset: false, readOnly: false },
+  'Risk Reviewer':      { canCreateRepo: false, canCloseRepo: false, canRolloverRepo: false, canUpdateRepo: false, canApproveTopUp: false, canSubstitute: false, canAdvanceSettlement: false, canImportAssets: false, canUpdateAsset: false, canReset: false, readOnly: true  },
 };
 
 function requireAuth(req, res, next) {

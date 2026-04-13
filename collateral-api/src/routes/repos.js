@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const { getDb } = require('../db/schema');
-const { requireAuth, requirePerm, requireWriteAccess } = require('../middleware/auth');
+const { requireAuth, requirePerm } = require('../middleware/auth');
 const { appendAuditEntry } = require('../middleware/auditHelper');
 const { MAX, badRequest, isArrayOfStrings, isFiniteNumber, isNonEmptyString, isOptionalString } = require('../validation');
 
@@ -60,7 +60,7 @@ router.post('/', requireAuth, requirePerm('canCreateRepo'), (req, res) => {
   res.status(201).json(created);
 });
 
-router.put('/:id', requireAuth, requireWriteAccess, (req, res) => {
+router.put('/:id', requireAuth, requirePerm('canUpdateRepo'), (req, res) => {
   const db = getDb();
   const existing = db.prepare('SELECT * FROM repos WHERE id = ?').get(req.params.id);
   if (!existing) return res.status(404).json({ error: 'Repo not found' });
