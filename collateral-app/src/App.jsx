@@ -6,6 +6,7 @@ import { adjustedValue } from "@/domain/format";
 import { getPermissions } from "@/domain/permissions";
 import { api } from "@/integrations/api";
 import { useIntegration } from "@/hooks/useIntegration";
+import { useAgentRunner } from "@/workflows/hooks/useAgentRunner";
 import { DomainProvider, useDomain, useDispatch } from "@/domain/store";
 import { ChangePasswordModal } from "@/components/shared/ChangePasswordModal";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
@@ -131,6 +132,9 @@ function AppContent() {
       dispatch({ type: "NOTIFICATION_ADDED", payload: saved });
     }).catch(console.error);
   };
+
+  // Autonomous background agents — margin scan every 45 s, exception scan every 30 s
+  useAgentRunner();
 
   const integration = useIntegration({ appendAudit, addNotification });
 

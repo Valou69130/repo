@@ -57,6 +57,8 @@ export interface AgentState {
     scanResult: MarginScanResult | null;
     pending:    boolean;
     error:      string | null;
+    lastScanAt: number | null;   // real epoch ms of last completed scan
+    scanCount:  number;          // total scans run since session start
   };
 }
 
@@ -86,7 +88,7 @@ const initialState: DomainState = {
   ruleEngine:     ruleEngineSeed as RuleEngine,
   agentState: {
     allocation: { results: {}, pending: {}, errors: {} },
-    margin:     { scanResult: null, pending: false, error: null },
+    margin:     { scanResult: null, pending: false, error: null, lastScanAt: null, scanCount: 0 },
   },
   loading: false,
   error:   null,
@@ -246,7 +248,13 @@ function reducer(state: DomainState, action: DomainAction): DomainState {
         ...state,
         agentState: {
           ...state.agentState,
-          margin: { scanResult: action.payload, pending: false, error: null },
+          margin: {
+            scanResult: action.payload,
+            pending:    false,
+            error:      null,
+            lastScanAt: Date.now(),
+            scanCount:  state.agentState.margin.scanCount + 1,
+          },
         },
       };
 
