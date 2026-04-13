@@ -12,6 +12,9 @@ export const ROLE_PERMS = {
     canImportAssets:      false,
     canExport:            true,
     readOnly:             false,
+    canEditHaircuts:      false,
+    canEditCoverage:      true,
+    canEditRiskParams:    false,
     description:          "Full trade lifecycle authority. Approves and executes collateral substitutions. Cannot approve margin calls.",
   },
   "Collateral Manager": {
@@ -24,6 +27,9 @@ export const ROLE_PERMS = {
     canImportAssets:      true,
     canExport:            true,
     readOnly:             false,
+    canEditHaircuts:      true,
+    canEditCoverage:      false,
+    canEditRiskParams:    false,
     description:          "Manages collateral allocation, top-ups, and substitutions. Cannot book or close trades.",
   },
   "Operations Analyst": {
@@ -36,6 +42,9 @@ export const ROLE_PERMS = {
     canImportAssets:      false,
     canExport:            true,
     readOnly:             false,
+    canEditHaircuts:      false,
+    canEditCoverage:      false,
+    canEditRiskParams:    false,
     description:          "Manages settlement instruction lifecycle. Read-only for trade and collateral decisions.",
   },
   "Risk Reviewer": {
@@ -48,6 +57,9 @@ export const ROLE_PERMS = {
     canImportAssets:      false,
     canExport:            true,
     readOnly:             true,
+    canEditHaircuts:      false,
+    canEditCoverage:      false,
+    canEditRiskParams:    true,
     description:          "Read-only access to all data. Can export reports but cannot initiate any actions.",
   },
 };
