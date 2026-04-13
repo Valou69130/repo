@@ -32,6 +32,7 @@ const RegulatoryCompliance = lazyNamed(() => import("@/pages/RegulatoryComplianc
 const IntegrationHub = lazyNamed(() => import("@/pages/IntegrationHub"), "IntegrationHub");
 const PortfolioOptimisation = lazyNamed(() => import("@/pages/PortfolioOptimisation"), "PortfolioOptimisation");
 const BusinessCase = lazyNamed(() => import("@/pages/BusinessCase"), "BusinessCase");
+const ParametersRules = lazyNamed(() => import("@/pages/ParametersRules"), "ParametersRules");
 
 function PageFallback() {
   return (
@@ -361,6 +362,8 @@ function AppContent() {
         return <RegulatoryCompliance repos={repos} assets={assets} />;
       case "integration":
         return <IntegrationHub integration={integration} repos={repos} assets={assets} />;
+      case "parameters-rules":
+        return <ParametersRules />;
       case "portfolio-opt":
         return <PortfolioOptimisation repos={repos} assets={assets} openRepo={openRepo} />;
       case "business-case":
