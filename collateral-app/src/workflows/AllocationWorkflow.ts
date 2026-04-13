@@ -13,6 +13,7 @@ import type { AppRepo, AppAsset, RecommendOptions, AllocationResult } from "@/ag
 import { createAgentAuditEvent } from "@/domain/events";
 import type { AuditEntry }       from "@/domain/types";
 import { COUNTERPARTY_PROFILES } from "@/domain/counterparties";
+import type { RuleEngine }       from "@/domain/store";
 import type { WorkflowResult, WorkflowContext } from "./types";
 import { failedWorkflow }        from "./types";
 
@@ -22,9 +23,10 @@ const AGENT_VERSION = "1.1.0";
 // ── Input types ───────────────────────────────────────────────────────────────
 
 export interface RunAllocationInput {
-  repo:     AppRepo;
-  assets:   AppAsset[];
-  options?: RecommendOptions;
+  repo:        AppRepo;
+  assets:      AppAsset[];
+  options?:    RecommendOptions;
+  ruleEngine?: RuleEngine;
 }
 
 export interface ApproveAllocationInput {
@@ -45,21 +47,30 @@ export function runAllocation(
   input:   RunAllocationInput,
   context: WorkflowContext,
 ): WorkflowResult<AllocationResult> {
-  const { repo, assets, options = {} } = input;
+  const { repo, assets, options = {}, ruleEngine } = input;
   const ts = context.ts ?? new Date().toISOString();
 
-  // Resolve counterparty constraints from master profile
-  const cp = COUNTERPARTY_PROFILES[repo.counterparty];
+  // Resolve counterparty constraints — rule engine overrides COUNTERPARTY_PROFILES
+  const cp   = COUNTERPARTY_PROFILES[repo.counterparty];
+  const reCp = ruleEngine?.counterparties?.[repo.counterparty];
   const resolved: RecommendOptions = {
-    coverageRatio:          1.03,
+    coverageRatio:          reCp?.minCoverageRatio ?? cp?.coverageRatio ?? 1.03,
     maxHaircut:             cp?.maxHaircut,
     maxSingleConcentration: cp?.concentrationLimit ?? 0.60,
     ...options,
   };
 
+  // Apply rule engine haircut overrides to assets before passing to agent
+  const effectiveAssets: AppAsset[] = ruleEngine
+    ? assets.map((a) => ({
+        ...a,
+        haircut: ruleEngine.haircuts[(a as AppAsset & { type?: string }).type ?? ""] ?? a.haircut,
+      }))
+    : assets;
+
   let result: AllocationResult;
   try {
-    result = collateralAgent.recommend(repo, assets, resolved);
+    result = collateralAgent.recommend(repo, effectiveAssets, resolved);
   } catch (err) {
     return failedWorkflow(err instanceof Error ? err.message : String(err), context);
   }

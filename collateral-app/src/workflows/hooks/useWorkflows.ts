@@ -57,6 +57,7 @@ export interface AllocationWorkflowActions {
 export function useAllocationWorkflow(): AllocationWorkflowActions {
   const dispatch = useDispatch();
   const ctx      = useWorkflowContext();
+  const { ruleEngine } = useDomain();
 
   const runFn = useCallback(async ({
     repo, assets, options, key = "DRAFT",
@@ -65,7 +66,7 @@ export function useAllocationWorkflow(): AllocationWorkflowActions {
   }): Promise<AllocationResult | null> => {
     dispatch({ type: "ALLOCATION_PENDING", payload: { key } });
 
-    const wf = runAllocation({ repo, assets, options }, ctx);
+    const wf = runAllocation({ repo, assets, options, ruleEngine }, ctx);
 
     if (!wf.success) {
       dispatch({ type: "ALLOCATION_FAILED", payload: { key, error: wf.error ?? "Unknown error" } });
