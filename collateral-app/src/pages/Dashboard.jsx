@@ -1,97 +1,70 @@
 import { useMemo } from "react";
 import {
-  PieChart, Pie, Cell,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-} from "recharts";
-import {
-  AlertTriangle, ArrowRightLeft, Banknote, CheckCircle2,
-  ChevronRight, Clock, Coins, TrendingUp, Wallet,
+  ArrowRightLeft,
+  Coins,
+  ReceiptText,
+  Sparkles,
+  Wallet,
 } from "lucide-react";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { KpiCard } from "@/components/shared/KpiCard";
+import { StatusBadge } from "@/components/shared/StatusBadge";
 import { fmtMoney, adjustedValue } from "@/domain/format";
-import { deriveActionItems } from "@/components/dashboard/RecommendedActions";
+import { AgentStatusStrip } from "@/components/dashboard/AgentStatusStrip";
+import { RecommendedActions, deriveActionItems } from "@/components/dashboard/RecommendedActions";
+import { EodSummary } from "@/components/dashboard/EodSummary";
 import { PendingApprovalsWidget } from "@/components/dashboard/PendingApprovalsWidget";
-import "./Dashboard.css";
+import { PortfolioOptWidget } from "@/components/dashboard/PortfolioOptWidget";
 
-// ─── Theme ────────────────────────────────────────────────────────────────────
-
-const T = {
-  text:     "#16213A",
-  muted:    "#5A6A84",
-  faint:    "#9AAABB",
-  border:   "#DDE3ED",
-  bg:       "#F4F6FA",
-  card:     "#FFFFFF",
-  blue:     "#0B3D91",
-  blueMid:  "#1A5FB4",
-  blueLt:   "#E8F0FC",
-  blueDot:  "#2D7DD2",
-  green:    "#1D7A44",
-  greenLt:  "#E6F4ED",
-  amber:    "#B85C00",
-  amberLt:  "#FEF3E2",
-  red:      "#C0392B",
-  redLt:    "#FDECEB",
-};
+// ─── Constants ─────────────────────────────────────────────────────────────────
 
 const STATUS_COLORS = {
-  Available: T.green,
-  Reserved:  T.amber,
-  Locked:    T.blueMid,
-  Pledged:   T.red,
+  Available: "#10b981",
+  Reserved:  "#f59e0b",
+  Locked:    "#64748b",
+  Pledged:   "#ef4444",
 };
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+// ─── Chart tooltip helpers ─────────────────────────────────────────────────────
 
-function SectionLabel({ children }) {
-  return <div className="db-section-label">{children}</div>;
-}
-
-function KpiCard({ label, value, sub, icon: Icon, variant = "default" }) {
-  return (
-    <div className={`db-kpi-card ${variant}`}>
-      <div className="db-kpi-icon"><Icon size={16} /></div>
-      <div className="db-kpi-label">{label}</div>
-      <div className="db-kpi-value">{value}</div>
-      {sub && <div className="db-kpi-sub">{sub}</div>}
-    </div>
-  );
-}
-
-function StatusBadge({ state }) {
-  const map = {
-    Active:          { cls: "green",   label: "Active" },
-    Maturing:        { cls: "amber",   label: "Maturing" },
-    "Margin deficit":{ cls: "red",     label: "Deficit" },
-    Pending:         { cls: "blue",    label: "Pending" },
-    Closed:          { cls: "neutral", label: "Closed" },
-  };
-  const { cls, label } = map[state] ?? { cls: "neutral", label: state };
-  return (
-    <span className={`db-badge ${cls}`}>
-      <span className="db-badge-dot" />
-      {label}
-    </span>
-  );
-}
-
-function AssetBadge({ status }) {
-  const cls = { Available: "green", Reserved: "amber", Locked: "blue", Pledged: "red" }[status] ?? "neutral";
-  return <span className={`db-badge ${cls}`}><span className="db-badge-dot" />{status}</span>;
-}
-
-const ChartTooltip = ({ active, payload, label, isBar }) => {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="db-tooltip">
-      <div style={{ fontWeight: 600, marginBottom: 2, fontSize: 12 }}>{label ?? payload[0].name}</div>
-      <div style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: T.blueMid }}>
-        {isBar ? `${payload[0].value}%` : fmtMoney(payload[0].value)}
+const PieTooltip = ({ active, payload }) => {
+  if (active && payload?.length) {
+    return (
+      <div className="bg-white border rounded shadow-lg px-3 py-2 text-sm">
+        <div className="font-medium text-slate-800">{payload[0].name}</div>
+        <div className="text-slate-500">{fmtMoney(payload[0].value)}</div>
       </div>
-    </div>
-  );
+    );
+  }
+  return null;
 };
 
-// ─── Dashboard ────────────────────────────────────────────────────────────────
+const BarTooltip = ({ active, payload, label }) => {
+  if (active && payload?.length) {
+    return (
+      <div className="bg-white border rounded shadow-lg px-3 py-2 text-sm">
+        <div className="font-medium text-slate-800">{label}</div>
+        <div className="text-slate-500">Coverage: {payload[0].value}%</div>
+      </div>
+    );
+  }
+  return null;
+};
+
+// ─── Main dashboard ───────────────────────────────────────────────────────────
 
 export function Dashboard({
   assets,
@@ -104,19 +77,22 @@ export function Dashboard({
   onRejectSubstitution,
   onNavigate,
 }) {
-  const today   = new Date();
-  const dateStr = today.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-  const timeStr = today.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  const today = new Date().toLocaleDateString("ro-RO", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 
-  // ── Derived data ──────────────────────────────────────────────────────────
-
+  // ── Derived data ──
   const totals = useMemo(() => {
-    const total    = assets.reduce((s, a) => s + a.marketValue, 0);
-    const free     = assets.filter((a) => a.status === "Available").reduce((s, a) => s + a.marketValue, 0);
-    const active   = repos.filter((r) => ["Active", "Maturing", "Margin deficit"].includes(r.state)).length;
+    const total   = assets.reduce((s, a) => s + a.marketValue, 0);
+    const free    = assets.filter((a) => a.status === "Available").reduce((s, a) => s + a.marketValue, 0);
+    const active  = repos.filter((r) => ["Active", "Maturing", "Margin deficit"].includes(r.state)).length;
     const deficits = repos.filter((r) => r.buffer < 0).length;
-    const accrued  = repos.filter((r) => r.state !== "Closed").reduce((s, r) => s + Math.round(r.amount * (r.rate / 100) / 360), 0);
-    return { total, free, active, deficits, accrued };
+    const accruedToday = repos
+      .filter((r) => r.state !== "Closed")
+      .reduce((s, r) => s + Math.round(r.amount * (r.rate / 100) / 360), 0);
+    return { total, free, active, deficits, accruedToday };
   }, [assets, repos]);
 
   const actionItems = useMemo(
@@ -125,411 +101,495 @@ export function Dashboard({
   );
 
   const statusBreakdown = useMemo(() => {
-    const g = { Available: 0, Reserved: 0, Locked: 0, Pledged: 0 };
-    assets.forEach((a) => { if (g[a.status] !== undefined) g[a.status] += a.marketValue; });
-    return Object.entries(g).filter(([, v]) => v > 0).map(([name, value]) => ({ name, value }));
+    const groups = { Available: 0, Reserved: 0, Locked: 0, Pledged: 0 };
+    assets.forEach((a) => {
+      if (groups[a.status] !== undefined) groups[a.status] += a.marketValue;
+    });
+    return Object.entries(groups)
+      .filter(([, v]) => v > 0)
+      .map(([name, value]) => ({ name, value }));
   }, [assets]);
 
   const maturityLadder = useMemo(() => {
-    const m = {};
+    const dayMap = {};
     for (const r of repos) {
       if (r.state === "Closed") continue;
-      if (!m[r.maturityDate]) m[r.maturityDate] = { date: r.maturityDate, cash: 0, collateral: 0, repos: [] };
-      m[r.maturityDate].cash       += r.amount;
-      m[r.maturityDate].collateral += r.postedCollateral;
-      m[r.maturityDate].repos.push(r.id);
+      const d = r.maturityDate;
+      if (!dayMap[d]) dayMap[d] = { date: d, cash: 0, collateral: 0, repos: [] };
+      dayMap[d].cash       += r.amount;
+      dayMap[d].collateral += r.postedCollateral;
+      dayMap[d].repos.push(r.id);
     }
-    return Object.values(m).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 5);
+    return Object.values(dayMap).sort((a, b) => a.date.localeCompare(b.date));
   }, [repos]);
 
-  const coverageData = useMemo(() =>
-    repos.filter((r) => r.state !== "Closed").map((r) => ({
-      id:       r.id.replace("R-", ""),
-      coverage: Math.round((r.postedCollateral / r.requiredCollateral) * 100),
-      fill:     r.buffer < 0 ? T.red : r.postedCollateral / r.requiredCollateral < 1.03 ? T.amber : T.green,
-    })),
-  [repos]);
-
-  const activeRepos = repos.filter((r) => r.state !== "Closed");
-  const maxCash     = Math.max(...maturityLadder.map((d) => d.cash), 1);
-
-  // ── Render ────────────────────────────────────────────────────────────────
+  const coverageData = useMemo(() => {
+    return repos
+      .filter((r) => r.state !== "Closed")
+      .map((r) => ({
+        id:       r.id,
+        coverage: Math.round((r.postedCollateral / r.requiredCollateral) * 100),
+        fill:
+          r.buffer < 0
+            ? "#ef4444"
+            : r.postedCollateral / r.requiredCollateral < 1.03
+            ? "#f59e0b"
+            : "#10b981",
+      }));
+  }, [repos]);
 
   return (
-    <div className="db" style={{ minHeight: "100%" }}>
-
-      {/* ── Alert strip ── */}
-      {totals.deficits > 0 && (
-        <div className="db-alert-strip">
-          <AlertTriangle size={14} style={{ flexShrink: 0 }} />
-          {totals.deficits} repo{totals.deficits > 1 ? "s" : ""} with margin deficit — immediate action required
-        </div>
-      )}
+    <div className="space-y-6 w-full max-w-full min-w-0">
 
       {/* ── Page header ── */}
-      <div style={{
-        background:   T.card,
-        borderBottom: `1px solid ${T.border}`,
-        padding:      "20px 24px",
-        display:      "flex",
-        alignItems:   "center",
-        justifyContent: "space-between",
-        gap:          16,
-      }}>
-        <div>
-          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: T.muted, marginBottom: 2 }}>
-            Operations Dashboard
-          </div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, color: T.text, margin: 0, letterSpacing: "-0.3px" }}>
-            Collateral Control Center
-          </h1>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          {actionItems.length > 0 && (
-            <div style={{
-              background: T.amberLt, border: `1px solid #F5CBA7`,
-              borderRadius: 6, padding: "6px 12px",
-              fontSize: 12, fontWeight: 600, color: T.amber,
-              display: "flex", alignItems: "center", gap: 6,
-            }}>
-              <AlertTriangle size={12} />
-              {actionItems.length} action{actionItems.length > 1 ? "s" : ""} required
+      <div className="relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-[linear-gradient(135deg,#f8fbff_0%,#eef6ff_42%,#f8fafc_100%)] px-6 py-6 shadow-sm">
+        <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-blue-200/35 blur-3xl" />
+        <div className="absolute bottom-0 left-24 h-32 w-32 rounded-full bg-emerald-100/60 blur-3xl" />
+        <div className="relative flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/80 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-blue-700 shadow-sm">
+              <Sparkles className="h-3.5 w-3.5" />
+              Executive overview
             </div>
-          )}
-          <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: T.text }}>{dateStr}</div>
-            <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 2, justifyContent: "flex-end" }}>
-              <span style={{ width: 7, height: 7, borderRadius: "50%", background: T.green, display: "inline-block" }} />
-              <span style={{ fontSize: 11, fontWeight: 600, color: T.green, letterSpacing: "0.04em" }}>LIVE · {timeStr}</span>
+            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900">
+              Collateral Control Center
+            </h1>
+            <p className="mt-2 max-w-2xl text-slate-600">
+              Agent-assisted operating surface for margin monitoring, substitution analysis, settlement pressure, and daily control actions across the repo book.
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Free pool</div>
+              <div className="mt-1 text-lg font-semibold text-slate-900">{fmtMoney(totals.free)}</div>
+              <div className="mt-1 text-xs text-slate-500">Immediately mobilisable collateral</div>
+            </div>
+            <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Open actions</div>
+              <div className="mt-1 text-lg font-semibold text-slate-900">{actionItems.length}</div>
+              <div className="mt-1 text-xs text-slate-500">Recommended interventions and reviews</div>
+            </div>
+            <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm text-right">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Session date</div>
+              <div className="mt-1 text-lg font-semibold text-slate-900">{today}</div>
+              <div className="mt-1 flex items-center justify-end gap-1.5">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                </span>
+                <span className="text-[10px] text-emerald-600 font-medium uppercase tracking-wider">Live</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── Body ── */}
-      <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: 24 }}>
+      {/* ── Agent status strip ── */}
+      <AgentStatusStrip repos={repos} assets={assets} notifications={notifications} actionItems={actionItems} />
 
-        {/* ── KPI row ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
-          <KpiCard
-            label="Total Pool Value"
-            value={fmtMoney(totals.total)}
-            sub={`${assets.length} registered positions`}
-            icon={Coins}
-          />
-          <KpiCard
-            label="Free Collateral"
-            value={fmtMoney(totals.free)}
-            sub={totals.total > 0 ? `${Math.round((totals.free / totals.total) * 100)}% unencumbered` : "—"}
-            icon={Wallet}
-            variant="positive"
-          />
-          <KpiCard
-            label="Active Repo Book"
-            value={String(totals.active)}
-            sub={totals.deficits > 0 ? `${totals.deficits} margin deficit${totals.deficits > 1 ? "s" : ""}` : "All trades within threshold"}
-            icon={ArrowRightLeft}
-            variant={totals.deficits > 0 ? "alert" : "default"}
-          />
-          <KpiCard
-            label="Accrued Today"
-            value={fmtMoney(totals.accrued)}
-            sub="Estimated carry on open book"
-            icon={TrendingUp}
-          />
-        </div>
+      {/* ── Recommended actions ── */}
+      <RecommendedActions items={actionItems} onAct={openRepo} />
 
-        {/* ── Pending 4-eye approvals ── */}
-        {pendingSubstitutions.length > 0 && (
-          <div className="db-card" style={{ padding: "20px 24px" }}>
-            <SectionLabel>
-              <AlertTriangle size={12} style={{ color: T.amber }} />
-              Pending 4-Eye Approvals
-              <span style={{ marginLeft: 4, background: T.amberLt, color: T.amber, fontSize: 11, fontWeight: 700, padding: "1px 7px", borderRadius: 10 }}>
-                {pendingSubstitutions.length}
-              </span>
-            </SectionLabel>
-            <PendingApprovalsWidget
-              pendingSubstitutions={pendingSubstitutions}
-              assets={assets}
-              repos={repos}
-              role={role}
-              onApproveSubstitution={onApproveSubstitution}
-              onRejectSubstitution={onRejectSubstitution}
-            />
-          </div>
-        )}
+      {/* ── 4-eye approvals ── */}
+      <PendingApprovalsWidget
+        pendingSubstitutions={pendingSubstitutions}
+        assets={assets}
+        repos={repos}
+        role={role}
+        onApproveSubstitution={onApproveSubstitution}
+        onRejectSubstitution={onRejectSubstitution}
+      />
 
-        {/* ── Main grid: Repo book + Right column ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 16, alignItems: "start" }}>
+      {/* ── Divider — secondary content ── */}
+      <div className="flex items-center gap-3 pt-2">
+        <div className="flex-1 h-px bg-slate-200" />
+        <span className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold px-2">
+          Portfolio &amp; Market Overview
+        </span>
+        <div className="flex-1 h-px bg-slate-200" />
+      </div>
 
-          {/* Repo book */}
-          <div className="db-card" style={{ overflow: "hidden" }}>
-            <div style={{ padding: "16px 20px 0", borderBottom: `1px solid ${T.border}` }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: T.text }}>Active Repo Book</span>
-                <span style={{ fontSize: 11, color: T.muted, fontWeight: 500 }}>{activeRepos.length} open trades</span>
-              </div>
-            </div>
-            <table className="db-table">
-              <thead>
-                <tr>
-                  <th>Reference</th>
-                  <th>Counterparty</th>
-                  <th className="right">Notional</th>
-                  <th className="right">Rate</th>
-                  <th className="right">Coverage</th>
-                  <th className="right">Buffer</th>
-                  <th className="right">Maturity</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {activeRepos.map((r) => {
-                  const coverage = Math.round((r.postedCollateral / r.requiredCollateral) * 100);
-                  const daysLeft = Math.max(0, Math.ceil((new Date(r.maturityDate) - new Date()) / 86400000));
-                  return (
-                    <tr key={r.id} className="clickable" onClick={() => openRepo(r.id)}>
-                      <td>
-                        <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: T.blueMid, fontWeight: 500 }}>
-                          {r.id}
-                        </span>
-                      </td>
-                      <td style={{ fontWeight: 500 }}>{r.counterparty}</td>
-                      <td className="right">
-                        <span className="db-num">{fmtMoney(r.amount, r.currency)}</span>
-                      </td>
-                      <td className="right">
-                        <span className="db-num">{r.rate}%</span>
-                      </td>
-                      <td className="right">
-                        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3 }}>
-                          <span className="db-num" style={{ color: coverage >= 103 ? T.green : coverage >= 100 ? T.amber : T.red }}>
-                            {coverage}%
-                          </span>
-                          <div className="db-bar-track" style={{ width: 52 }}>
-                            <div className="db-bar-fill" style={{
-                              width: `${Math.min((coverage / 130) * 100, 100)}%`,
-                              background: coverage >= 103 ? T.green : coverage >= 100 ? T.amber : T.red,
-                            }} />
-                          </div>
-                        </div>
-                      </td>
-                      <td className="right">
-                        <span className="db-num" style={{ color: r.buffer < 0 ? T.red : r.buffer < 100000 ? T.amber : T.green }}>
-                          {r.buffer >= 0 ? "+" : ""}{fmtMoney(r.buffer, r.currency)}
-                        </span>
-                      </td>
-                      <td className="right">
-                        <div>
-                          <span className="db-num" style={{ fontSize: 12, color: daysLeft <= 1 ? T.red : daysLeft <= 3 ? T.amber : T.muted }}>
-                            {r.maturityDate}
-                          </span>
-                          {daysLeft <= 7 && (
-                            <div style={{ fontSize: 11, color: daysLeft <= 1 ? T.red : T.amber, fontWeight: 600 }}>
-                              {daysLeft === 0 ? "Today" : daysLeft === 1 ? "Tomorrow" : `${daysLeft}d`}
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                      <td><StatusBadge state={r.state} /></td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+      {/* ── KPI strip ── */}
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <KpiCard
+          title="Total Collateral Value"
+          value={fmtMoney(totals.total)}
+          description="All registered positions across the pool"
+          icon={Coins}
+        />
+        <KpiCard
+          title="Free Collateral"
+          value={fmtMoney(totals.free)}
+          description={
+            totals.total > 0
+              ? `${Math.round((totals.free / totals.total) * 100)}% of portfolio unencumbered`
+              : "No assets"
+          }
+          icon={Wallet}
+          trendUp
+        />
+        <KpiCard
+          title="Active Repos"
+          value={String(totals.active)}
+          description={
+            totals.deficits > 0
+              ? `${totals.deficits} margin deficit${totals.deficits > 1 ? "s" : ""} need attention`
+              : "Open book currently within threshold"
+          }
+          icon={ArrowRightLeft}
+          alert={totals.deficits > 0}
+        />
+        <KpiCard
+          title="Accrued Interest Today"
+          value={fmtMoney(totals.accruedToday)}
+          description="Estimated carry contribution on open trades"
+          icon={ReceiptText}
+        />
+      </div>
 
-          {/* Right column */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {/* ── Portfolio Optimisation widget ── */}
+      <PortfolioOptWidget repos={repos} assets={assets} onNavigate={onNavigate} />
 
-            {/* Required actions */}
-            {actionItems.length > 0 && (
-              <div className="db-card" style={{ padding: "16px 20px" }}>
-                <SectionLabel>Required Actions</SectionLabel>
-                {actionItems.slice(0, 4).map((item, i) => {
-                  const color = item.severity === "critical" ? T.red : item.severity === "warning" ? T.amber : T.blueMid;
-                  return (
-                    <div key={i} className="db-action-row" onClick={() => item.repoId && openRepo(item.repoId)}>
-                      <div className="db-action-pill" style={{ background: color }} />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div className="db-action-title" style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>
-                          {item.label}
-                        </div>
-                        <div style={{ fontSize: 11, color: T.muted, lineHeight: 1.4 }}>{item.description}</div>
-                      </div>
-                      {item.repoId && <ChevronRight size={14} style={{ color: T.faint, flexShrink: 0, marginTop: 2 }} />}
-                    </div>
-                  );
-                })}
-                {actionItems.length > 4 && (
-                  <div style={{ fontSize: 11, color: T.muted, paddingTop: 6 }}>
-                    +{actionItems.length - 4} more actions
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Maturity ladder */}
-            <div className="db-card" style={{ padding: "16px 20px" }}>
-              <SectionLabel>Maturity Ladder</SectionLabel>
-              {maturityLadder.length === 0 ? (
-                <div style={{ fontSize: 13, color: T.muted, padding: "8px 0" }}>No upcoming maturities.</div>
-              ) : (
-                maturityLadder.map((d) => {
-                  const daysAway  = Math.ceil((new Date(d.date) - new Date()) / 86400000);
-                  const pct       = Math.max(8, Math.round((d.cash / maxCash) * 100));
-                  const barColor  = daysAway <= 1 ? T.red : daysAway <= 3 ? T.amber : T.blueMid;
-                  return (
-                    <div key={d.date} className="db-ladder-row">
-                      <div style={{ width: 64, flexShrink: 0 }}>
-                        <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 500, color: barColor }}>
-                          {d.date}
-                        </div>
-                        <div style={{ fontSize: 10, color: T.muted, marginTop: 1 }}>
-                          {daysAway <= 0 ? "TODAY" : daysAway === 1 ? "TMR" : `${daysAway}d`}
-                        </div>
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div className="db-bar-track">
-                          <div className="db-bar-fill" style={{ width: `${pct}%`, background: barColor }} />
-                        </div>
-                        <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: T.muted, marginTop: 3 }}>
-                          {fmtMoney(d.cash)}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* ── Charts row ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-
-          {/* Portfolio allocation */}
-          <div className="db-card" style={{ padding: "20px 24px" }}>
-            <SectionLabel>Portfolio Allocation</SectionLabel>
-            <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
-              <div style={{ width: 160, height: 160, flexShrink: 0 }}>
+      {/* ── Portfolio charts ── */}
+      <div className="grid gap-6 xl:grid-cols-2">
+        <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle>Portfolio Allocation</CardTitle>
+            <CardDescription>Market value by encumbrance status</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-8">
+              <div className="rounded-[1.5rem] border border-slate-100 bg-slate-50/70 p-4" style={{ height: 212, width: 212, flexShrink: 0 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={statusBreakdown} cx="50%" cy="50%" innerRadius={42} outerRadius={68}
-                      paddingAngle={3} dataKey="value" strokeWidth={0}>
-                      {statusBreakdown.map((e) => (
-                        <Cell key={e.name} fill={STATUS_COLORS[e.name] || T.faint} />
+                    <Pie
+                      data={statusBreakdown}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={76}
+                      paddingAngle={3}
+                      dataKey="value"
+                    >
+                      {statusBreakdown.map((entry) => (
+                        <Cell key={entry.name} fill={STATUS_COLORS[entry.name] || "#94a3b8"} />
                       ))}
                     </Pie>
-                    <Tooltip content={({ active, payload }) => <ChartTooltip active={active} payload={payload} />} />
+                    <Tooltip content={<PieTooltip />} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
-                {statusBreakdown.map((e) => (
-                  <div key={e.name} style={{
-                    display: "flex", justifyContent: "space-between", alignItems: "center",
-                    padding: "8px 10px", borderRadius: 6, background: T.bg,
-                    border: `1px solid ${T.border}`,
-                  }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <div style={{ width: 8, height: 8, borderRadius: 2, background: STATUS_COLORS[e.name] || T.faint, flexShrink: 0 }} />
-                      <span style={{ fontSize: 12, fontWeight: 500 }}>{e.name}</span>
+              <div className="flex-1 space-y-3">
+                {statusBreakdown.map((entry) => (
+                  <div key={entry.name} className="flex items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-slate-50/60 px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: STATUS_COLORS[entry.name] }}
+                      />
+                      <span className="text-sm text-slate-700">{entry.name}</span>
                     </div>
-                    <div style={{ textAlign: "right" }}>
-                      <div style={{ fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 500 }}>{fmtMoney(e.value)}</div>
-                      <div style={{ fontSize: 10, color: T.muted }}>
-                        {totals.total > 0 ? Math.round((e.value / totals.total) * 100) : 0}%
+                    <div className="text-right">
+                      <div className="text-sm font-medium text-slate-900">{fmtMoney(entry.value)}</div>
+                      <div className="text-xs text-slate-400">
+                        {totals.total > 0
+                          ? Math.round((entry.value / totals.total) * 100)
+                          : 0}
+                        %
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* Coverage ratios */}
-          <div className="db-card" style={{ padding: "20px 24px" }}>
-            <SectionLabel>Coverage Ratios</SectionLabel>
-            <div style={{ height: 188 }}>
+        <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle>Repo Coverage Ratios</CardTitle>
+            <CardDescription>Posted vs required collateral — 103% minimum threshold</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-[1.5rem] border border-slate-100 bg-slate-50/60 p-3" style={{ height: 228 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={coverageData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={T.border} vertical={false} />
-                  <XAxis dataKey="id" tick={{ fontSize: 11, fill: T.muted, fontFamily: "var(--font-mono)" }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: T.muted, fontFamily: "var(--font-mono)" }} domain={[85, 130]} unit="%" axisLine={false} tickLine={false} />
-                  <Tooltip content={({ active, payload, label }) => <ChartTooltip active={active} payload={payload} label={`R-${label}`} isBar />} />
-                  <Bar dataKey="coverage" radius={[3, 3, 0, 0]}>
-                    {coverageData.map((e, i) => <Cell key={i} fill={e.fill} />)}
+                <BarChart data={coverageData} margin={{ top: 4, right: 8, left: -24, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                  <XAxis
+                    dataKey="id"
+                    tick={{ fontSize: 11, fill: "#94a3b8" }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: "#94a3b8" }}
+                    domain={[80, 130]}
+                    unit="%"
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip content={<BarTooltip />} cursor={{ fill: "#f8fafc" }} />
+                  <Bar dataKey="coverage" radius={[4, 4, 0, 0]}>
+                    {coverageData.map((entry, i) => (
+                      <Cell key={i} fill={entry.fill} />
+                    ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <div style={{ display: "flex", gap: 16, marginTop: 10 }}>
-              {[{ color: T.green, label: "≥103% compliant" }, { color: T.amber, label: "100–103% watch" }, { color: T.red, label: "<100% deficit" }].map(({ color, label }) => (
-                <span key={label} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: T.muted }}>
-                  <span style={{ width: 8, height: 8, borderRadius: 2, background: color, display: "inline-block", flexShrink: 0 }} />
-                  {label}
-                </span>
-              ))}
+            <div className="mt-4 flex flex-wrap items-center gap-5 text-xs text-slate-500">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />≥103% compliant
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" />100–103% watch
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-red-500 inline-block" />&lt;100% deficit
+              </span>
             </div>
-          </div>
-        </div>
-
-        {/* ── Collateral inventory ── */}
-        <div className="db-card" style={{ overflow: "hidden" }}>
-          <div style={{ padding: "16px 20px 0", borderBottom: `1px solid ${T.border}` }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: T.text }}>Collateral Inventory</span>
-              <span style={{ fontSize: 11, color: T.muted }}>{assets.length} positions · {fmtMoney(totals.total)} total</span>
-            </div>
-          </div>
-          <table className="db-table">
-            <thead>
-              <tr>
-                <th>Asset</th>
-                <th>ISIN</th>
-                <th>Type</th>
-                <th className="right">Market Value</th>
-                <th className="right">Haircut</th>
-                <th className="right">Adjusted Value</th>
-                <th>Eligibility</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {assets.map((a) => (
-                <tr key={a.id}>
-                  <td style={{ fontWeight: 600, maxWidth: 180 }}>
-                    <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.name}</div>
-                  </td>
-                  <td><span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: T.muted }}>{a.isin}</span></td>
-                  <td style={{ fontSize: 12, color: T.muted }}>{a.type}</td>
-                  <td className="right"><span className="db-num">{fmtMoney(a.marketValue, a.currency)}</span></td>
-                  <td className="right"><span className="db-num">{a.haircut}%</span></td>
-                  <td className="right"><span className="db-num" style={{ color: T.green }}>{fmtMoney(adjustedValue(a), a.currency)}</span></td>
-                  <td style={{ fontSize: 11, color: T.muted, maxWidth: 150 }}>
-                    <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.eligibility}</div>
-                  </td>
-                  <td><AssetBadge status={a.status} /></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* ── Footer ── */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 4 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <CheckCircle2 size={12} style={{ color: T.green }} />
-            <span style={{ fontSize: 11, color: T.muted }}>All systems operational · CollateralOS Romania Pilot</span>
-          </div>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: T.faint }}>
-            {dateStr} · {timeStr}
-          </span>
-        </div>
-
+          </CardContent>
+        </Card>
       </div>
+
+      {/* ── Collateral overview + Maturity ladder ── */}
+      <div className="grid gap-6 xl:grid-cols-3">
+        <Card className="xl:col-span-2 rounded-[1.5rem] border-slate-200 shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle>Collateral Overview</CardTitle>
+            <CardDescription>
+              Haircut-adjusted visibility across the current inventory pool.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-hidden rounded-[1.25rem] border border-slate-100">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Asset</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Market Value</TableHead>
+                  <TableHead>Haircut</TableHead>
+                  <TableHead>Adjusted Value</TableHead>
+                  <TableHead>Eligibility</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {assets.map((a) => (
+                  <TableRow key={a.id}>
+                    <TableCell>
+                      <div className="font-medium">{a.name}</div>
+                      <div className="text-xs text-slate-500 font-mono">{a.isin}</div>
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={a.status} />
+                    </TableCell>
+                    <TableCell>{fmtMoney(a.marketValue, a.currency)}</TableCell>
+                    <TableCell>{a.haircut}%</TableCell>
+                    <TableCell>{fmtMoney(adjustedValue(a), a.currency)}</TableCell>
+                    <TableCell className="text-sm text-slate-600">{a.eligibility}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle>Maturity Ladder</CardTitle>
+            <CardDescription>Upcoming cash &amp; collateral flows</CardDescription>
+          </CardHeader>
+          <CardContent className="px-4 pb-4 pt-0">
+            {maturityLadder.length === 0 ? (
+              <div className="text-center text-slate-400 text-sm py-8">No upcoming maturities</div>
+            ) : (
+              <div className="space-y-3">
+                {maturityLadder.map((d) => {
+                  const daysAway = Math.ceil(
+                    (new Date(d.date) - new Date()) / 86400000
+                  );
+                  return (
+                    <div key={d.date} className="rounded-[1.25rem] border border-slate-100 bg-slate-50/60 px-4 py-4 transition-colors hover:bg-slate-50">
+                      <div className="mb-3 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`text-xs font-bold ${
+                              daysAway <= 1 ? "text-red-600" : daysAway <= 3 ? "text-amber-600" : "text-slate-700"
+                            }`}
+                          >
+                            {d.date}
+                          </span>
+                          <span
+                            className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                              daysAway <= 1
+                                ? "bg-red-100 text-red-600"
+                                : daysAway <= 3
+                                ? "bg-amber-100 text-amber-600"
+                                : "bg-slate-100 text-slate-500"
+                            }`}
+                          >
+                            {daysAway <= 0 ? "Today" : daysAway === 1 ? "Tomorrow" : `${daysAway}d`}
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-mono text-slate-400">
+                          {d.repos.join(", ")}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 text-xs">
+                        <div className="rounded-xl bg-white/80 px-3 py-3">
+                          <div className="text-slate-400">Cash Due</div>
+                          <div className="mt-1 font-semibold text-slate-700">{fmtMoney(d.cash)}</div>
+                        </div>
+                        <div className="rounded-xl bg-white/80 px-3 py-3 text-right">
+                          <div className="text-slate-400">Collateral</div>
+                          <div className="mt-1 font-semibold text-emerald-600">
+                            +{fmtMoney(d.collateral)}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ── EoD summary ── */}
+      <EodSummary repos={repos} assets={assets} />
+
+      {/* ── Active repo timeline ── */}
+      <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
+        <CardHeader className="pb-4">
+          <CardTitle>Active Repo Timeline</CardTitle>
+          <CardDescription>
+            Lifecycle stage, coverage, and maturity at a glance across all open transactions.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-3">
+            {repos
+              .filter((r) => r.state !== "Closed")
+              .map((r) => {
+                const coverage = Math.round((r.postedCollateral / r.requiredCollateral) * 100);
+                const accentColor =
+                  r.buffer < 0
+                    ? "#ef4444"
+                    : r.state === "Maturing"
+                    ? "#f59e0b"
+                    : "#10b981";
+                const daysLeft = Math.max(
+                  0,
+                  Math.ceil((new Date(r.maturityDate) - new Date()) / (1000 * 60 * 60 * 24))
+                );
+                const STAGES   = ["Booked", "Active", "Maturing", "Closed"];
+                const stageIdx =
+                  r.state === "Active"
+                    ? 1
+                    : r.state === "Maturing"
+                    ? 2
+                    : r.state === "Closed"
+                    ? 3
+                    : 1;
+
+                return (
+                  <button
+                    key={r.id}
+                    onClick={() => openRepo(r.id)}
+                    className="w-full overflow-hidden rounded-[1.25rem] border border-slate-200 bg-white text-left transition-colors hover:bg-slate-50 shadow-sm"
+                  >
+                    <div className="h-1 w-full" style={{ backgroundColor: accentColor }} />
+                    <div className="p-4 space-y-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="font-mono text-xs text-slate-400">{r.id}</div>
+                          <div className="font-semibold text-slate-900 mt-0.5">{r.counterparty}</div>
+                        </div>
+                        <StatusBadge status={r.state} />
+                      </div>
+                      <div className="flex items-end justify-between">
+                        <div>
+                          <div className="text-xs text-slate-400">Notional</div>
+                          <div className="text-lg font-bold text-slate-900">
+                            {fmtMoney(r.amount, r.currency)}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-slate-400">Matures in</div>
+                          <div
+                            className={`text-2xl font-bold ${
+                              daysLeft <= 3 ? "text-red-600" : daysLeft <= 7 ? "text-amber-500" : "text-slate-700"
+                            }`}
+                          >
+                            {daysLeft}d
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-0">
+                        {STAGES.map((stage, i) => {
+                          const active = i === stageIdx;
+                          const past   = i < stageIdx;
+                          const isLast = i === STAGES.length - 1;
+                          return (
+                            <div key={stage} className="flex items-center flex-1 min-w-0">
+                              <div className="flex flex-col items-center flex-1 min-w-0">
+                                <div
+                                  className={`w-2 h-2 rounded-full flex-shrink-0 ${active ? "ring-2 ring-offset-1" : ""}`}
+                                  style={{
+                                    backgroundColor: active
+                                      ? accentColor
+                                      : past
+                                      ? accentColor + "99"
+                                      : "#e2e8f0",
+                                  }}
+                                />
+                                <div
+                                  className={`text-[9px] mt-1 truncate w-full text-center ${
+                                    active ? "font-semibold text-slate-800" : "text-slate-400"
+                                  }`}
+                                >
+                                  {stage}
+                                </div>
+                              </div>
+                              {!isLast && (
+                                <div
+                                  className="h-px flex-1 mb-3 mx-0.5"
+                                  style={{
+                                    backgroundColor: past ? accentColor + "60" : "#e2e8f0",
+                                  }}
+                                />
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div>
+                        <div className="flex items-center justify-between text-xs mb-1">
+                          <span className="text-slate-400">Coverage</span>
+                          <span className="font-medium" style={{ color: accentColor }}>
+                            {coverage}%
+                          </span>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                          <div
+                            className="h-1.5 rounded-full transition-all"
+                            style={{
+                              width:           `${Math.min(coverage / 1.3, 100)}%`,
+                              backgroundColor: accentColor,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
