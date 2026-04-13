@@ -54,7 +54,7 @@ function AppContent() {
   const state    = useDomain();
   const dispatch = useDispatch();
 
-  const { user, assets, repos, audit, notifications, loading } = state;
+  const { user, assets, repos, audit, notifications, loading, ruleEngine } = state;
 
   const [current, setCurrent]                   = useState("dashboard");
   const [selectedAsset, setSelectedAsset]       = useState(null);
@@ -139,7 +139,26 @@ function AppContent() {
     const assetIds = proposedBasket.picked.map((a) => a.id);
     const today = new Date().toISOString().slice(0, 10);
     const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
-    const coverageRatio = COUNTERPARTY_PROFILES[counterparty]?.coverageRatio ?? 1.03;
+    const coverageRatio = ruleEngine?.counterparties?.[counterparty]?.minCoverageRatio
+      ?? COUNTERPARTY_PROFILES[counterparty]?.coverageRatio
+      ?? 1.03;
+
+    // Block creation if max exposure would be exceeded
+    const maxExposure = ruleEngine?.counterparties?.[counterparty]?.maxExposure;
+    if (maxExposure !== undefined) {
+      const activeExposure = repos
+        .filter((r) => r.counterparty === counterparty && r.state === "Active")
+        .reduce((sum, r) => sum + r.amount, 0);
+      if (activeExposure + amount > maxExposure) {
+        addNotification({
+          severity: "Warning",
+          text: `Cannot create repo: total exposure to ${counterparty} would exceed configured limit of ${maxExposure.toLocaleString()} RON.`,
+          target: "EXPOSURE_LIMIT",
+        });
+        return;
+      }
+    }
+
     const newRepo = {
       id, counterparty, amount, currency, rate,
       startDate: today, maturityDate: tomorrow,
@@ -222,7 +241,9 @@ function AppContent() {
     const today = new Date().toISOString().slice(0, 10);
     const maturity = new Date(Date.now() + newTermDays * 86400000).toISOString().slice(0, 10);
     const newId = `R-${1000 + repos.length + 50}`;
-    const coverageRatio = COUNTERPARTY_PROFILES[repo.counterparty]?.coverageRatio ?? 1.03;
+    const coverageRatio = ruleEngine?.counterparties?.[repo.counterparty]?.minCoverageRatio
+      ?? COUNTERPARTY_PROFILES[repo.counterparty]?.coverageRatio
+      ?? 1.03;
     const newRepo = {
       id: newId,
       counterparty: repo.counterparty,
