@@ -2,7 +2,7 @@ const router = require('express').Router();
 const { getDb } = require('../db/schema');
 const { requireAuth, requirePerm } = require('../middleware/auth');
 const { appendAuditEntry } = require('../middleware/auditHelper');
-const { MAX, badRequest, isArrayOfStrings, isFiniteNumber, isNonEmptyString, isOptionalString } = require('../validation');
+const { MAX, sanitise, badRequest, isArrayOfStrings, isFiniteNumber, isNonEmptyString, isOptionalString } = require('../validation');
 
 function getRepoWithAssets(db, id) {
   const repo = db.prepare('SELECT * FROM repos WHERE id = ?').get(id);
@@ -36,9 +36,16 @@ router.get('/', requireAuth, (req, res) => {
   });
 });
 
+router.get('/:id', requireAuth, (req, res) => {
+  const repo = getRepoWithAssets(getDb(), req.params.id);
+  if (!repo) return res.status(404).json({ error: 'Repo not found' });
+  res.json(repo);
+});
+
 router.post('/', requireAuth, requirePerm('canCreateRepo'), (req, res) => {
   const db = getDb();
-  const { id, counterparty, amount, currency, rate, startDate, maturityDate, state, requiredCollateral, postedCollateral, buffer, settlement, notes, assets } = req.body;
+  const { id, counterparty, amount, currency, rate, startDate, maturityDate, state, requiredCollateral, postedCollateral, buffer, settlement, assets } = req.body;
+  const notes = sanitise(req.body.notes);
   if (!isNonEmptyString(id) || !isNonEmptyString(counterparty) || !isNonEmptyString(currency) || !isNonEmptyString(startDate) || !isNonEmptyString(maturityDate) || !isNonEmptyString(state) || !isNonEmptyString(settlement)) {
     return badRequest(res, 'Missing required repo fields');
   }
@@ -64,7 +71,8 @@ router.put('/:id', requireAuth, requirePerm('canUpdateRepo'), (req, res) => {
   const db = getDb();
   const existing = db.prepare('SELECT * FROM repos WHERE id = ?').get(req.params.id);
   if (!existing) return res.status(404).json({ error: 'Repo not found' });
-  const { state, settlement, postedCollateral, buffer, notes, assets } = req.body;
+  const { state, settlement, postedCollateral, buffer, assets } = req.body;
+  const notes = sanitise(req.body.notes);
   if (state !== undefined && !isNonEmptyString(state)) return badRequest(res, 'state must be a non-empty string');
   if (settlement !== undefined && !isNonEmptyString(settlement)) return badRequest(res, 'settlement must be a non-empty string');
   if (postedCollateral !== undefined && !isFiniteNumber(postedCollateral)) return badRequest(res, 'postedCollateral must be a finite number');
@@ -95,7 +103,8 @@ router.post('/:id/settle', requireAuth, requirePerm('canAdvanceSettlement'), (re
   const db = getDb();
   const repo = db.prepare('SELECT * FROM repos WHERE id = ?').get(req.params.id);
   if (!repo) return res.status(404).json({ error: 'Repo not found' });
-  const { reference, notes } = req.body;
+  const reference = sanitise(req.body.reference);
+  const notes     = sanitise(req.body.notes);
   if (reference !== undefined && !isOptionalString(reference, MAX.shortText)) {
     return badRequest(res, 'reference must be a string up to 100 characters');
   }

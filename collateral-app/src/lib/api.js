@@ -5,7 +5,18 @@ const BASE =
   (import.meta.env.DEV ? "http://localhost:3001" : "");
 const USE_REMOTE_API = Boolean(BASE);
 
-async function request(method, path, body) {
+let _refreshing = null; // in-flight refresh promise — collapses concurrent retries
+
+async function tryRefresh() {
+  if (_refreshing) return _refreshing;
+  _refreshing = fetch(`${BASE}/auth/refresh`, { method: 'POST', credentials: 'include' })
+    .then(r => r.ok)
+    .catch(() => false)
+    .finally(() => { _refreshing = null; });
+  return _refreshing;
+}
+
+async function request(method, path, body, _retry = true) {
   if (!USE_REMOTE_API) {
     throw new Error("Remote API disabled");
   }
@@ -15,6 +26,13 @@ async function request(method, path, body) {
     credentials: 'include',
     body: body ? JSON.stringify(body) : undefined,
   });
+  if (res.status === 401 && _retry && path !== '/auth/login') {
+    const refreshed = await tryRefresh();
+    if (refreshed) return request(method, path, body, false); // retry once
+    localStorage.removeItem('co_user');
+    window.location.reload();
+    return;
+  }
   if (res.status === 401) {
     localStorage.removeItem('co_user');
     window.location.reload();

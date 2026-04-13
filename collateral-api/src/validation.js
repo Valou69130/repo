@@ -8,6 +8,14 @@ const MAX = {
   email:        254,
 };
 
+// Strip ASCII control characters (0x00–0x1F, 0x7F) except tab and newline.
+// Prevents log injection, stored XSS via control chars, and terminal escape sequences.
+function sanitise(value) {
+  if (typeof value !== 'string') return value;
+  // eslint-disable-next-line no-control-regex
+  return value.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+}
+
 function isNonEmptyString(value, max = MAX.shortText) {
   return typeof value === 'string' && value.trim().length > 0 && value.length <= max;
 }
@@ -30,6 +38,7 @@ function badRequest(res, error) {
 
 module.exports = {
   MAX,
+  sanitise,
   isNonEmptyString,
   isFiniteNumber,
   isOptionalString,

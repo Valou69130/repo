@@ -64,6 +64,12 @@ router.get('/', requireAuth, (req, res) => {
   });
 });
 
+router.get('/:id', requireAuth, (req, res) => {
+  const row = getDb().prepare('SELECT * FROM assets WHERE id = ?').get(req.params.id);
+  if (!row) return res.status(404).json({ error: 'Asset not found' });
+  res.json(toAsset(row));
+});
+
 router.put('/:id', requireAuth, requirePerm('canUpdateAsset'), (req, res) => {
   const db = getDb();
   const existing = db.prepare('SELECT * FROM assets WHERE id = ?').get(req.params.id);

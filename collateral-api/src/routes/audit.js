@@ -3,7 +3,7 @@ const crypto = require('crypto');
 const { getDb } = require('../db/schema');
 const { requireAuth } = require('../middleware/auth');
 const { appendAuditEntry } = require('../middleware/auditHelper');
-const { MAX, badRequest, isOptionalString, isNonEmptyString } = require('../validation');
+const { MAX, sanitise, badRequest, isOptionalString, isNonEmptyString } = require('../validation');
 
 function computeEntryHash(prevHash, entry) {
   const payload = prevHash + JSON.stringify(entry);
@@ -40,7 +40,11 @@ router.get('/verify', requireAuth, (req, res) => {
 // POST /audit — client-side audit hook for UI events the server cannot auto-capture.
 // Any client-supplied `ts` is ignored; the server stamps the real time.
 router.post('/', requireAuth, (req, res) => {
-  const { action, object, prev, next, comment } = req.body;
+  const action  = sanitise(req.body.action);
+  const object  = sanitise(req.body.object);
+  const prev    = sanitise(req.body.prev);
+  const next    = sanitise(req.body.next);
+  const comment = sanitise(req.body.comment);
   if (![action, object].every((v) => isNonEmptyString(v, MAX.shortText))) {
     return badRequest(res, 'Missing or oversized required audit fields');
   }

@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const { getDb } = require('../db/schema');
 const { requireAuth, requireWriteAccess } = require('../middleware/auth');
-const { MAX, badRequest, isNonEmptyString } = require('../validation');
+const { MAX, sanitise, badRequest, isNonEmptyString } = require('../validation');
 
 function toNotification(r) {
   return {
@@ -20,7 +20,9 @@ router.get('/', requireAuth, (req, res) => {
 });
 
 router.post('/', requireAuth, requireWriteAccess, (req, res) => {
-  const { severity, text, target } = req.body;
+  const { severity } = req.body;
+  const text   = sanitise(req.body.text);
+  const target = sanitise(req.body.target);
   const allowedSeverities = new Set(['Critical', 'Warning', 'Info']);
   if (!allowedSeverities.has(severity)) return badRequest(res, 'Invalid notification severity');
   if (!isNonEmptyString(text, MAX.shortText)) return badRequest(res, `text is required and must be under ${MAX.shortText} characters`);

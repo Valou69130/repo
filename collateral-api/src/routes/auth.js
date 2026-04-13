@@ -4,12 +4,25 @@ const jwt = require('jsonwebtoken');
 const { getDb } = require('../db/schema');
 const { JWT_SECRET } = require('../middleware/auth');
 
-const COOKIE_OPTS = {
+if (!process.env.JWT_REFRESH_SECRET) {
+  throw new Error('JWT_REFRESH_SECRET environment variable is required');
+}
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+
+const ACCESS_COOKIE_OPTS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
   sameSite: 'strict',
-  maxAge: 2 * 60 * 60 * 1000, // 2 hours in ms
+  maxAge: 2 * 60 * 60 * 1000, // 2 hours
   path: '/',
+};
+
+const REFRESH_COOKIE_OPTS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict',
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  path: '/auth/refresh',             // scoped — only sent to the refresh endpoint
 };
 
 router.post('/login', (req, res) => {
@@ -20,12 +33,11 @@ router.post('/login', (req, res) => {
   if (!user || !bcrypt.compareSync(password, user.password_hash)) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
-  const token = jwt.sign(
-    { id: user.id, name: user.name, email: user.email, role: user.role },
-    JWT_SECRET,
-    { expiresIn: '2h' }
-  );
-  res.cookie('co_token', token, COOKIE_OPTS);
+  const payload = { id: user.id, name: user.name, email: user.email, role: user.role };
+  const accessToken  = jwt.sign(payload, JWT_SECRET,         { expiresIn: '2h' });
+  const refreshToken = jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: '7d' });
+  res.cookie('co_token',   accessToken,  ACCESS_COOKIE_OPTS);
+  res.cookie('co_refresh', refreshToken, REFRESH_COOKIE_OPTS);
   res.json({
     user: { id: user.id, name: user.name, email: user.email, role: user.role },
     mustChangePassword: user.must_change_password === 1,
@@ -53,8 +65,26 @@ router.put('/password', require('../middleware/auth').requireAuth, (req, res) =>
   res.json({ ok: true });
 });
 
+// Refresh — swap a valid refresh token for a new access token
+router.post('/refresh', (req, res) => {
+  const raw = req.cookies?.co_refresh;
+  if (!raw) return res.status(401).json({ error: 'No refresh token' });
+  try {
+    const payload = jwt.verify(raw, JWT_REFRESH_SECRET);
+    const { id, name, email, role } = payload;
+    const accessToken = jwt.sign({ id, name, email, role }, JWT_SECRET, { expiresIn: '2h' });
+    res.cookie('co_token', accessToken, ACCESS_COOKIE_OPTS);
+    res.json({ ok: true });
+  } catch {
+    res.clearCookie('co_token',   { path: '/' });
+    res.clearCookie('co_refresh', { path: '/auth/refresh' });
+    res.status(401).json({ error: 'Refresh token invalid or expired' });
+  }
+});
+
 router.post('/logout', (req, res) => {
-  res.clearCookie('co_token', { path: '/' });
+  res.clearCookie('co_token',   { path: '/' });
+  res.clearCookie('co_refresh', { path: '/auth/refresh' });
   res.json({ ok: true });
 });
 
