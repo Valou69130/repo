@@ -1,68 +1,95 @@
 import { useMemo } from "react";
 import {
-  ArrowRightLeft,
-  Coins,
-  ReceiptText,
-  Sparkles,
-  Wallet,
-} from "lucide-react";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
+  PieChart, Pie, Cell,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { KpiCard } from "@/components/shared/KpiCard";
-import { StatusBadge } from "@/components/shared/StatusBadge";
 import { fmtMoney, adjustedValue } from "@/domain/format";
-import { AgentStatusStrip } from "@/components/dashboard/AgentStatusStrip";
-import { RecommendedActions, deriveActionItems } from "@/components/dashboard/RecommendedActions";
-import { EodSummary } from "@/components/dashboard/EodSummary";
+import { deriveActionItems } from "@/components/dashboard/RecommendedActions";
 import { PendingApprovalsWidget } from "@/components/dashboard/PendingApprovalsWidget";
-import { PortfolioOptWidget } from "@/components/dashboard/PortfolioOptWidget";
+import "./Dashboard.css";
 
-// ─── Constants ─────────────────────────────────────────────────────────────────
+// ─── Theme constants ──────────────────────────────────────────────────────────
+
+const C = {
+  text:    "#1C1814",
+  muted:   "#78705F",
+  faint:   "#B0A898",
+  rule:    "#C4BAA8",
+  ruleDk:  "#A09080",
+  surface: "#E8E4DB",
+  accent:  "#8B1A1A",
+  green:   "#1A5936",
+  amber:   "#8B4500",
+  blue:    "#1A2E5A",
+};
 
 const STATUS_COLORS = {
-  Available: "#10b981",
-  Reserved:  "#f59e0b",
-  Locked:    "#64748b",
-  Pledged:   "#ef4444",
+  Available: C.green,
+  Reserved:  C.amber,
+  Locked:    C.blue,
+  Pledged:   C.accent,
 };
 
-// ─── Chart tooltip helpers ─────────────────────────────────────────────────────
+const STATUS_ABBR = {
+  Active:          "ACT",
+  Maturing:        "MAT",
+  "Margin deficit":"DEF",
+  Pending:         "PND",
+  Closed:          "CLO",
+};
 
-const PieTooltip = ({ active, payload }) => {
-  if (active && payload?.length) {
-    return (
-      <div className="bg-white border rounded shadow-lg px-3 py-2 text-sm">
-        <div className="font-medium text-slate-800">{payload[0].name}</div>
-        <div className="text-slate-500">{fmtMoney(payload[0].value)}</div>
+// ─── Tooltip components ───────────────────────────────────────────────────────
+
+const DbTooltip = ({ active, payload, label, isBar }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="db-tooltip">
+      <div style={{ fontWeight: 600, marginBottom: 2 }}>{label ?? payload[0].name}</div>
+      <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem" }}>
+        {isBar ? `${payload[0].value}%` : fmtMoney(payload[0].value)}
       </div>
-    );
-  }
-  return null;
+    </div>
+  );
 };
 
-const BarTooltip = ({ active, payload, label }) => {
-  if (active && payload?.length) {
-    return (
-      <div className="bg-white border rounded shadow-lg px-3 py-2 text-sm">
-        <div className="font-medium text-slate-800">{label}</div>
-        <div className="text-slate-500">Coverage: {payload[0].value}%</div>
-      </div>
-    );
-  }
-  return null;
-};
+// ─── Section header ───────────────────────────────────────────────────────────
+
+function SectionHead({ title, right }) {
+  return (
+    <div className="db-section-head" style={{ marginBottom: "1rem" }}>
+      <h2>{title}</h2>
+      <div className="db-rule-fill" />
+      {right && (
+        <span style={{ fontSize: "0.62rem", letterSpacing: "0.1em", color: C.muted, whiteSpace: "nowrap" }}>
+          {right}
+        </span>
+      )}
+    </div>
+  );
+}
+
+// ─── Status display ───────────────────────────────────────────────────────────
+
+function RepoStatus({ state }) {
+  const color =
+    state === "Margin deficit" ? C.accent :
+    state === "Maturing"       ? C.amber  :
+    state === "Active"         ? C.green  : C.muted;
+  return (
+    <span className="db-status" style={{ color, borderColor: color }}>
+      {STATUS_ABBR[state] ?? state.slice(0, 3).toUpperCase()}
+    </span>
+  );
+}
+
+function AssetStatus({ status }) {
+  const color = STATUS_COLORS[status] ?? C.muted;
+  return (
+    <span className="db-status" style={{ color, borderColor: color }}>
+      {status.slice(0, 4).toUpperCase()}
+    </span>
+  );
+}
 
 // ─── Main dashboard ───────────────────────────────────────────────────────────
 
@@ -77,22 +104,22 @@ export function Dashboard({
   onRejectSubstitution,
   onNavigate,
 }) {
-  const today = new Date().toLocaleDateString("ro-RO", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  const today = new Date();
+  const dateStr = today.toLocaleDateString("en-GB", { weekday: "short", day: "2-digit", month: "short", year: "numeric" }).toUpperCase();
+  const timeStr = today.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 
-  // ── Derived data ──
+  // ── Derived data ──────────────────────────────────────────────────────────
+
   const totals = useMemo(() => {
-    const total   = assets.reduce((s, a) => s + a.marketValue, 0);
-    const free    = assets.filter((a) => a.status === "Available").reduce((s, a) => s + a.marketValue, 0);
-    const active  = repos.filter((r) => ["Active", "Maturing", "Margin deficit"].includes(r.state)).length;
+    const total    = assets.reduce((s, a) => s + a.marketValue, 0);
+    const free     = assets.filter((a) => a.status === "Available").reduce((s, a) => s + a.marketValue, 0);
+    const locked   = assets.filter((a) => a.status === "Locked").reduce((s, a) => s + a.marketValue, 0);
+    const active   = repos.filter((r) => ["Active", "Maturing", "Margin deficit"].includes(r.state)).length;
     const deficits = repos.filter((r) => r.buffer < 0).length;
-    const accruedToday = repos
+    const accrued  = repos
       .filter((r) => r.state !== "Closed")
       .reduce((s, r) => s + Math.round(r.amount * (r.rate / 100) / 360), 0);
-    return { total, free, active, deficits, accruedToday };
+    return { total, free, locked, active, deficits, accrued };
   }, [assets, repos]);
 
   const actionItems = useMemo(
@@ -102,12 +129,8 @@ export function Dashboard({
 
   const statusBreakdown = useMemo(() => {
     const groups = { Available: 0, Reserved: 0, Locked: 0, Pledged: 0 };
-    assets.forEach((a) => {
-      if (groups[a.status] !== undefined) groups[a.status] += a.marketValue;
-    });
-    return Object.entries(groups)
-      .filter(([, v]) => v > 0)
-      .map(([name, value]) => ({ name, value }));
+    assets.forEach((a) => { if (groups[a.status] !== undefined) groups[a.status] += a.marketValue; });
+    return Object.entries(groups).filter(([, v]) => v > 0).map(([name, value]) => ({ name, value }));
   }, [assets]);
 
   const maturityLadder = useMemo(() => {
@@ -120,476 +143,403 @@ export function Dashboard({
       dayMap[d].collateral += r.postedCollateral;
       dayMap[d].repos.push(r.id);
     }
-    return Object.values(dayMap).sort((a, b) => a.date.localeCompare(b.date));
+    return Object.values(dayMap).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 6);
   }, [repos]);
 
-  const coverageData = useMemo(() => {
-    return repos
+  const coverageData = useMemo(() =>
+    repos
       .filter((r) => r.state !== "Closed")
       .map((r) => ({
-        id:       r.id,
+        id:       r.id.replace("R-", ""),
         coverage: Math.round((r.postedCollateral / r.requiredCollateral) * 100),
         fill:
-          r.buffer < 0
-            ? "#ef4444"
-            : r.postedCollateral / r.requiredCollateral < 1.03
-            ? "#f59e0b"
-            : "#10b981",
-      }));
-  }, [repos]);
+          r.buffer < 0 ? C.accent :
+          r.postedCollateral / r.requiredCollateral < 1.03 ? C.amber : C.green,
+      })),
+    [repos]
+  );
+
+  const activeRepos = repos.filter((r) => r.state !== "Closed");
+  const maxCash = Math.max(...maturityLadder.map((d) => d.cash), 1);
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="space-y-6 w-full max-w-full min-w-0">
+    <div className="db" style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}>
 
-      {/* ── Page header ── */}
-      <div className="relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-[linear-gradient(135deg,#f8fbff_0%,#eef6ff_42%,#f8fafc_100%)] px-6 py-6 shadow-sm">
-        <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-blue-200/35 blur-3xl" />
-        <div className="absolute bottom-0 left-24 h-32 w-32 rounded-full bg-emerald-100/60 blur-3xl" />
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
+      {/* ── Masthead ── */}
+      <div style={{ borderBottom: `3px solid ${C.text}`, padding: "0.75rem 1.5rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/80 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-blue-700 shadow-sm">
-              <Sparkles className="h-3.5 w-3.5" />
-              Executive overview
+            <div style={{
+              fontFamily:    "var(--font-ui)",
+              fontSize:      "0.6rem",
+              fontWeight:    600,
+              letterSpacing: "0.22em",
+              textTransform: "uppercase",
+              color:         C.muted,
+              marginBottom:  "0.2rem",
+            }}>
+              Romania Pilot · Treasury Operations
             </div>
-            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900">
-              Collateral Control Center
-            </h1>
-            <p className="mt-2 max-w-2xl text-slate-600">
-              Agent-assisted operating surface for margin monitoring, substitution analysis, settlement pressure, and daily control actions across the repo book.
-            </p>
+            <div style={{
+              fontFamily:    "var(--font-serif)",
+              fontSize:      "1.5rem",
+              fontWeight:    700,
+              letterSpacing: "-0.01em",
+              lineHeight:    1,
+              color:         C.text,
+            }}>
+              Collateral Operating Desk
+            </div>
           </div>
-          <div className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm">
-              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Free pool</div>
-              <div className="mt-1 text-lg font-semibold text-slate-900">{fmtMoney(totals.free)}</div>
-              <div className="mt-1 text-xs text-slate-500">Immediately mobilisable collateral</div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{
+              fontFamily:    "var(--font-mono)",
+              fontSize:      "0.82rem",
+              fontWeight:    500,
+              letterSpacing: "0.04em",
+              color:         C.text,
+            }}>
+              {dateStr}
             </div>
-            <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm">
-              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Open actions</div>
-              <div className="mt-1 text-lg font-semibold text-slate-900">{actionItems.length}</div>
-              <div className="mt-1 text-xs text-slate-500">Recommended interventions and reviews</div>
-            </div>
-            <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm text-right">
-              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Session date</div>
-              <div className="mt-1 text-lg font-semibold text-slate-900">{today}</div>
-              <div className="mt-1 flex items-center justify-end gap-1.5">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-                </span>
-                <span className="text-[10px] text-emerald-600 font-medium uppercase tracking-wider">Live</span>
-              </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "0.5rem", marginTop: "0.2rem" }}>
+              <span style={{
+                width: 7, height: 7, borderRadius: "50%",
+                background: C.green, display: "inline-block",
+                animation: "pulse 2s infinite",
+              }} />
+              <span style={{ fontFamily: "var(--font-ui)", fontSize: "0.6rem", fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: C.green }}>
+                LIVE · {timeStr}
+              </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── Agent status strip ── */}
-      <AgentStatusStrip repos={repos} assets={assets} notifications={notifications} actionItems={actionItems} />
+      {/* ── Alert bar ── */}
+      {totals.deficits > 0 && (
+        <div className="db-alert">
+          <span style={{ background: "#FAF7F0", color: C.accent, width: 18, height: 18, display: "inline-flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)", fontSize: "0.7rem", flexShrink: 0 }}>
+            ▲
+          </span>
+          MARGIN DEFICIT ALERT — {totals.deficits} REPO{totals.deficits > 1 ? "S" : ""} BELOW THRESHOLD · IMMEDIATE ACTION REQUIRED
+        </div>
+      )}
 
-      {/* ── Recommended actions ── */}
-      <RecommendedActions items={actionItems} onAct={openRepo} />
-
-      {/* ── 4-eye approvals ── */}
-      <PendingApprovalsWidget
-        pendingSubstitutions={pendingSubstitutions}
-        assets={assets}
-        repos={repos}
-        role={role}
-        onApproveSubstitution={onApproveSubstitution}
-        onRejectSubstitution={onRejectSubstitution}
-      />
-
-      {/* ── Divider — secondary content ── */}
-      <div className="flex items-center gap-3 pt-2">
-        <div className="flex-1 h-px bg-slate-200" />
-        <span className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold px-2">
-          Portfolio &amp; Market Overview
-        </span>
-        <div className="flex-1 h-px bg-slate-200" />
+      {/* ── KPI bar ── */}
+      <div style={{ display: "flex", borderBottom: `1px solid ${C.ruleDk}`, background: C.surface }}>
+        {[
+          { label: "Total Collateral Pool",   value: fmtMoney(totals.total),    sub: `${assets.length} registered positions`          },
+          { label: "Free / Unencumbered",      value: fmtMoney(totals.free),     sub: `${totals.total > 0 ? Math.round(totals.free / totals.total * 100) : 0}% of pool available` },
+          { label: "Locked in Repos",          value: fmtMoney(totals.locked),   sub: `Supporting ${totals.active} open trades`        },
+          { label: "Active Repo Book",         value: String(totals.active),     sub: totals.deficits > 0 ? `▲ ${totals.deficits} deficit${totals.deficits > 1 ? "s" : ""}` : "All within threshold", numColor: totals.deficits > 0 ? C.accent : C.text },
+          { label: "Accrued Interest — Today", value: fmtMoney(totals.accrued),  sub: "Estimated carry on open book"                   },
+        ].map(({ label, value, sub, numColor }) => (
+          <div key={label} className="db-kpi">
+            <div className="db-kpi-label">{label}</div>
+            <div className="db-kpi-value" style={{ color: numColor || C.text }}>{value}</div>
+            <div className="db-kpi-sub">{sub}</div>
+          </div>
+        ))}
       </div>
 
-      {/* ── KPI strip ── */}
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <KpiCard
-          title="Total Collateral Value"
-          value={fmtMoney(totals.total)}
-          description="All registered positions across the pool"
-          icon={Coins}
-        />
-        <KpiCard
-          title="Free Collateral"
-          value={fmtMoney(totals.free)}
-          description={
-            totals.total > 0
-              ? `${Math.round((totals.free / totals.total) * 100)}% of portfolio unencumbered`
-              : "No assets"
-          }
-          icon={Wallet}
-          trendUp
-        />
-        <KpiCard
-          title="Active Repos"
-          value={String(totals.active)}
-          description={
-            totals.deficits > 0
-              ? `${totals.deficits} margin deficit${totals.deficits > 1 ? "s" : ""} need attention`
-              : "Open book currently within threshold"
-          }
-          icon={ArrowRightLeft}
-          alert={totals.deficits > 0}
-        />
-        <KpiCard
-          title="Accrued Interest Today"
-          value={fmtMoney(totals.accruedToday)}
-          description="Estimated carry contribution on open trades"
-          icon={ReceiptText}
-        />
-      </div>
+      {/* ── Body ── */}
+      <div style={{ flex: 1, padding: "1.5rem", display: "flex", flexDirection: "column", gap: "2rem" }}>
 
-      {/* ── Portfolio Optimisation widget ── */}
-      <PortfolioOptWidget repos={repos} assets={assets} onNavigate={onNavigate} />
+        {/* ── Pending 4-eye approvals ── */}
+        {pendingSubstitutions.length > 0 && (
+          <div>
+            <SectionHead title="Pending 4-Eye Approvals" right={`${pendingSubstitutions.length} awaiting`} />
+            <div style={{ border: `1px solid ${C.ruleDk}`, padding: "1rem" }}>
+              <PendingApprovalsWidget
+                pendingSubstitutions={pendingSubstitutions}
+                assets={assets}
+                repos={repos}
+                role={role}
+                onApproveSubstitution={onApproveSubstitution}
+                onRejectSubstitution={onRejectSubstitution}
+              />
+            </div>
+          </div>
+        )}
 
-      {/* ── Portfolio charts ── */}
-      <div className="grid gap-6 xl:grid-cols-2">
-        <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
-          <CardHeader className="pb-4">
-            <CardTitle>Portfolio Allocation</CardTitle>
-            <CardDescription>Market value by encumbrance status</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-8">
-              <div className="rounded-[1.5rem] border border-slate-100 bg-slate-50/70 p-4" style={{ height: 212, width: 212, flexShrink: 0 }}>
+        {/* ── Required actions ── */}
+        {actionItems.length > 0 && (
+          <div>
+            <SectionHead title="Required Actions" right={`${actionItems.length} open`} />
+            <div>
+              {actionItems.slice(0, 5).map((item, i) => {
+                const markerColor =
+                  item.severity === "critical" ? C.accent :
+                  item.severity === "warning"  ? C.amber  : C.blue;
+                return (
+                  <div key={i} className="db-action-item" onClick={() => item.repoId && openRepo(item.repoId)}>
+                    <div className="db-action-marker" style={{ background: markerColor }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="db-action-text" style={{ fontWeight: 600, fontSize: "0.82rem", marginBottom: "0.15rem" }}>
+                        {item.label}
+                      </div>
+                      <div style={{ fontSize: "0.73rem", color: C.muted }}>{item.description}</div>
+                    </div>
+                    {item.repoId && (
+                      <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: C.faint, flexShrink: 0 }}>
+                        {item.repoId} →
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+              {actionItems.length > 5 && (
+                <div style={{ paddingTop: "0.5rem", fontSize: "0.7rem", color: C.muted, letterSpacing: "0.06em" }}>
+                  + {actionItems.length - 5} more actions
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── Main two-column: Repo book + Maturity ladder ── */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: "2.5rem" }}>
+
+          {/* Active repo book */}
+          <div>
+            <SectionHead title="Active Repo Book" right={`${activeRepos.length} open trades`} />
+            <table className="db-table">
+              <thead>
+                <tr>
+                  <th>Ref</th>
+                  <th>Counterparty</th>
+                  <th className="right">Notional</th>
+                  <th className="right">Rate</th>
+                  <th className="right">Coverage</th>
+                  <th className="right">Buffer</th>
+                  <th className="right">Maturity</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {activeRepos.map((r) => {
+                  const coverage  = Math.round((r.postedCollateral / r.requiredCollateral) * 100);
+                  const daysLeft  = Math.max(0, Math.ceil((new Date(r.maturityDate) - new Date()) / 86400000));
+                  const bufferColor = r.buffer < 0 ? C.accent : r.buffer < 50000 ? C.amber : C.green;
+                  return (
+                    <tr key={r.id} onClick={() => openRepo(r.id)}>
+                      <td>
+                        <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.72rem", color: C.muted }}>
+                          {r.id}
+                        </span>
+                      </td>
+                      <td style={{ fontWeight: 500 }}>{r.counterparty}</td>
+                      <td className="right" style={{ fontFamily: "var(--font-mono)", fontSize: "0.82rem" }}>
+                        {fmtMoney(r.amount, r.currency)}
+                      </td>
+                      <td className="right" style={{ fontFamily: "var(--font-mono)", fontSize: "0.82rem" }}>
+                        {r.rate}%
+                      </td>
+                      <td className="right">
+                        <span style={{
+                          fontFamily: "var(--font-mono)",
+                          fontSize: "0.82rem",
+                          fontWeight: 500,
+                          color: coverage >= 103 ? C.green : coverage >= 100 ? C.amber : C.accent,
+                        }}>
+                          {coverage}%
+                        </span>
+                      </td>
+                      <td className="right">
+                        <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.78rem", color: bufferColor }}>
+                          {r.buffer >= 0 ? "+" : ""}{fmtMoney(r.buffer, r.currency)}
+                        </span>
+                      </td>
+                      <td className="right">
+                        <span style={{
+                          fontFamily: "var(--font-mono)",
+                          fontSize: "0.78rem",
+                          color: daysLeft <= 1 ? C.accent : daysLeft <= 3 ? C.amber : C.muted,
+                        }}>
+                          {r.maturityDate}
+                          {daysLeft <= 3 && (
+                            <span style={{ marginLeft: "0.35rem", fontSize: "0.62rem" }}>
+                              ({daysLeft}d)
+                            </span>
+                          )}
+                        </span>
+                      </td>
+                      <td><RepoStatus state={r.state} /></td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Maturity ladder */}
+          <div>
+            <SectionHead title="Maturity Ladder" />
+            {maturityLadder.length === 0 ? (
+              <div style={{ color: C.muted, fontSize: "0.8rem", paddingTop: "1rem" }}>No upcoming maturities.</div>
+            ) : (
+              maturityLadder.map((d) => {
+                const daysAway   = Math.ceil((new Date(d.date) - new Date()) / 86400000);
+                const barWidth   = `${Math.max(8, Math.round((d.cash / maxCash) * 100))}%`;
+                const dateColor  = daysAway <= 1 ? C.accent : daysAway <= 3 ? C.amber : C.text;
+                return (
+                  <div key={d.date} className="db-ladder-item">
+                    <div>
+                      <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.72rem", fontWeight: 500, color: dateColor }}>
+                        {d.date}
+                      </div>
+                      <div style={{ fontSize: "0.6rem", color: C.muted, marginTop: "0.1rem", letterSpacing: "0.04em" }}>
+                        {daysAway <= 0 ? "TODAY" : daysAway === 1 ? "TOMORROW" : `IN ${daysAway}D`}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="db-ladder-bar" style={{ width: barWidth, background: dateColor }} />
+                      <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", marginTop: "0.2rem", color: C.muted }}>
+                        {fmtMoney(d.cash)}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.62rem", color: C.muted }}>
+                        {d.repos.join(" ")}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        {/* ── Charts row ── */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2.5rem" }}>
+
+          {/* Portfolio allocation */}
+          <div>
+            <SectionHead title="Portfolio Allocation" right="By encumbrance status" />
+            <div style={{ display: "flex", gap: "1.5rem", alignItems: "center" }}>
+              <div style={{ width: 160, height: 160, flexShrink: 0 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie
-                      data={statusBreakdown}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={50}
-                      outerRadius={76}
-                      paddingAngle={3}
-                      dataKey="value"
-                    >
-                      {statusBreakdown.map((entry) => (
-                        <Cell key={entry.name} fill={STATUS_COLORS[entry.name] || "#94a3b8"} />
+                    <Pie data={statusBreakdown} cx="50%" cy="50%" innerRadius={40} outerRadius={68}
+                      paddingAngle={2} dataKey="value" strokeWidth={0}>
+                      {statusBreakdown.map((e) => (
+                        <Cell key={e.name} fill={STATUS_COLORS[e.name] || C.muted} />
                       ))}
                     </Pie>
-                    <Tooltip content={<PieTooltip />} />
+                    <Tooltip content={({ active, payload }) => (
+                      <DbTooltip active={active} payload={payload} />
+                    )} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="flex-1 space-y-3">
-                {statusBreakdown.map((entry) => (
-                  <div key={entry.name} className="flex items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-slate-50/60 px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: STATUS_COLORS[entry.name] }}
-                      />
-                      <span className="text-sm text-slate-700">{entry.name}</span>
+              <div style={{ flex: 1 }}>
+                {statusBreakdown.map((e) => (
+                  <div key={e.name} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.4rem 0", borderBottom: `1px solid ${C.rule}` }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      <div className="db-dot" style={{ background: STATUS_COLORS[e.name] || C.muted }} />
+                      <span style={{ fontSize: "0.78rem" }}>{e.name}</span>
                     </div>
-                    <div className="text-right">
-                      <div className="text-sm font-medium text-slate-900">{fmtMoney(entry.value)}</div>
-                      <div className="text-xs text-slate-400">
-                        {totals.total > 0
-                          ? Math.round((entry.value / totals.total) * 100)
-                          : 0}
-                        %
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem" }}>{fmtMoney(e.value)}</div>
+                      <div style={{ fontSize: "0.6rem", color: C.muted }}>
+                        {totals.total > 0 ? Math.round((e.value / totals.total) * 100) : 0}%
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
-          <CardHeader className="pb-4">
-            <CardTitle>Repo Coverage Ratios</CardTitle>
-            <CardDescription>Posted vs required collateral — 103% minimum threshold</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-[1.5rem] border border-slate-100 bg-slate-50/60 p-3" style={{ height: 228 }}>
+          {/* Coverage ratios */}
+          <div>
+            <SectionHead title="Repo Coverage Ratios" right="Posted / required · 103% min" />
+            <div style={{ height: 180 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={coverageData} margin={{ top: 4, right: 8, left: -24, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                  <XAxis
-                    dataKey="id"
-                    tick={{ fontSize: 11, fill: "#94a3b8" }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 11, fill: "#94a3b8" }}
-                    domain={[80, 130]}
-                    unit="%"
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <Tooltip content={<BarTooltip />} cursor={{ fill: "#f8fafc" }} />
-                  <Bar dataKey="coverage" radius={[4, 4, 0, 0]}>
-                    {coverageData.map((entry, i) => (
-                      <Cell key={i} fill={entry.fill} />
-                    ))}
+                <BarChart data={coverageData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="2 4" stroke={C.rule} vertical={false} />
+                  <XAxis dataKey="id" tick={{ fontSize: 10, fill: C.muted, fontFamily: "var(--font-mono)" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 10, fill: C.muted, fontFamily: "var(--font-mono)" }} domain={[85, 130]} unit="%" axisLine={false} tickLine={false} />
+                  <Tooltip content={({ active, payload, label }) => (
+                    <DbTooltip active={active} payload={payload} label={`R-${label}`} isBar />
+                  )} />
+                  <Bar dataKey="coverage" radius={0}>
+                    {coverageData.map((e, i) => <Cell key={i} fill={e.fill} />)}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <div className="mt-4 flex flex-wrap items-center gap-5 text-xs text-slate-500">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />≥103% compliant
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" />100–103% watch
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-red-500 inline-block" />&lt;100% deficit
-              </span>
+            <div style={{ display: "flex", gap: "1.25rem", marginTop: "0.5rem" }}>
+              {[
+                { color: C.green,  label: "≥103% compliant" },
+                { color: C.amber,  label: "100–103% watch" },
+                { color: C.accent, label: "<100% deficit" },
+              ].map(({ color, label }) => (
+                <span key={label} style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.65rem", color: C.muted }}>
+                  <span className="db-dot" style={{ background: color }} />
+                  {label}
+                </span>
+              ))}
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* ── Collateral overview + Maturity ladder ── */}
-      <div className="grid gap-6 xl:grid-cols-3">
-        <Card className="xl:col-span-2 rounded-[1.5rem] border-slate-200 shadow-sm">
-          <CardHeader className="pb-4">
-            <CardTitle>Collateral Overview</CardTitle>
-            <CardDescription>
-              Haircut-adjusted visibility across the current inventory pool.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-hidden rounded-[1.25rem] border border-slate-100">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Asset</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Market Value</TableHead>
-                  <TableHead>Haircut</TableHead>
-                  <TableHead>Adjusted Value</TableHead>
-                  <TableHead>Eligibility</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {assets.map((a) => (
-                  <TableRow key={a.id}>
-                    <TableCell>
-                      <div className="font-medium">{a.name}</div>
-                      <div className="text-xs text-slate-500 font-mono">{a.isin}</div>
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge status={a.status} />
-                    </TableCell>
-                    <TableCell>{fmtMoney(a.marketValue, a.currency)}</TableCell>
-                    <TableCell>{a.haircut}%</TableCell>
-                    <TableCell>{fmtMoney(adjustedValue(a), a.currency)}</TableCell>
-                    <TableCell className="text-sm text-slate-600">{a.eligibility}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
-          <CardHeader className="pb-4">
-            <CardTitle>Maturity Ladder</CardTitle>
-            <CardDescription>Upcoming cash &amp; collateral flows</CardDescription>
-          </CardHeader>
-          <CardContent className="px-4 pb-4 pt-0">
-            {maturityLadder.length === 0 ? (
-              <div className="text-center text-slate-400 text-sm py-8">No upcoming maturities</div>
-            ) : (
-              <div className="space-y-3">
-                {maturityLadder.map((d) => {
-                  const daysAway = Math.ceil(
-                    (new Date(d.date) - new Date()) / 86400000
-                  );
-                  return (
-                    <div key={d.date} className="rounded-[1.25rem] border border-slate-100 bg-slate-50/60 px-4 py-4 transition-colors hover:bg-slate-50">
-                      <div className="mb-3 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`text-xs font-bold ${
-                              daysAway <= 1 ? "text-red-600" : daysAway <= 3 ? "text-amber-600" : "text-slate-700"
-                            }`}
-                          >
-                            {d.date}
-                          </span>
-                          <span
-                            className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
-                              daysAway <= 1
-                                ? "bg-red-100 text-red-600"
-                                : daysAway <= 3
-                                ? "bg-amber-100 text-amber-600"
-                                : "bg-slate-100 text-slate-500"
-                            }`}
-                          >
-                            {daysAway <= 0 ? "Today" : daysAway === 1 ? "Tomorrow" : `${daysAway}d`}
-                          </span>
-                        </div>
-                        <span className="text-[10px] font-mono text-slate-400">
-                          {d.repos.join(", ")}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3 text-xs">
-                        <div className="rounded-xl bg-white/80 px-3 py-3">
-                          <div className="text-slate-400">Cash Due</div>
-                          <div className="mt-1 font-semibold text-slate-700">{fmtMoney(d.cash)}</div>
-                        </div>
-                        <div className="rounded-xl bg-white/80 px-3 py-3 text-right">
-                          <div className="text-slate-400">Collateral</div>
-                          <div className="mt-1 font-semibold text-emerald-600">
-                            +{fmtMoney(d.collateral)}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* ── EoD summary ── */}
-      <EodSummary repos={repos} assets={assets} />
-
-      {/* ── Active repo timeline ── */}
-      <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
-        <CardHeader className="pb-4">
-          <CardTitle>Active Repo Timeline</CardTitle>
-          <CardDescription>
-            Lifecycle stage, coverage, and maturity at a glance across all open transactions.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
-            {repos
-              .filter((r) => r.state !== "Closed")
-              .map((r) => {
-                const coverage = Math.round((r.postedCollateral / r.requiredCollateral) * 100);
-                const accentColor =
-                  r.buffer < 0
-                    ? "#ef4444"
-                    : r.state === "Maturing"
-                    ? "#f59e0b"
-                    : "#10b981";
-                const daysLeft = Math.max(
-                  0,
-                  Math.ceil((new Date(r.maturityDate) - new Date()) / (1000 * 60 * 60 * 24))
-                );
-                const STAGES   = ["Booked", "Active", "Maturing", "Closed"];
-                const stageIdx =
-                  r.state === "Active"
-                    ? 1
-                    : r.state === "Maturing"
-                    ? 2
-                    : r.state === "Closed"
-                    ? 3
-                    : 1;
-
-                return (
-                  <button
-                    key={r.id}
-                    onClick={() => openRepo(r.id)}
-                    className="w-full overflow-hidden rounded-[1.25rem] border border-slate-200 bg-white text-left transition-colors hover:bg-slate-50 shadow-sm"
-                  >
-                    <div className="h-1 w-full" style={{ backgroundColor: accentColor }} />
-                    <div className="p-4 space-y-4">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <div className="font-mono text-xs text-slate-400">{r.id}</div>
-                          <div className="font-semibold text-slate-900 mt-0.5">{r.counterparty}</div>
-                        </div>
-                        <StatusBadge status={r.state} />
-                      </div>
-                      <div className="flex items-end justify-between">
-                        <div>
-                          <div className="text-xs text-slate-400">Notional</div>
-                          <div className="text-lg font-bold text-slate-900">
-                            {fmtMoney(r.amount, r.currency)}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xs text-slate-400">Matures in</div>
-                          <div
-                            className={`text-2xl font-bold ${
-                              daysLeft <= 3 ? "text-red-600" : daysLeft <= 7 ? "text-amber-500" : "text-slate-700"
-                            }`}
-                          >
-                            {daysLeft}d
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-0">
-                        {STAGES.map((stage, i) => {
-                          const active = i === stageIdx;
-                          const past   = i < stageIdx;
-                          const isLast = i === STAGES.length - 1;
-                          return (
-                            <div key={stage} className="flex items-center flex-1 min-w-0">
-                              <div className="flex flex-col items-center flex-1 min-w-0">
-                                <div
-                                  className={`w-2 h-2 rounded-full flex-shrink-0 ${active ? "ring-2 ring-offset-1" : ""}`}
-                                  style={{
-                                    backgroundColor: active
-                                      ? accentColor
-                                      : past
-                                      ? accentColor + "99"
-                                      : "#e2e8f0",
-                                  }}
-                                />
-                                <div
-                                  className={`text-[9px] mt-1 truncate w-full text-center ${
-                                    active ? "font-semibold text-slate-800" : "text-slate-400"
-                                  }`}
-                                >
-                                  {stage}
-                                </div>
-                              </div>
-                              {!isLast && (
-                                <div
-                                  className="h-px flex-1 mb-3 mx-0.5"
-                                  style={{
-                                    backgroundColor: past ? accentColor + "60" : "#e2e8f0",
-                                  }}
-                                />
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <div>
-                        <div className="flex items-center justify-between text-xs mb-1">
-                          <span className="text-slate-400">Coverage</span>
-                          <span className="font-medium" style={{ color: accentColor }}>
-                            {coverage}%
-                          </span>
-                        </div>
-                        <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                          <div
-                            className="h-1.5 rounded-full transition-all"
-                            style={{
-                              width:           `${Math.min(coverage / 1.3, 100)}%`,
-                              backgroundColor: accentColor,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* ── Collateral inventory ── */}
+        <div>
+          <SectionHead title="Collateral Inventory" right={`${assets.length} positions`} />
+          <table className="db-table">
+            <thead>
+              <tr>
+                <th>Asset</th>
+                <th>ISIN</th>
+                <th>Type</th>
+                <th className="right">Market Value</th>
+                <th className="right">Haircut</th>
+                <th className="right">Adjusted Value</th>
+                <th>Eligibility</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {assets.map((a) => (
+                <tr key={a.id} style={{ cursor: "default" }}>
+                  <td style={{ fontWeight: 500, maxWidth: 180 }}>
+                    <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.name}</div>
+                  </td>
+                  <td style={{ fontFamily: "var(--font-mono)", fontSize: "0.72rem", color: C.muted }}>{a.isin}</td>
+                  <td style={{ fontSize: "0.75rem", color: C.muted }}>{a.type}</td>
+                  <td className="right" style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem" }}>
+                    {fmtMoney(a.marketValue, a.currency)}
+                  </td>
+                  <td className="right" style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem" }}>
+                    {a.haircut}%
+                  </td>
+                  <td className="right" style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: C.green }}>
+                    {fmtMoney(adjustedValue(a), a.currency)}
+                  </td>
+                  <td style={{ fontSize: "0.72rem", color: C.muted, maxWidth: 160 }}>
+                    <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.eligibility}</div>
+                  </td>
+                  <td><AssetStatus status={a.status} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* ── Footer ── */}
+        <div style={{ borderTop: `1px solid ${C.rule}`, paddingTop: "0.75rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ fontFamily: "var(--font-ui)", fontSize: "0.62rem", letterSpacing: "0.12em", textTransform: "uppercase", color: C.muted }}>
+            CollateralOS · Romania Pilot · All values in RON unless stated
+          </span>
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.62rem", color: C.faint }}>
+            Session · {dateStr} {timeStr}
+          </span>
+        </div>
+
+      </div>
     </div>
   );
 }

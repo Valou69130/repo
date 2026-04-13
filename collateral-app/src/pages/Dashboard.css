@@ -1,0 +1,226 @@
+/* ─── Dashboard — Financial Editorial Theme ────────────────────────────────── */
+
+.db {
+  --db-bg:      #F0EDE5;
+  --db-surface: #E8E4DB;
+  --db-rule:    #C4BAA8;
+  --db-rule-dk: #A09080;
+  --db-text:    #1C1814;
+  --db-muted:   #78705F;
+  --db-faint:   #B0A898;
+  --db-accent:  #8B1A1A;
+  --db-green:   #1A5936;
+  --db-amber:   #8B4500;
+  --db-blue:    #1A2E5A;
+
+  --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-mono:  'JetBrains Mono', 'Courier New', monospace;
+  --font-ui:    'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+
+  font-family:      var(--font-ui);
+  background-color: var(--db-bg);
+  color:            var(--db-text);
+  padding:          0;
+  letter-spacing:   0.01em;
+}
+
+/* Typography */
+.db-serif    { font-family: var(--font-serif); }
+.db-mono     { font-family: var(--font-mono); }
+.db-ui       { font-family: var(--font-ui); }
+.db-smallcaps { font-variant: small-caps; letter-spacing: 0.08em; }
+
+/* Section header — ruled line style */
+.db-section-head {
+  display:     flex;
+  align-items: center;
+  gap:         0.75rem;
+  margin-bottom: 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--db-text);
+}
+
+.db-section-head h2 {
+  font-family:    var(--font-serif);
+  font-size:      1rem;
+  font-weight:    600;
+  letter-spacing: 0.04em;
+  white-space:    nowrap;
+  flex-shrink:    0;
+  margin:         0;
+}
+
+.db-section-head .db-rule-fill {
+  flex: 1;
+  height: 1px;
+  background: var(--db-rule-dk);
+}
+
+/* KPI bar cells */
+.db-kpi {
+  flex:        1;
+  padding:     1rem 1.25rem;
+  border-right: 1px solid var(--db-rule);
+  min-width:   0;
+}
+.db-kpi:last-child { border-right: none; }
+
+.db-kpi-label {
+  font-family:    var(--font-ui);
+  font-size:      0.6rem;
+  font-weight:    600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color:          var(--db-muted);
+  margin-bottom:  0.35rem;
+}
+
+.db-kpi-value {
+  font-family:    var(--font-mono);
+  font-size:      1.5rem;
+  font-weight:    500;
+  line-height:    1;
+  letter-spacing: -0.02em;
+  color:          var(--db-text);
+}
+
+.db-kpi-sub {
+  font-size:   0.65rem;
+  color:       var(--db-muted);
+  margin-top:  0.3rem;
+  line-height: 1.3;
+}
+
+/* Table — financial style */
+.db-table {
+  width:           100%;
+  border-collapse: collapse;
+  font-family:     var(--font-ui);
+  font-size:       0.82rem;
+}
+
+.db-table thead tr {
+  border-bottom: 2px solid var(--db-text);
+}
+
+.db-table thead th {
+  padding:        0.4rem 0.75rem;
+  text-align:     left;
+  font-size:      0.6rem;
+  font-weight:    600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color:          var(--db-muted);
+  white-space:    nowrap;
+}
+
+.db-table thead th.right,
+.db-table tbody td.right { text-align: right; }
+
+.db-table tbody tr {
+  border-bottom: 1px solid var(--db-rule);
+  cursor:        pointer;
+  transition:    background 0.1s;
+}
+
+.db-table tbody tr:hover   { background: var(--db-surface); }
+.db-table tbody tr:last-child { border-bottom: none; }
+
+.db-table tbody td {
+  padding: 0.55rem 0.75rem;
+  vertical-align: middle;
+}
+
+/* Status pill */
+.db-status {
+  display:        inline-block;
+  font-family:    var(--font-mono);
+  font-size:      0.62rem;
+  font-weight:    500;
+  letter-spacing: 0.06em;
+  padding:        0.15rem 0.45rem;
+  border:         1px solid currentColor;
+  text-transform: uppercase;
+}
+
+/* Chart tooltip */
+.db-tooltip {
+  background:   var(--db-surface);
+  border:       1px solid var(--db-rule-dk);
+  padding:      0.5rem 0.75rem;
+  font-family:  var(--font-ui);
+  font-size:    0.78rem;
+  color:        var(--db-text);
+}
+
+/* Masthead thick rule */
+.db-masthead-rule {
+  height:     3px;
+  background: var(--db-text);
+  margin-bottom: 0;
+}
+
+.db-masthead-rule-thin {
+  height:     1px;
+  background: var(--db-rule-dk);
+}
+
+/* Alert bar */
+.db-alert {
+  background:  var(--db-accent);
+  color:       #FAF7F0;
+  font-family: var(--font-ui);
+  font-size:   0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding:     0.5rem 1.25rem;
+  display:     flex;
+  align-items: center;
+  gap:         1rem;
+}
+
+/* Maturity ladder */
+.db-ladder-item {
+  border-bottom: 1px solid var(--db-rule);
+  padding:       0.65rem 0;
+  display:       grid;
+  grid-template-columns: 5rem 1fr auto;
+  align-items:   center;
+  gap:           1rem;
+}
+
+.db-ladder-item:last-child { border-bottom: none; }
+
+.db-ladder-bar {
+  height:       6px;
+  background:   var(--db-blue);
+  opacity:      0.7;
+}
+
+/* Legend dot */
+.db-dot {
+  width:  8px;
+  height: 8px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* Action items */
+.db-action-item {
+  display:       flex;
+  align-items:   flex-start;
+  gap:           0.75rem;
+  padding:       0.6rem 0;
+  border-bottom: 1px solid var(--db-rule);
+  cursor:        pointer;
+}
+.db-action-item:last-child { border-bottom: none; }
+.db-action-item:hover .db-action-text { color: var(--db-accent); }
+
+.db-action-marker {
+  width:       3px;
+  min-height:  36px;
+  flex-shrink: 0;
+  margin-top:  2px;
+}
