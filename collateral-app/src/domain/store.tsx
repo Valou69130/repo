@@ -22,6 +22,23 @@ import React, {
 import type { Asset, Repo, AuditEntry, Notification, User, WorkflowEvent } from "./types";
 import type { AllocationResult }             from "@/agents/collateral";
 import type { MarginScanResult, MarginAlert } from "@/agents/margin";
+import { ruleEngineSeed } from "@/data/ruleEngineSeed";
+
+// ── Rule engine types ─────────────────────────────────────────────────────────
+
+export interface RuleEngineCounterparty {
+  minCoverageRatio: number;
+  maxExposure:      number;
+  mta:              number;
+}
+
+export interface RuleEngine {
+  haircuts:          Record<string, number>;
+  eligibility:       Record<string, string[]>;
+  counterparties:    Record<string, RuleEngineCounterparty>;
+  approvalThreshold: number;
+  stressPct:         number;
+}
 
 // ── Agent state sub-tree ──────────────────────────────────────────────────────
 
@@ -52,6 +69,7 @@ export interface DomainState {
   audit:          AuditEntry[];
   notifications:  Notification[];
   workflowEvents: WorkflowEvent[];
+  ruleEngine:     RuleEngine;
   /** Agent state — strictly separated from raw domain data. */
   agentState:     AgentState;
   loading:        boolean;
@@ -65,6 +83,7 @@ const initialState: DomainState = {
   audit:          [],
   notifications:  [],
   workflowEvents: [],
+  ruleEngine:     ruleEngineSeed as RuleEngine,
   agentState: {
     allocation: { results: {}, pending: {}, errors: {} },
     margin:     { scanResult: null, pending: false, error: null },
@@ -81,7 +100,7 @@ export type DomainAction =
   | { type: "USER_LOGGED_OUT" }
   // Data lifecycle
   | { type: "LOAD_STARTED" }
-  | { type: "LOAD_SUCCESS"; payload: Pick<DomainState, "assets" | "repos" | "audit" | "notifications"> }
+  | { type: "LOAD_SUCCESS"; payload: Pick<DomainState, "assets" | "repos" | "audit" | "notifications" | "ruleEngine"> }
   | { type: "LOAD_FAILED";  payload: string }
   // Repos
   | { type: "REPO_CREATED"; payload: Repo }
@@ -104,7 +123,9 @@ export type DomainAction =
   | { type: "MARGIN_SCAN_PENDING" }
   | { type: "MARGIN_SCAN_COMPLETED"; payload: MarginScanResult }
   | { type: "MARGIN_SCAN_FAILED";    payload: string }
-  | { type: "MARGIN_ALERT_UPDATED";  payload: MarginAlert };
+  | { type: "MARGIN_ALERT_UPDATED";  payload: MarginAlert }
+  // Rule engine
+  | { type: "RULE_ENGINE_UPDATED"; payload: Partial<RuleEngine> };
 
 // ── Reducer ───────────────────────────────────────────────────────────────────
 
@@ -257,6 +278,9 @@ function reducer(state: DomainState, action: DomainAction): DomainState {
       };
     }
 
+    case "RULE_ENGINE_UPDATED":
+      return { ...state, ruleEngine: { ...state.ruleEngine, ...action.payload } };
+
     default:
       return state;
   }
@@ -317,6 +341,11 @@ export function useMarginScan(): {
 } {
   const { agentState } = useDomain();
   return agentState.margin;
+}
+
+/** Read the rule engine configuration. */
+export function useRuleEngine(): RuleEngine {
+  return useDomain().ruleEngine;
 }
 
 /**
