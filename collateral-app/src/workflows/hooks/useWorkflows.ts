@@ -128,13 +128,23 @@ export interface MarginWorkflowActions {
 export function useMarginWorkflow(): MarginWorkflowActions {
   const dispatch = useDispatch();
   const ctx      = useWorkflowContext();
+  const { ruleEngine } = useDomain();
 
   const runScanFn = useCallback(async ({
     repos, assets,
   }: { repos: AppRepo[]; assets: AppAsset[] }): Promise<void> => {
     dispatch({ type: "MARGIN_SCAN_PENDING" });
 
-    const wf = runMarginScan({ repos: repos as AppMarginRepo[], assets: assets as AppMarginAsset[] }, ctx);
+    const mtaMap = ruleEngine
+      ? Object.fromEntries(
+          Object.entries(ruleEngine.counterparties).map(([cp, v]) => [cp, v.mta])
+        )
+      : undefined;
+
+    const wf = runMarginScan(
+      { repos: repos as AppMarginRepo[], assets: assets as AppMarginAsset[], mtaMap },
+      ctx,
+    );
 
     if (!wf.success) {
       dispatch({ type: "MARGIN_SCAN_FAILED", payload: wf.error ?? "Scan failed" });

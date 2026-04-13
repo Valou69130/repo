@@ -24,8 +24,9 @@ const AGENT_VERSION = "1.0.0";
 // ── Input types ───────────────────────────────────────────────────────────────
 
 export interface RunMarginScanInput {
-  repos:  AppMarginRepo[];
-  assets: AppMarginAsset[];
+  repos:   AppMarginRepo[];
+  assets:  AppMarginAsset[];
+  mtaMap?: Record<string, number>;
 }
 
 export interface AdvanceAlertInput {
@@ -52,7 +53,7 @@ export function runMarginScan(
 
   let result: MarginScanResult;
   try {
-    result = marginAgent.scan(input.repos, input.assets);
+    result = marginAgent.scan(input.repos, input.assets, { mtaMap: input.mtaMap });
   } catch (err) {
     return failedWorkflow(err instanceof Error ? err.message : String(err), context);
   }

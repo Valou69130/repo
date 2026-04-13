@@ -257,6 +257,8 @@ export interface DetectOptions {
   now?:     string;
   /** Override the thin-buffer threshold (default: THIN_THRESHOLD = 0.05). */
   thinPct?: number;
+  /** Per-counterparty MTA overrides. Falls back to mtaForCurrency when absent. */
+  mtaMap?:  Record<string, number>;
 }
 
 // ── Main detection function ───────────────────────────────────────────────────
@@ -288,7 +290,7 @@ export function detectAlerts(
     if (repo.state === "Closed") continue;
 
     const pos      = buildPosition(repo);
-    const mta      = mtaForCurrency(repo.currency);
+    const mta      = opts?.mtaMap?.[repo.counterparty] ?? mtaForCurrency(repo.currency);
     const dtm      = daysToMaturity(repo.maturityDate, nowMs);
     const hasConc  = hasConcentrationRisk(repo.assets ?? [], assets);
 

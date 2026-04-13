@@ -61,12 +61,12 @@ export class MarginProtectionAgent {
    *                by the allocation agent during the propose step
    * @returns       MarginScanResult with all alerts and aggregate statistics
    */
-  scan(repos: AppMarginRepo[], assets: AppMarginAsset[]): MarginScanResult {
+  scan(repos: AppMarginRepo[], assets: AppMarginAsset[], opts?: { mtaMap?: Record<string, number> }): MarginScanResult {
     const scannedAt   = new Date().toISOString();
     const activeRepos = repos.filter((r) => r.state !== "Closed");
 
     // ── Phase 1: detect ────────────────────────────────────────────────────────
-    const rawAlerts = detectAlerts(repos, assets, { now: scannedAt });
+    const rawAlerts = detectAlerts(repos, assets, { now: scannedAt, mtaMap: opts?.mtaMap });
 
     // ── Phase 2: propose + finalise ────────────────────────────────────────────
     const alerts: MarginAlert[] = rawAlerts.map((alert) => {
