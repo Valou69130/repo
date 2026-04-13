@@ -40,7 +40,7 @@ const remoteApi = {
   me: () => request('GET', '/auth/me'),
   changePassword: (currentPassword, newPassword) => request('PUT', '/auth/password', { currentPassword, newPassword }),
 
-  getAssets:   () => request('GET', '/assets'),
+  getAssets:   () => request('GET', '/assets').then(r => r?.data ?? r),
   updateAsset: (id, data) => request('PUT', `/assets/${id}`, data),
   importAssets: async (file) => {
     const formData = new FormData();
@@ -54,7 +54,7 @@ const remoteApi = {
     return res.json();
   },
 
-  getRepos:   () => request('GET', '/repos'),
+  getRepos:   () => request('GET', '/repos').then(r => r?.data ?? r),
   createRepo: (data) => request('POST', '/repos', data),
   updateRepo: (id, data) => request('PUT', `/repos/${id}`, data),
 
@@ -62,9 +62,12 @@ const remoteApi = {
   addAudit:         (entry) => request('POST', '/audit', entry),
   verifyAuditChain: () => request('GET', '/audit/verify'),
 
-  getNotifications:   () => request('GET', '/notifications'),
-  addNotification:    (n) => request('POST', '/notifications', n),
-  deleteNotification: (id) => request('DELETE', `/notifications/${id}`),
+  getNotifications:      () => request('GET', '/notifications'),
+  addNotification:       (n) => request('POST', '/notifications', n),
+  acknowledgeNotification: (id) => request('PATCH', `/notifications/${id}`),
+  deleteNotification:    (id) => request('DELETE', `/notifications/${id}`),
+
+  confirmSettlement: (repoId, data) => request('POST', `/repos/${repoId}/settle`, data),
 
   resetDemo: () => request('POST', '/admin/reset'),
 

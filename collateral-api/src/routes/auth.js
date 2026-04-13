@@ -8,7 +8,7 @@ const COOKIE_OPTS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
   sameSite: 'strict',
-  maxAge: 8 * 60 * 60 * 1000, // 8 hours in ms
+  maxAge: 2 * 60 * 60 * 1000, // 2 hours in ms
   path: '/',
 };
 
@@ -23,7 +23,7 @@ router.post('/login', (req, res) => {
   const token = jwt.sign(
     { id: user.id, name: user.name, email: user.email, role: user.role },
     JWT_SECRET,
-    { expiresIn: '8h' }
+    { expiresIn: '2h' }
   );
   res.cookie('co_token', token, COOKIE_OPTS);
   res.json({

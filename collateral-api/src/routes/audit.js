@@ -2,7 +2,8 @@ const router = require('express').Router();
 const crypto = require('crypto');
 const { getDb } = require('../db/schema');
 const { requireAuth } = require('../middleware/auth');
-const { MAX, badRequest, isNonEmptyString, isOptionalString } = require('../validation');
+const { appendAuditEntry } = require('../middleware/auditHelper');
+const { MAX, badRequest, isOptionalString, isNonEmptyString } = require('../validation');
 
 function computeEntryHash(prevHash, entry) {
   const payload = prevHash + JSON.stringify(entry);
@@ -36,9 +37,11 @@ router.get('/verify', requireAuth, (req, res) => {
   res.json({ valid, totalEntries: rows.length, firstBrokenId });
 });
 
+// POST /audit — client-side audit hook for UI events the server cannot auto-capture.
+// Any client-supplied `ts` is ignored; the server stamps the real time.
 router.post('/', requireAuth, (req, res) => {
-  const { ts, action, object, prev, next, comment } = req.body;
-  if (![ts, action, object].every((v) => isNonEmptyString(v, MAX.shortText))) {
+  const { action, object, prev, next, comment } = req.body;
+  if (![action, object].every((v) => isNonEmptyString(v, MAX.shortText))) {
     return badRequest(res, 'Missing or oversized required audit fields');
   }
   if (![prev, next].every((v) => isOptionalString(v, MAX.shortText))) {
@@ -48,14 +51,9 @@ router.post('/', requireAuth, (req, res) => {
     return badRequest(res, `comment must be a string up to ${MAX.longText} characters`);
   }
   const db = getDb();
-  // user and role come from the verified JWT, not the request body
-  const entry = { ts, user: req.user.name, role: req.user.role, action, object, prev: prev ?? '', next: next ?? '', comment: comment ?? '' };
+  appendAuditEntry(db, req.user, action, object, prev ?? '', next ?? '', comment ?? '');
   const lastRow = db.prepare('SELECT hash FROM audit_events ORDER BY id DESC LIMIT 1').get();
-  const prevHash = lastRow?.hash ?? '';
-  const hash = computeEntryHash(prevHash, entry);
-  db.prepare('INSERT INTO audit_events (ts,user_name,role,action,object,prev_state,next_state,comment,hash) VALUES (?,?,?,?,?,?,?,?,?)')
-    .run(ts, entry.user, entry.role, action, object, prev ?? '', next ?? '', comment ?? '', hash);
-  res.status(201).json({ ok: true, hash });
+  res.status(201).json({ ok: true, hash: lastRow?.hash ?? '' });
 });
 
 module.exports = router;

@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { getDb } = require('../db/schema');
 const { requireAuth, requirePerm, requireWriteAccess } = require('../middleware/auth');
+const { appendAuditEntry } = require('../middleware/auditHelper');
 const { MAX, badRequest, isArrayOfStrings, isFiniteNumber, isNonEmptyString, isOptionalString } = require('../validation');
 
 function getRepoWithAssets(db, id) {
@@ -19,10 +20,20 @@ function getRepoWithAssets(db, id) {
   };
 }
 
+// GET /repos?page=1&limit=50
 router.get('/', requireAuth, (req, res) => {
   const db = getDb();
-  const ids = db.prepare('SELECT id FROM repos ORDER BY created_at DESC').all();
-  res.json(ids.map(r => getRepoWithAssets(db, r.id)));
+  const page  = Math.max(1, parseInt(req.query.page)  || 1);
+  const limit = Math.min(200, Math.max(1, parseInt(req.query.limit) || 100));
+  const offset = (page - 1) * limit;
+  const total = db.prepare('SELECT COUNT(*) AS count FROM repos').get().count;
+  const ids = db.prepare('SELECT id FROM repos ORDER BY created_at DESC LIMIT ? OFFSET ?').all(limit, offset);
+  res.json({
+    data:  ids.map(r => getRepoWithAssets(db, r.id)),
+    total,
+    page,
+    limit,
+  });
 });
 
 router.post('/', requireAuth, requirePerm('canCreateRepo'), (req, res) => {
@@ -44,7 +55,9 @@ router.post('/', requireAuth, requirePerm('canCreateRepo'), (req, res) => {
     .run(id, counterparty, amount, currency, rate, startDate, maturityDate, state, requiredCollateral, postedCollateral, buffer, settlement, notes || '');
   const insertRA = db.prepare('INSERT OR IGNORE INTO repo_assets (repo_id, asset_id) VALUES (?, ?)');
   for (const aid of (assets || [])) insertRA.run(id, aid);
-  res.status(201).json(getRepoWithAssets(db, id));
+  const created = getRepoWithAssets(db, id);
+  appendAuditEntry(db, req.user, 'repo created', id, '', `${state} · ${counterparty} · ${amount} ${currency}`);
+  res.status(201).json(created);
 });
 
 router.put('/:id', requireAuth, requireWriteAccess, (req, res) => {
@@ -58,6 +71,8 @@ router.put('/:id', requireAuth, requireWriteAccess, (req, res) => {
   if (buffer !== undefined && !isFiniteNumber(buffer)) return badRequest(res, 'buffer must be a finite number');
   if (notes !== undefined && !isOptionalString(notes, MAX.mediumText)) return badRequest(res, `notes must be a string up to ${MAX.mediumText} characters`);
   if (assets !== undefined && !isArrayOfStrings(assets)) return badRequest(res, 'assets must be an array of asset IDs');
+
+  const prevSummary = `${existing.state} · posted=${existing.posted_collateral}`;
   db.prepare(`UPDATE repos SET state=?, settlement=?, posted_collateral=?, buffer=?, notes=? WHERE id=?`)
     .run(
       state ?? existing.state, settlement ?? existing.settlement,
@@ -69,6 +84,26 @@ router.put('/:id', requireAuth, requireWriteAccess, (req, res) => {
     const insertRA = db.prepare('INSERT OR IGNORE INTO repo_assets (repo_id, asset_id) VALUES (?, ?)');
     for (const aid of assets) insertRA.run(req.params.id, aid);
   }
+  const updated = getRepoWithAssets(db, req.params.id);
+  const nextSummary = `${updated.state} · posted=${updated.postedCollateral}`;
+  appendAuditEntry(db, req.user, 'repo updated', req.params.id, prevSummary, nextSummary);
+  res.json(updated);
+});
+
+// POST /repos/:id/settle — Operations Analyst confirms SaFIR settlement instruction sent
+router.post('/:id/settle', requireAuth, requirePerm('canAdvanceSettlement'), (req, res) => {
+  const db = getDb();
+  const repo = db.prepare('SELECT * FROM repos WHERE id = ?').get(req.params.id);
+  if (!repo) return res.status(404).json({ error: 'Repo not found' });
+  const { reference, notes } = req.body;
+  if (reference !== undefined && !isOptionalString(reference, MAX.shortText)) {
+    return badRequest(res, 'reference must be a string up to 100 characters');
+  }
+  const comment = [reference ? `SaFIR ref: ${reference}` : '', notes || ''].filter(Boolean).join(' · ');
+  const prevSettlement = repo.settlement;
+  const nextSettlement = 'Settled';
+  db.prepare('UPDATE repos SET settlement = ? WHERE id = ?').run(nextSettlement, req.params.id);
+  appendAuditEntry(db, req.user, 'settlement confirmed', req.params.id, prevSettlement, nextSettlement, comment);
   res.json(getRepoWithAssets(db, req.params.id));
 });
 
