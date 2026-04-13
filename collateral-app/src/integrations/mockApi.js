@@ -2,6 +2,7 @@ import { assetsSeed } from "@/data/assets";
 import { repoSeed } from "@/data/repos";
 import { auditSeed } from "@/data/audit";
 import { notificationsSeed } from "@/data/notifications";
+import { ruleEngineSeed } from "@/data/ruleEngineSeed";
 
 const USERS = [
   { id: 1, name: "Treasury Manager", email: "treasury@banca-demo.ro", password: "demo1234", role: "Treasury Manager" },
@@ -22,6 +23,7 @@ function buildSeedStore() {
     repos: clone(repoSeed),
     audit: clone(auditSeed),
     notifications: clone(notificationsSeed),
+    ruleEngine: clone(ruleEngineSeed),
   };
 }
 
@@ -40,6 +42,7 @@ function readStore() {
       repos: parsed.repos ?? clone(repoSeed),
       audit: parsed.audit ?? clone(auditSeed),
       notifications: parsed.notifications ?? clone(notificationsSeed),
+      ruleEngine: parsed.ruleEngine ?? clone(ruleEngineSeed),
     };
   } catch {
     const seed = buildSeedStore();
@@ -238,6 +241,19 @@ export const mockApi = {
     const seed = buildSeedStore();
     writeStore(seed);
     return { ok: true };
+  },
+
+  async getRuleEngine() {
+    requireAuth();
+    return clone(readStore().ruleEngine);
+  },
+
+  async updateRuleEngine(partial) {
+    requireAuth();
+    const store = readStore();
+    store.ruleEngine = { ...store.ruleEngine, ...partial };
+    writeStore(store);
+    return clone(store.ruleEngine);
   },
 
   downloadCsvTemplate() {

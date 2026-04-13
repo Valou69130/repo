@@ -67,15 +67,16 @@ function AppContent() {
   const loadData = useCallback(async () => {
     dispatch({ type: "LOAD_STARTED" });
     try {
-      const [a, r, n, au] = await Promise.all([
+      const [a, r, n, au, re] = await Promise.all([
         api.getAssets(),
         api.getRepos(),
         api.getNotifications(),
         api.getAudit(),
+        api.getRuleEngine(),
       ]);
       dispatch({
         type: "LOAD_SUCCESS",
-        payload: { assets: a, repos: r, notifications: n, audit: au },
+        payload: { assets: a, repos: r, notifications: n, audit: au, ruleEngine: re },
       });
       setApiError(false);
     } catch (err) {
