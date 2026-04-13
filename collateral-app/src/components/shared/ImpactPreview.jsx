@@ -217,18 +217,26 @@ function ExceptionImpact({ impact }) {
 
 // ─── Public export ────────────────────────────────────────────────────────────
 
-export function ImpactPreview({ impact, className = "" }) {
+export function ImpactPreview({ impact, className = "", bare = false }) {
   if (!impact) return null;
+
+  const inner = (
+    <>
+      {impact.type === "top-up"       && <TopUpImpact       impact={impact} />}
+      {impact.type === "substitution" && <SubstitutionImpact impact={impact} />}
+      {impact.type === "release"      && <ReleaseImpact      impact={impact} />}
+      {impact.type === "exception"    && <ExceptionImpact    impact={impact} />}
+    </>
+  );
+
+  if (bare) return <div className={className}>{inner}</div>;
 
   return (
     <div className={`rounded border border-white/80 bg-white/60 px-3 py-2.5 ${className}`}>
       <div className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-2.5">
         Impact Preview
       </div>
-      {impact.type === "top-up"       && <TopUpImpact       impact={impact} />}
-      {impact.type === "substitution" && <SubstitutionImpact impact={impact} />}
-      {impact.type === "release"      && <ReleaseImpact      impact={impact} />}
-      {impact.type === "exception"    && <ExceptionImpact    impact={impact} />}
+      {inner}
     </div>
   );
 }

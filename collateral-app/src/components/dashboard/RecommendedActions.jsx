@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { ImpactPreview } from "@/components/shared/ImpactPreview";
 import { IntegrationContextBar } from "@/components/shared/IntegrationContext";
-import { WorkflowStateBar } from "@/components/shared/WorkflowState";
+import { WorkflowStateBadge } from "@/components/shared/WorkflowState";
 import { fmtMoney, adjustedValue } from "@/domain/format";
 
 // ─── CTA label / icon mapping ─────────────────────────────────────────────────
@@ -363,77 +363,67 @@ export function deriveActionItems(repos, assets, notifications, pendingSubstitut
 
 function ActionCard({ item, onAct }) {
   const cfg = ACTION_TYPE_CFG[item.type] ?? ACTION_TYPE_CFG["coverage-watch"];
-  const Icon = cfg.icon;
 
-  const severityBadge =
-    item.severity === "Critical"
-      ? "bg-red-100 text-red-700 border border-red-200"
-      : item.severity === "Warning"
-      ? "bg-amber-100 text-amber-700 border border-amber-200"
-      : "bg-blue-100 text-blue-700 border border-blue-200";
+  const severityColor =
+    item.severity === "Critical" ? "text-red-600" :
+    item.severity === "Warning"  ? "text-amber-600" : "text-blue-600";
 
   return (
-    <div className={`rounded-lg border border-slate-200 border-l-4 ${cfg.leftBorder} bg-white p-5 flex flex-col gap-4 shadow-sm`}>
-      {/* Header row */}
-      <div className="flex items-start justify-between gap-3">
+    <div className={`rounded-lg border border-slate-200 border-l-4 ${cfg.leftBorder} bg-white shadow-sm overflow-hidden divide-y divide-slate-100`}>
+
+      {/* ── Header ── */}
+      <div className="px-4 pt-3.5 pb-3 flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="font-semibold text-slate-900 text-base leading-tight">{item.title}</div>
-          <div className="text-[11px] text-slate-500 mt-1 font-mono">{item.linked}</div>
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className={`text-[10px] font-bold uppercase tracking-widest ${severityColor}`}>{item.severity}</span>
+            <span className="text-slate-300">·</span>
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{cfg.label}</span>
+          </div>
+          <div className="font-semibold text-slate-900 text-sm leading-snug">{item.title}</div>
+          <div className="text-[11px] text-slate-400 font-mono mt-0.5">{item.linked}</div>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <span className={`text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded ${severityBadge}`}>
-            {item.severity}
-          </span>
-        </div>
+        <WorkflowStateBadge state={item.workflowState ?? "detected"} size="xs" />
       </div>
 
-      {/* Recommendation */}
-      <div className="grid gap-3 md:grid-cols-2">
-        <div className="rounded-md border border-slate-100 bg-slate-50 px-4 py-3 min-w-0">
-          <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Recommendation</div>
-          <div className="text-sm text-slate-800 leading-relaxed break-words">{item.recommendation}</div>
+      {/* ── Recommendation + Rationale ── */}
+      <div className="px-4 py-3 space-y-2">
+        <div>
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-1">Recommendation</div>
+          <div className="text-sm text-slate-800 leading-relaxed">{item.recommendation}</div>
         </div>
-        <div className="rounded-md border border-slate-100 bg-slate-50 px-4 py-3 min-w-0">
-          <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Rationale</div>
-          <div className="text-xs text-slate-600 leading-relaxed break-words">{item.rationale}</div>
-        </div>
+        <div className="text-xs text-slate-500 leading-relaxed border-t border-slate-100 pt-2">{item.rationale}</div>
       </div>
 
-      {/* Impact Preview */}
-      <ImpactPreview impact={item.impact} />
-
-      {/* Integration context */}
-      <IntegrationContextBar integration={item.integration} />
-
-      {/* Workflow state bar */}
-      <div className="rounded-md border border-slate-100 bg-slate-50 px-4 py-3 overflow-hidden">
-        <WorkflowStateBar
-          state={item.workflowState ?? "detected"}
-          detectedAt={item.detectedAt}
-          updatedAt={item.updatedAt}
-          compact
-        />
-      </div>
-
-      {/* Footer row — CTAs only */}
-      {item.repoId && (
-        <div className="flex items-center justify-end gap-2">
-          <button
-            onClick={() => onAct(item.repoId)}
-            className="flex h-9 items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3.5 text-xs font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
-          >
-            <cfg.secondaryIcon className="h-3 w-3 opacity-70" />
-            {cfg.secondaryLabel}
-          </button>
-          <button
-            onClick={() => onAct(item.repoId)}
-            className={`flex h-9 items-center gap-1.5 rounded-md px-3.5 text-xs font-semibold transition shadow-sm ${cfg.cta}`}
-          >
-            <cfg.primaryIcon className="h-3 w-3" />
-            {cfg.primaryLabel}
-          </button>
+      {/* ── Impact metrics ── */}
+      {item.impact && (
+        <div className="px-4 py-3">
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-2">Impact Preview</div>
+          <ImpactPreview impact={item.impact} bare />
         </div>
       )}
+
+      {/* ── Footer: integration + CTAs ── */}
+      <div className="px-4 py-2.5 bg-slate-50/60 flex items-center justify-between gap-3 flex-wrap">
+        <IntegrationContextBar integration={item.integration} compact />
+        {item.repoId && (
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={() => onAct(item.repoId)}
+              className="flex h-8 items-center gap-1.5 rounded border border-slate-200 bg-white px-3 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:bg-white hover:text-slate-900"
+            >
+              <cfg.secondaryIcon className="h-3 w-3 opacity-60" />
+              {cfg.secondaryLabel}
+            </button>
+            <button
+              onClick={() => onAct(item.repoId)}
+              className={`flex h-8 items-center gap-1.5 rounded px-3 text-xs font-semibold transition ${cfg.cta}`}
+            >
+              <cfg.primaryIcon className="h-3 w-3" />
+              {cfg.primaryLabel}
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

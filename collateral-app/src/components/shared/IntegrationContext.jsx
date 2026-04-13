@@ -116,8 +116,22 @@ function InlineField({ label, value, mono = false }) {
 // ─── IntegrationContextBar ────────────────────────────────────────────────────
 // Horizontal compact strip — for action cards, table footers, collateral rows.
 
-export function IntegrationContextBar({ integration, className = "" }) {
+export function IntegrationContextBar({ integration, className = "", compact = false }) {
   if (!integration) return null;
+
+  if (compact) {
+    return (
+      <div className={`flex flex-wrap items-center gap-x-2 gap-y-1 ${className}`}>
+        <span className="text-[10px] text-slate-400 font-mono">{integration.sourceSystem}</span>
+        <span className="text-slate-300 text-[10px]">·</span>
+        <SettlementBadge state={integration.settlementState} />
+        <ReconBadge      state={integration.reconState} />
+        {integration.safirRef && (
+          <span className="text-[10px] font-mono text-slate-400">{integration.safirRef}</span>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className={`rounded border border-slate-200 bg-slate-50/80 px-3 py-2 ${className}`}>
