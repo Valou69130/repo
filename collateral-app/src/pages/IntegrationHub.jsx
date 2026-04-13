@@ -2,7 +2,7 @@
 // Full visibility into the integration layer: trade intake, settlement
 // instructions, position sync, reconciliation, and the live event stream.
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import {
   Activity, AlertTriangle, ArrowDownToLine, CheckCircle2,
   ChevronDown, ChevronRight, Circle, Clock, Download,
@@ -16,6 +16,144 @@ import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { SAMPLE_PAYLOADS } from "@/lib/integration/adapters/mock/TradeIntakeAdapter";
 import { fmtMoney } from "@/domain/format";
+import { useDomain, useDispatch } from "@/domain/store";
+
+// ── Live feed constants ───────────────────────────────────────────────────────
+
+const CONNECTIONS = [
+  { id: "safir",     label: "SaFIR Position Feed",  dot: "bg-emerald-500", uptimeTxt: "text-emerald-700", uptime: 99.97 },
+  { id: "bloomberg", label: "Bloomberg Tradebook",   dot: "bg-emerald-500", uptimeTxt: "text-emerald-700", uptime: 99.84 },
+  { id: "murex",     label: "Murex Import",          dot: "bg-amber-400",   uptimeTxt: "text-amber-700",   uptime: 98.12 },
+  { id: "euroclear", label: "Euroclear SWIFT Feed",  dot: "bg-emerald-500", uptimeTxt: "text-emerald-700", uptime: 99.91 },
+];
+
+const EVENT_POOL = [
+  { src: "SaFIR",     id: "safir",     color: "bg-violet-100 text-violet-700", asset: true,
+    msgs: [(r) => `3 positions updated — ${r}`, (r) => `Custody transfer confirmed — ${r}`, (r) => `Pledge instruction settled — ${r}`] },
+  { src: "Bloomberg", id: "bloomberg", color: "bg-blue-100 text-blue-700",    asset: false,
+    msgs: [(r) => `Heartbeat OK — last trade feed: ${r}`, (r) => `Price update received — ${r} MTM refreshed`] },
+  { src: "Murex",     id: "murex",     color: "bg-amber-100 text-amber-700",  asset: false,
+    msgs: [(r) => `${r} MTM price refreshed — collateral value recalculated`, (r) => `Risk limits updated — ${r} exposure rechecked`] },
+  { src: "Euroclear", id: "euroclear", color: "bg-teal-100 text-teal-700",    asset: true,
+    msgs: [(r) => `Settlement confirmation received — ${r} delivery leg matched`, (r) => `SWIFT MT566 received — ${r} corporate action processed`] },
+];
+
+const DEMO_REPO_IDS = ["R-1024", "R-1025", "R-1026", "R-1027", "R-1028"];
+
+// ── Connection health cards ────────────────────────────────────────────────────
+
+function ConnectionHealthCards({ syncCounts, lastEvents }) {
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setTick((n) => n + 1), 1000);
+    return () => clearInterval(t);
+  }, []);
+  void tick; // drives re-render for clock display
+
+  return (
+    <div className="grid grid-cols-2 gap-3 xl:grid-cols-4 mb-4">
+      {CONNECTIONS.map((c) => (
+        <div key={c.id} className="rounded-lg border border-slate-200 bg-white p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className={`inline-block h-2.5 w-2.5 rounded-full ${c.dot} flex-shrink-0`} />
+            <span className="text-xs font-semibold text-slate-700 truncate">{c.label}</span>
+          </div>
+          <div className="text-[10px] text-slate-400 mb-1">
+            Last sync: {lastEvents[c.id] ? new Date(lastEvents[c.id]).toLocaleTimeString() : "—"}
+          </div>
+          <div className="text-[10px] text-slate-400 mb-1">
+            Uptime: <span className={`font-semibold ${c.uptimeTxt}`}>{c.uptime}%</span>
+          </div>
+          <div className="text-[10px] text-slate-400">
+            Events today: <span className="font-semibold text-slate-700">{syncCounts[c.id] ?? 0}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Live feed panel ────────────────────────────────────────────────────────────
+
+function LiveFeedPanel() {
+  const { assets } = useDomain();
+  const dispatch   = useDispatch();
+  const [events, setEvents]         = useState([]);
+  const [syncCounts, setSyncCounts] = useState({});
+  const [lastEvents, setLastEvents] = useState({});
+  const assetIds = useMemo(() => assets.map((a) => a.id).filter(Boolean), [assets]);
+
+  useEffect(() => {
+    if (!assetIds.length) return;
+
+    function fire() {
+      const grp = EVENT_POOL[Math.floor(Math.random() * EVENT_POOL.length)];
+      const ref = grp.asset
+        ? assetIds[Math.floor(Math.random() * assetIds.length)]
+        : DEMO_REPO_IDS[Math.floor(Math.random() * DEMO_REPO_IDS.length)];
+      const msg = grp.msgs[Math.floor(Math.random() * grp.msgs.length)](ref);
+      const status = Math.random() > 0.88 ? "Warning" : "OK";
+      const ts = new Date().toISOString();
+
+      const ev = { id: Date.now(), ts, source: grp.src, color: grp.color, message: msg, status };
+      setEvents((prev) => [ev, ...prev].slice(0, 50));
+      setSyncCounts((prev) => ({ ...prev, [grp.id]: (prev[grp.id] ?? 0) + 1 }));
+      setLastEvents((prev) => ({ ...prev, [grp.id]: ts }));
+
+      // Cross-app side-effect: refresh lastSyncTs on the referenced asset
+      if (grp.asset && ref) {
+        const asset = assets.find((a) => a.id === ref);
+        if (asset) {
+          dispatch({
+            type: "ASSET_UPDATED",
+            payload: { ...asset, integration: { ...(asset.integration ?? {}), lastSyncTs: ts } },
+          });
+        }
+      }
+    }
+
+    const delay = () => 15000 + Math.random() * 15000;
+    let timer = setTimeout(function tick() {
+      fire();
+      timer = setTimeout(tick, delay());
+    }, 800); // first event fires quickly on mount
+    return () => clearTimeout(timer);
+  }, [assetIds.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <div className="mb-6">
+      <ConnectionHealthCards syncCounts={syncCounts} lastEvents={lastEvents} />
+      <div className="rounded-lg border border-slate-200 bg-white">
+        <div className="flex items-center justify-between px-4 py-3 border-b">
+          <div className="flex items-center gap-2">
+            <span className="inline-block h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-sm font-semibold text-slate-800">Live Integration Feed</span>
+          </div>
+          <span className="text-xs text-slate-400">{events.length} events · max 50</span>
+        </div>
+        <div className="max-h-64 overflow-y-auto divide-y divide-slate-100">
+          {events.length === 0 && (
+            <div className="px-4 py-6 text-sm text-slate-400 text-center">Connecting…</div>
+          )}
+          {events.map((ev) => (
+            <div key={ev.id} className="flex items-start gap-3 px-4 py-2.5">
+              <span className="flex-shrink-0 text-[10px] text-slate-400 tabular-nums mt-0.5 w-16">
+                {new Date(ev.ts).toLocaleTimeString()}
+              </span>
+              <span className={`flex-shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded ${ev.color}`}>
+                {ev.source}
+              </span>
+              <span className="flex-1 text-xs text-slate-700">{ev.message}</span>
+              <span className={`flex-shrink-0 text-[10px] font-semibold ${ev.status === "OK" ? "text-emerald-600" : "text-amber-600"}`}>
+                {ev.status}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ── Utility helpers ──────────────────────────────────────────────────────────
 
@@ -891,6 +1029,9 @@ export function IntegrationHub({ integration, repos, assets }) {
 
   return (
     <div className="space-y-6">
+      {/* Live feed — connection health + event log */}
+      <LiveFeedPanel />
+
       {/* Header */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
