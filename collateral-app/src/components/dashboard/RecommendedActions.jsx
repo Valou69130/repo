@@ -391,9 +391,6 @@ function ActionCard({ item, onAct }) {
       {/* Header row */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className={`flex h-10 w-10 items-center justify-center rounded-2xl flex-shrink-0 ${cfg.badge} border`}>
-            <Icon className="h-4 w-4" />
-          </div>
           <div className="min-w-0">
             <div className="font-semibold text-slate-900 text-base leading-tight">{item.title}</div>
             <div className="text-[11px] text-slate-500 mt-1 font-mono">{item.linked}</div>
@@ -469,9 +466,6 @@ export function RecommendedActions({ items, onAct }) {
       {/* Section header */}
       <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-sm">
-            <Bot className="h-5 w-5" />
-          </div>
           <div>
             <div className="font-semibold text-slate-900">Agent Recommendations</div>
             <div className="text-xs text-slate-500 mt-0.5">

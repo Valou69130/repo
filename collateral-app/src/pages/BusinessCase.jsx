@@ -63,9 +63,6 @@ function WorkflowCard({ workflow }) {
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-              <Icon className="h-4 w-4" />
-            </div>
             <div>
               <CardTitle className="text-sm">{label}</CardTitle>
               <CardDescription className="text-xs mt-0.5">{description}</CardDescription>
@@ -142,15 +139,10 @@ export function BusinessCase() {
         ].map(({ label, value, sub, icon: Icon, color }) => (
           <Card key={label} className="rounded-md shadow-sm">
             <CardContent className="pt-5 pb-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
-                  <p className={`mt-2 text-2xl font-semibold ${color}`}>{value}</p>
-                  <p className="mt-1 text-xs text-slate-400">{sub}</p>
-                </div>
-                <div className={`rounded-lg p-2 bg-slate-50 ${color}`}>
-                  <Icon className="h-4 w-4" />
-                </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
+                <p className={`mt-2 text-2xl font-semibold ${color}`}>{value}</p>
+                <p className="mt-1 text-xs text-slate-400">{sub}</p>
               </div>
             </CardContent>
           </Card>
