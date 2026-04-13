@@ -28,6 +28,7 @@ import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { fmtMoney, adjustedValue } from "@/domain/format";
 import { useSubstitutionWorkflow } from "@/workflows/hooks/useWorkflows";
+import { useDomain } from "@/domain/store";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -282,7 +283,7 @@ function ImpactRow({ label, before, after, good, warn, note }) {
   );
 }
 
-function ReviewStep({ analysis, repo, canExecute, onApprove, onPropose, onBack, loading }) {
+function ReviewStep({ analysis, repo, canExecute, onApprove, requiresFourEyes, onBack, loading }) {
   const { before, after, outAsset, inAsset } = analysis;
 
   return (
@@ -417,18 +418,15 @@ function ReviewStep({ analysis, repo, canExecute, onApprove, onPropose, onBack, 
       <div className="flex items-center justify-between pt-3 border-t gap-3">
         <Button variant="outline" size="sm" className="rounded" onClick={onBack}>← Back</Button>
         <div className="flex items-center gap-2">
-          {!canExecute && analysis.validForExecution && (
-            <Button size="sm" variant="outline" disabled={loading}
-              className="rounded border-amber-300 text-amber-700 hover:bg-amber-50"
-              onClick={onPropose}>
-              Propose for Approval
-            </Button>
-          )}
-          {canExecute && analysis.validForExecution && (
-            <Button size="sm" disabled={loading}
-              className={`rounded ${analysis.recommended ? "bg-emerald-600 hover:bg-emerald-700" : "bg-amber-500 hover:bg-amber-600"}`}
+          {analysis.validForExecution && (
+            <Button size="sm" disabled={loading || (!canExecute && !requiresFourEyes)}
+              className={`rounded ${requiresFourEyes ? "bg-amber-500 hover:bg-amber-600" : analysis.recommended ? "bg-emerald-600 hover:bg-emerald-700" : "bg-amber-500 hover:bg-amber-600"}`}
               onClick={onApprove}>
-              {loading ? "Executing…" : analysis.recommended ? "Approve & Execute" : "Execute with Caution"}
+              {loading
+                ? (requiresFourEyes ? "Submitting…" : "Executing…")
+                : requiresFourEyes
+                ? "Submit for 4-Eye Approval"
+                : (analysis.recommended ? "Approve & Execute" : "Execute with Caution")}
             </Button>
           )}
           {!analysis.validForExecution && (
@@ -451,7 +449,12 @@ export function SubstitutionSheet({ open, onClose, repo, assets, canExecute, onS
   const [analysis, setAnalysis] = useState(null);
   const [loading,  setLoading]  = useState(false);
 
+  const { ruleEngine } = useDomain();
   const { analyze, execute, propose } = useSubstitutionWorkflow();
+
+  const requiresFourEyes = repo && ruleEngine
+    ? repo.amount > ruleEngine.approvalThreshold
+    : false;
 
   const basket = useMemo(
     () => assets.filter(a => repo?.assets?.includes(a.id)),
@@ -476,18 +479,15 @@ export function SubstitutionSheet({ open, onClose, repo, assets, canExecute, onS
   async function handleApprove() {
     if (!analysis || !outAsset || !inAsset || !repo) return;
     setLoading(true);
-    const result = await execute({ repo, outAsset, inAsset, analysis });
-    setLoading(false);
-    if (result) { onSubstituted?.(result); handleClose(); }
-  }
-
-  async function handlePropose() {
-    if (!analysis || !outAsset || !inAsset || !repo) return;
-    setLoading(true);
-    await propose({
-      repo, outAsset, inAsset, analysis,
-      onProposed: (rId, oId, iId) => onProposed?.(rId, oId, iId),
-    });
+    if (requiresFourEyes) {
+      await propose({
+        repo, outAsset, inAsset, analysis,
+        onProposed: (rId, oId, iId) => onProposed?.(rId, oId, iId),
+      });
+    } else {
+      const result = await execute({ repo, outAsset, inAsset, analysis });
+      if (result) onSubstituted?.(result);
+    }
     setLoading(false);
     handleClose();
   }
@@ -531,7 +531,7 @@ export function SubstitutionSheet({ open, onClose, repo, assets, canExecute, onS
               repo={repo}
               canExecute={canExecute}
               onApprove={handleApprove}
-              onPropose={handlePropose}
+              requiresFourEyes={requiresFourEyes}
               onBack={() => setStep(2)}
               loading={loading}
             />
