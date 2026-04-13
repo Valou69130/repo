@@ -26,7 +26,31 @@ router.post('/login', (req, res) => {
     { expiresIn: '8h' }
   );
   res.cookie('co_token', token, COOKIE_OPTS);
-  res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+  res.json({
+    user: { id: user.id, name: user.name, email: user.email, role: user.role },
+    mustChangePassword: user.must_change_password === 1,
+  });
+});
+
+router.put('/password', require('../middleware/auth').requireAuth, (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ error: 'Current and new password are required' });
+  }
+  if (typeof newPassword !== 'string' || newPassword.length < 8) {
+    return res.status(400).json({ error: 'New password must be at least 8 characters' });
+  }
+  if (newPassword.length > 128) {
+    return res.status(400).json({ error: 'Password too long' });
+  }
+  const db = getDb();
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
+  if (!user || !bcrypt.compareSync(currentPassword, user.password_hash)) {
+    return res.status(401).json({ error: 'Current password is incorrect' });
+  }
+  const newHash = bcrypt.hashSync(newPassword, 12);
+  db.prepare('UPDATE users SET password_hash = ?, must_change_password = 0 WHERE id = ?').run(newHash, req.user.id);
+  res.json({ ok: true });
 });
 
 router.post('/logout', (req, res) => {

@@ -54,7 +54,26 @@
       "Bash(/usr/local/bin/node src/db/seed.js)",
       "Bash(export PATH=\"$PATH:/usr/local/bin:/opt/homebrew/bin:/usr/bin\")",
       "Bash(/usr/local/bin/npm install:*)",
-      "Bash(/usr/local/bin/node /usr/local/bin/npm install --prefix /Users/vali/Desktop/1/collateral-app)"
+      "Bash(/usr/local/bin/node /usr/local/bin/npm install --prefix /Users/vali/Desktop/1/collateral-app)",
+      "Bash(xargs kill:*)",
+      "Bash(/usr/local/bin/node -e \"console.log\\(require\\('crypto'\\).randomBytes\\(48\\).toString\\('hex'\\)\\)\")",
+      "Bash(curl -s http://localhost:3001/health)",
+      "Bash(curl -s -X POST http://localhost:3001/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"treasury@banca-demo.ro\",\"password\":\"demo1234\"}')",
+      "Bash(/usr/local/bin/node -e \"const d=require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\); const j=JSON.parse\\(d\\); console.log\\(j.token ? 'login OK, token received' : JSON.stringify\\(j\\)\\)\")",
+      "Bash(curl -s -X POST http://localhost:3001/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"risk@banca-demo.ro\",\"password\":\"demo1234\"}')",
+      "Bash(/usr/local/bin/node -e \"const d=JSON.parse\\(require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\)\\); console.log\\(Array.isArray\\(d\\) ? 'OK, got '+d.length+' repos' : JSON.stringify\\(d\\)\\)\")",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(git push:*)",
+      "Bash(sudo /usr/local/bin/npm install -g @railway/cli)",
+      "Bash(curl -fsSL https://railway.com/install.sh)",
+      "Bash(sh)",
+      "Bash(curl -fsSL https://railway.com/install.sh -o /tmp/railway-install.sh)",
+      "Bash(bash /tmp/railway-install.sh)",
+      "Bash(curl -fsSL \"https://github.com/railwayapp/cli/releases/latest\" -o /tmp/railway-release.html)",
+      "Bash(curl -fsSL \"https://github.com/railwayapp/cli/releases/download/v4.36.1/railway-v4.36.1-aarch64-apple-darwin.tar.gz\" -o /tmp/railway.tar.gz)",
+      "Bash(tar -xzf /tmp/railway.tar.gz -C __TRACKED_VAR__/.local/bin)",
+      "Bash(node node_modules/.bin/vite build --mode development)"
     ]
   }
 }

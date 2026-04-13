@@ -88,10 +88,11 @@ export function Dashboard({
     return { total, free, active, deficits, accruedToday };
   }, [assets, repos]);
 
-  const actionItems = useMemo(
-    () => deriveActionItems(repos, assets, notifications, pendingSubstitutions),
-    [repos, assets, notifications, pendingSubstitutions]
-  );
+  const actionItems = useMemo(() => {
+    // Pass a stable `now` so detectedAt/updatedAt don't change on unrelated re-renders
+    const now = new Date().toISOString();
+    return deriveActionItems(repos, assets, notifications, pendingSubstitutions, now);
+  }, [repos, assets, notifications, pendingSubstitutions]);
 
   const statusBreakdown = useMemo(() => {
     const groups = { Available: 0, Reserved: 0, Locked: 0, Pledged: 0 };

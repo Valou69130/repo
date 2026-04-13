@@ -167,13 +167,17 @@ function reducer(state: DomainState, action: DomainAction): DomainState {
       return { ...state, assets: action.payload };
 
     case "AUDIT_APPENDED":
-      return { ...state, audit: [action.payload, ...state.audit] };
+      return { ...state, audit: [action.payload, ...state.audit].slice(0, 500) };
 
     case "WORKFLOW_EVENT_ADDED":
-      return { ...state, workflowEvents: [action.payload, ...state.workflowEvents] };
+      return { ...state, workflowEvents: [action.payload, ...state.workflowEvents].slice(0, 500) };
 
     case "NOTIFICATION_ADDED":
-      return { ...state, notifications: [action.payload, ...state.notifications] };
+      // Deduplicate by id before prepending — guards against race conditions
+      // between the margin workflow hook and the exception agent both emitting
+      // the same alert within the same render cycle.
+      if (state.notifications.some((n) => n.id === action.payload.id)) return state;
+      return { ...state, notifications: [action.payload, ...state.notifications].slice(0, 200) };
     case "NOTIFICATION_DISMISSED":
       return {
         ...state,
@@ -342,11 +346,7 @@ export function useAllocationResult(key = "DRAFT"): {
 }
 
 /** Read margin scan agent state. */
-export function useMarginScan(): {
-  scanResult: MarginScanResult | null;
-  pending:    boolean;
-  error:      string | null;
-} {
+export function useMarginScan(): AgentState["margin"] {
   const { agentState } = useDomain();
   return agentState.margin;
 }

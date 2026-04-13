@@ -10,12 +10,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { KpiCard } from "@/components/shared/KpiCard";
 
 const ACTION_META = {
-  "repo created":           { color: "bg-blue-50 text-blue-700 border-blue-200",     label: "Repo Created" },
-  "top-up approved":        { color: "bg-emerald-50 text-emerald-700 border-emerald-200", label: "Top-Up Approved" },
-  "collateral released":    { color: "bg-slate-50 text-slate-600 border-slate-200",  label: "Released" },
-  "collateral substituted": { color: "bg-purple-50 text-purple-700 border-purple-200", label: "Substituted" },
-  "margin call issued":     { color: "bg-red-50 text-red-700 border-red-200",        label: "Margin Call" },
-  "login":                  { color: "bg-slate-50 text-slate-500 border-slate-200",  label: "Login" },
+  "repo created":            { color: "bg-blue-50 text-blue-700 border-blue-200",       label: "Repo Created" },
+  "top-up approved":         { color: "bg-emerald-50 text-emerald-700 border-emerald-200", label: "Top-Up Approved" },
+  "collateral released":     { color: "bg-slate-50 text-slate-600 border-slate-200",    label: "Released" },
+  "collateral substituted":  { color: "bg-purple-50 text-purple-700 border-purple-200", label: "Substituted" },
+  "substitution proposed":   { color: "bg-amber-50 text-amber-700 border-amber-200",    label: "Sub. Proposed" },
+  "substitution approved":   { color: "bg-emerald-50 text-emerald-700 border-emerald-200", label: "Sub. Approved" },
+  "substitution rejected":   { color: "bg-red-50 text-red-700 border-red-200",          label: "Sub. Rejected" },
+  "margin call issued":      { color: "bg-red-50 text-red-700 border-red-200",          label: "Margin Call" },
+  "margin alert triggered":  { color: "bg-orange-50 text-orange-700 border-orange-200", label: "Margin Alert" },
+  "allocation approved":     { color: "bg-teal-50 text-teal-700 border-teal-200",       label: "Allocation Approved" },
+  "settlement confirmed":    { color: "bg-emerald-50 text-emerald-700 border-emerald-200", label: "Settlement Confirmed" },
+  "login":                   { color: "bg-slate-50 text-slate-500 border-slate-200",    label: "Login" },
 };
 
 function ActionBadge({ action }) {

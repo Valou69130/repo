@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 
-export function KpiCard({ title, value, description, icon: Icon, alert, trendUp }) {
+export function KpiCard({ title, value, description, alert, trendUp }) {
   return (
     <Card className={`overflow-hidden rounded-lg border shadow-sm ${alert ? "border-red-200 bg-red-50/50" : "border-slate-200 bg-white"}`}>
       <CardContent className="p-5">

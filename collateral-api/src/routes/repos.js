@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const { getDb } = require('../db/schema');
 const { requireAuth, requirePerm, requireWriteAccess } = require('../middleware/auth');
-const { badRequest, isArrayOfStrings, isFiniteNumber, isNonEmptyString, isOptionalString } = require('../validation');
+const { MAX, badRequest, isArrayOfStrings, isFiniteNumber, isNonEmptyString, isOptionalString } = require('../validation');
 
 function getRepoWithAssets(db, id) {
   const repo = db.prepare('SELECT * FROM repos WHERE id = ?').get(id);
@@ -34,8 +34,8 @@ router.post('/', requireAuth, requirePerm('canCreateRepo'), (req, res) => {
   if (![amount, rate, requiredCollateral, postedCollateral, buffer].every(isFiniteNumber)) {
     return badRequest(res, 'Repo numeric fields must be finite numbers');
   }
-  if (notes !== undefined && !isOptionalString(notes)) {
-    return badRequest(res, 'notes must be a string');
+  if (notes !== undefined && !isOptionalString(notes, MAX.mediumText)) {
+    return badRequest(res, `notes must be a string up to ${MAX.mediumText} characters`);
   }
   if (assets !== undefined && !isArrayOfStrings(assets)) {
     return badRequest(res, 'assets must be an array of asset IDs');
@@ -56,7 +56,7 @@ router.put('/:id', requireAuth, requireWriteAccess, (req, res) => {
   if (settlement !== undefined && !isNonEmptyString(settlement)) return badRequest(res, 'settlement must be a non-empty string');
   if (postedCollateral !== undefined && !isFiniteNumber(postedCollateral)) return badRequest(res, 'postedCollateral must be a finite number');
   if (buffer !== undefined && !isFiniteNumber(buffer)) return badRequest(res, 'buffer must be a finite number');
-  if (notes !== undefined && !isOptionalString(notes)) return badRequest(res, 'notes must be a string');
+  if (notes !== undefined && !isOptionalString(notes, MAX.mediumText)) return badRequest(res, `notes must be a string up to ${MAX.mediumText} characters`);
   if (assets !== undefined && !isArrayOfStrings(assets)) return badRequest(res, 'assets must be an array of asset IDs');
   db.prepare(`UPDATE repos SET state=?, settlement=?, posted_collateral=?, buffer=?, notes=? WHERE id=?`)
     .run(

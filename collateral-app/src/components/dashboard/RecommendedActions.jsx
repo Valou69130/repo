@@ -1,7 +1,6 @@
 import {
   ArrowRight,
   ArrowUpFromLine,
-  Bot,
   CircleAlert,
   FileSearch,
   GitCompareArrows,
@@ -105,9 +104,8 @@ const SEVERITY_ORDER = { Critical: 0, Warning: 1, Info: 2 };
 
 // ─── Pure derivation ──────────────────────────────────────────────────────────
 
-export function deriveActionItems(repos, assets, notifications, pendingSubstitutions) {
+export function deriveActionItems(repos, assets, notifications, pendingSubstitutions, now = new Date().toISOString()) {
   const items = [];
-  const now = new Date().toISOString();
 
   // 1 · Margin deficits — Critical
   repos
@@ -429,7 +427,6 @@ function ActionCard({ item, onAct }) {
 }
 
 export function RecommendedActions({ items, onAct }) {
-  const now = new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" });
   const critCount  = items.filter((i) => i.severity === "Critical").length;
   const warnCount  = items.filter((i) => i.severity === "Warning").length;
 

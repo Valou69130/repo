@@ -45,23 +45,29 @@ export function useAgentRunner() {
   const { repos, assets, notifications } = useDomain();
   const marginWorkflow = useMarginWorkflow();
 
-  // Stable refs — intervals read these instead of closing over stale state
-  const reposRef  = useRef(repos);
-  const assetsRef = useRef(assets);
-  const notifsRef = useRef(notifications);
+  // Stable refs — intervals read these instead of closing over stale state.
+  // runScanRef is critical: marginWorkflow is re-created on every render
+  // (new object reference), so depending on it directly would reset the
+  // interval on every re-render.  Reading through a ref keeps the interval
+  // stable for the lifetime of the component.
+  const reposRef    = useRef(repos);
+  const assetsRef   = useRef(assets);
+  const notifsRef   = useRef(notifications);
+  const runScanRef  = useRef(marginWorkflow.runScan);
 
-  useEffect(() => { reposRef.current  = repos;         }, [repos]);
-  useEffect(() => { assetsRef.current = assets;        }, [assets]);
-  useEffect(() => { notifsRef.current = notifications; }, [notifications]);
+  useEffect(() => { reposRef.current   = repos;                  }, [repos]);
+  useEffect(() => { assetsRef.current  = assets;                 }, [assets]);
+  useEffect(() => { notifsRef.current  = notifications;          }, [notifications]);
+  useEffect(() => { runScanRef.current = marginWorkflow.runScan; }, [marginWorkflow.runScan]);
 
   // ── Margin Protection Agent ───────────────────────────────────────────────
 
   const runMarginScan = useCallback(async () => {
-    await marginWorkflow.runScan({
+    await runScanRef.current({
       repos:  reposRef.current  as Parameters<typeof marginWorkflow.runScan>[0]["repos"],
       assets: assetsRef.current as Parameters<typeof marginWorkflow.runScan>[0]["assets"],
     }).catch(console.error);
-  }, [marginWorkflow]);
+  }, []); // stable — all reads go through refs
 
   useEffect(() => {
     // Delay initial scan 3 s to ensure domain data is loaded
@@ -161,7 +167,12 @@ export function useAgentRunner() {
       }
     };
 
+    // Boot scan matches margin agent's 3 s delay so both panels initialise together
+    const boot = setTimeout(scanExceptions, 3_000);
     const tick = setInterval(scanExceptions, EXCEPTION_INTERVAL);
-    return () => clearInterval(tick);
+    return () => {
+      clearTimeout(boot);
+      clearInterval(tick);
+    };
   }, [dispatch]);
 }

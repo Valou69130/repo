@@ -144,7 +144,9 @@ function AgentPanel({ name, icon: Icon, status, statusText, stats, metaRows, act
 export function AgentStatusStrip({ repos, assets, notifications, actionItems }) {
   const { agentState } = useDomain();
 
-  // Re-render every second so elapsed/countdown times stay current
+  // 1 s tick — required for fmtElapsed() and fmtCountdown() to stay current.
+  // Both helpers call Date.now() internally; without this tick the displayed
+  // "last run X ago" and "next in Xs" values would freeze after each render.
   const [, setTick] = useState(0);
   useEffect(() => {
     const id = setInterval(() => setTick((t) => t + 1), 1000);

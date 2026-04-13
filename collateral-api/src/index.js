@@ -4,11 +4,15 @@ const cors = require('cors');
 const helmet = require('helmet');
 const { rateLimit } = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
+const morgan = require('morgan');
 
 function createApp() {
   const app = express();
 
   app.use(helmet());
+
+  // HTTP access log — 'combined' for prod, 'dev' for local readability
+  app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
   const allowedOrigins = process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(',')
@@ -25,6 +29,17 @@ function createApp() {
     message: { error: 'Too many login attempts, please try again later' },
   });
   app.use('/auth/login', loginLimiter);
+
+  // Broad write limiter for all mutating endpoints
+  const writeLimiter = rateLimit({
+    windowMs: 60 * 1000,        // 1-minute window
+    max: 120,                   // 120 mutations per minute per IP
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Rate limit exceeded, please slow down' },
+    skip: (req) => req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS',
+  });
+  app.use(writeLimiter);
 
   app.use('/auth',          require('./routes/auth'));
   app.use('/assets',        require('./routes/assets'));

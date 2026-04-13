@@ -2,7 +2,7 @@ const router = require('express').Router();
 const crypto = require('crypto');
 const { getDb } = require('../db/schema');
 const { requireAuth } = require('../middleware/auth');
-const { badRequest, isNonEmptyString, isOptionalString } = require('../validation');
+const { MAX, badRequest, isNonEmptyString, isOptionalString } = require('../validation');
 
 function computeEntryHash(prevHash, entry) {
   const payload = prevHash + JSON.stringify(entry);
@@ -38,11 +38,14 @@ router.get('/verify', requireAuth, (req, res) => {
 
 router.post('/', requireAuth, (req, res) => {
   const { ts, action, object, prev, next, comment } = req.body;
-  if (![ts, action, object].every(isNonEmptyString)) {
-    return badRequest(res, 'Missing required audit fields');
+  if (![ts, action, object].every((v) => isNonEmptyString(v, MAX.shortText))) {
+    return badRequest(res, 'Missing or oversized required audit fields');
   }
-  if (![prev, next, comment].every(isOptionalString)) {
-    return badRequest(res, 'prev, next, and comment must be strings when provided');
+  if (![prev, next].every((v) => isOptionalString(v, MAX.shortText))) {
+    return badRequest(res, 'prev and next must be strings up to 100 characters');
+  }
+  if (!isOptionalString(comment, MAX.longText)) {
+    return badRequest(res, `comment must be a string up to ${MAX.longText} characters`);
   }
   const db = getDb();
   // user and role come from the verified JWT, not the request body

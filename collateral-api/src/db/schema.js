@@ -104,6 +104,7 @@ function initSchema(db) {
   try { db.exec(`ALTER TABLE assets ADD COLUMN integration_json TEXT DEFAULT NULL`); } catch {}
   try { db.exec(`ALTER TABLE repos  ADD COLUMN integration_json TEXT DEFAULT NULL`); } catch {}
   try { db.exec(`ALTER TABLE audit_events ADD COLUMN hash TEXT NOT NULL DEFAULT ''`); } catch {}
+  try { db.exec(`ALTER TABLE users ADD COLUMN must_change_password INTEGER NOT NULL DEFAULT 0`); } catch {}
 }
 
 function ensureSeedData(db) {

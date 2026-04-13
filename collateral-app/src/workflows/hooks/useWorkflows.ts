@@ -11,7 +11,7 @@
 //
 // Rule: components MUST use these hooks — never call agents or workflows directly.
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useDomain, useDispatch } from "@/domain/store";
 import { runAllocation, approveAllocation } from "@/workflows/AllocationWorkflow";
 import { runMarginScan, advanceAlert, approveTopUp } from "@/workflows/MarginWorkflow";
@@ -128,14 +128,20 @@ export interface MarginWorkflowActions {
 export function useMarginWorkflow(): MarginWorkflowActions {
   const dispatch = useDispatch();
   const ctx      = useWorkflowContext();
-  const { ruleEngine } = useDomain();
+  const { ruleEngine, notifications } = useDomain();
+
+  // Stable ref so runScanFn always sees the latest notifications without
+  // needing to declare them as a useCallback dep (which would cause frequent
+  // function recreation and interval restarts in useAgentRunner).
+  const notificationsRef = useRef(notifications);
+  useEffect(() => { notificationsRef.current = notifications; }, [notifications]);
 
   const runScanFn = useCallback(async ({
     repos, assets,
   }: { repos: AppRepo[]; assets: AppAsset[] }): Promise<void> => {
     dispatch({ type: "MARGIN_SCAN_PENDING" });
 
-    const mtaMap = ruleEngine
+    const mtaMap = ruleEngine  // ruleEngine in deps — stale closure fix
       ? Object.fromEntries(
           Object.entries(ruleEngine.counterparties).map(([cp, v]) => [cp, v.mta])
         )
@@ -158,11 +164,17 @@ export function useMarginWorkflow(): MarginWorkflowActions {
       api.addAudit(entry).catch(console.error);
     }
 
-    // Surface Critical/Warning alerts as notifications
+    // Surface Critical/Warning alerts as notifications.
+    // IDs are stable (no Date.now()) — deduplication checks the live
+    // notifications ref so each alert fires at most once per session.
+    const existingIds = new Set(notificationsRef.current.map((n) => n.id));
     for (const alert of wf.payload.alerts) {
       if (alert.severity === "Critical" || alert.severity === "Warning") {
+        const id = `N-MA-${alert.id}`;
+        if (existingIds.has(id)) continue;
+        existingIds.add(id);
         const notif = {
-          id:       `N-MA-${alert.id}-${Date.now()}`,
+          id,
           severity: alert.severity as "Critical" | "Warning",
           type:     alert.severity as "Critical" | "Warning",
           text:     `Margin ${alert.severity}: ${alert.position.repoId} — ${alert.explanation[0] ?? ""}`,
@@ -174,7 +186,7 @@ export function useMarginWorkflow(): MarginWorkflowActions {
         api.addNotification(notif).catch(console.error);
       }
     }
-  }, [dispatch, ctx]);
+  }, [dispatch, ctx, ruleEngine]);
 
   const advanceFn = useCallback(async ({
     alert, newState,

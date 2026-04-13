@@ -344,7 +344,7 @@ function AppContent() {
       ts,
       user: user.name,
       role: user.role,
-      action: "repo created",
+      action: "eod confirmed",
       object: "EoD-SNAPSHOT",
       prev: "Open",
       next: "EoD Confirmed",

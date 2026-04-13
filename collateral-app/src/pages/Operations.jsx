@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { AlertTriangle, CheckCircle2, Clock3, Sparkles, XCircle, FileWarning, RefreshCw } from "lucide-react";
+import { api } from "@/integrations/api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -119,8 +120,15 @@ export function Operations({ repos, assets, permissions }) {
     setInstrStates((prev) => {
       const cur = prev[repoId] ?? "Generated";
       const idx = INSTR_STATES.indexOf(cur);
-      if (idx < INSTR_STATES.length - 1) return { ...prev, [repoId]: INSTR_STATES[idx + 1] };
-      return prev;
+      if (idx >= INSTR_STATES.length - 1) return prev;
+      const next = INSTR_STATES[idx + 1];
+      // Sync settlement field to repo when reaching Matched or Settled
+      const newSettlement = (next === "Matched" || next === "Settled") ? "Confirmed" : "Awaiting confirmation";
+      const repo = repos.find((r) => r.id === repoId);
+      if (repo && repo.settlement !== newSettlement) {
+        api.updateRepo(repoId, { settlement: newSettlement }).catch(console.error);
+      }
+      return { ...prev, [repoId]: next };
     });
   };
 
