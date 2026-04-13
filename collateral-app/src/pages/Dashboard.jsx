@@ -1,11 +1,5 @@
 import { useMemo } from "react";
-import {
-  ArrowRightLeft,
-  Coins,
-  ReceiptText,
-  Sparkles,
-  Wallet,
-} from "lucide-react";
+import { Sparkles } from "lucide-react";
 import {
   PieChart,
   Pie,
@@ -215,7 +209,6 @@ export function Dashboard({
           title="Total Collateral Value"
           value={fmtMoney(totals.total)}
           description="All registered positions across the pool"
-          icon={Coins}
         />
         <KpiCard
           title="Free Collateral"
@@ -225,7 +218,6 @@ export function Dashboard({
               ? `${Math.round((totals.free / totals.total) * 100)}% of portfolio unencumbered`
               : "No assets"
           }
-          icon={Wallet}
           trendUp
         />
         <KpiCard
@@ -236,14 +228,12 @@ export function Dashboard({
               ? `${totals.deficits} margin deficit${totals.deficits > 1 ? "s" : ""} need attention`
               : "Open book currently within threshold"
           }
-          icon={ArrowRightLeft}
           alert={totals.deficits > 0}
         />
         <KpiCard
           title="Accrued Interest Today"
           value={fmtMoney(totals.accruedToday)}
           description="Estimated carry contribution on open trades"
-          icon={ReceiptText}
         />
       </div>
 
