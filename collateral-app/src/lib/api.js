@@ -89,6 +89,12 @@ const remoteApi = {
 
   resetDemo: () => request('POST', '/admin/reset'),
 
+  aiStatus:            () => request('GET', '/ai/status'),
+  aiExplainDeficit:    (repoId) => request('POST', '/ai/margin/explain', { repoId }),
+  aiAnalysePortfolio:  () => request('POST', '/ai/margin/portfolio'),
+  aiCorrelate:         () => request('POST', '/ai/exceptions/correlate'),
+  aiChat:              (history) => request('POST', '/ai/chat', { history }),
+
   downloadCsvTemplate: async () => {
     const res = await fetch(`${BASE}/admin/csv-template`, {
       credentials: 'include',

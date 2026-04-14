@@ -21,6 +21,9 @@ import { RecommendedActions, deriveActionItems } from "@/components/dashboard/Re
 import { EodSummary } from "@/components/dashboard/EodSummary";
 import { PendingApprovalsWidget } from "@/components/dashboard/PendingApprovalsWidget";
 import { PortfolioOptWidget } from "@/components/dashboard/PortfolioOptWidget";
+import { AIReasoningPanel } from "@/ai/components/AIReasoningPanel";
+import { useAICall } from "@/ai/hooks/useAI";
+import { api } from "@/lib/api";
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 
@@ -117,6 +120,9 @@ export function Dashboard({
     return Object.values(dayMap).sort((a, b) => a.date.localeCompare(b.date));
   }, [repos]);
 
+  const portfolioAI = useAICall(api.aiAnalysePortfolio);
+  const correlateAI = useAICall(api.aiCorrelate);
+
   const coverageData = useMemo(() => {
     return repos
       .filter((r) => r.state !== "Closed")
@@ -158,6 +164,32 @@ export function Dashboard({
 
       {/* ── Recommended actions ── */}
       <RecommendedActions items={actionItems} onAct={openRepo} />
+
+      {/* ── AI reasoning layer (feature-flagged — graceful degradation) ── */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <AIReasoningPanel
+          title="AI portfolio briefing"
+          description="Claude reviews open deficits and produces a prioritised treasury brief. Read-only; human review required before any action."
+          loading={portfolioAI.loading}
+          error={portfolioAI.error}
+          text={portfolioAI.text}
+          meta={portfolioAI.meta}
+          onRun={() => portfolioAI.run()}
+          onReset={portfolioAI.reset}
+          buttonLabel="Generate brief"
+        />
+        <AIReasoningPanel
+          title="Exception correlation"
+          description="Clusters today's alerts into coherent action items by root cause and counterparty."
+          loading={correlateAI.loading}
+          error={correlateAI.error}
+          text={correlateAI.text}
+          meta={correlateAI.meta}
+          onRun={() => correlateAI.run()}
+          onReset={correlateAI.reset}
+          buttonLabel="Correlate alerts"
+        />
+      </div>
 
       {/* ── 4-eye approvals ── */}
       <PendingApprovalsWidget

@@ -243,6 +243,12 @@ export const mockApi = {
     return { ok: true };
   },
 
+  async aiStatus()           { return { enabled: false }; },
+  async aiExplainDeficit()   { throw new Error('AI disabled in mock mode'); },
+  async aiAnalysePortfolio() { throw new Error('AI disabled in mock mode'); },
+  async aiCorrelate()        { throw new Error('AI disabled in mock mode'); },
+  async aiChat()             { throw new Error('AI disabled in mock mode'); },
+
   async getRuleEngine() {
     requireAuth();
     return clone(readStore().ruleEngine);
