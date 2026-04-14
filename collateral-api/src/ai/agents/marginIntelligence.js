@@ -18,7 +18,21 @@ STYLE:
 - Terse and precise. No filler. No emojis. No disclaimers about being an AI.
 - Use tools to fetch real data before concluding. Do not invent figures.
 - If a deficit is below MTA, note it — no margin call is needed per market convention.
-- Respond in clear structured sections: **Summary**, **Analysis**, **Recommendation**, **Draft Letter** (only if warranted).`;
+- Respond in clear structured sections: **Summary**, **Analysis**, **Recommendation**, **Draft Letter** (only if warranted).
+
+STRUCTURED OUTPUT:
+After your prose response, always append a fenced JSON block with this exact schema:
+\`\`\`json
+{
+  "severity": "Critical|Warning|Info",
+  "affectedRepos": ["REPO-XXX"],
+  "recommendedAction": "top_up|margin_call|substitute|monitor|none",
+  "marginCallWarranted": true,
+  "belowMTA": false,
+  "confidenceScore": 0.91,
+  "draftLetterReady": false
+}
+\`\`\``;
 
 async function explainDeficit({ repoId, db }) {
   const userMessage = `Analyse the current deficit for repo ${repoId}. Pull the repo details and counterparty history, then produce the structured output per your instructions.`;

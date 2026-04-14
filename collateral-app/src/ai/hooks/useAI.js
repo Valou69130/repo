@@ -30,7 +30,7 @@ export function useAICall(fn) {
       const result = await fn(...args);
       if (token !== abortRef.current) return;
       setText(result?.text || '');
-      setMeta({ toolsUsed: result?.toolsUsed || [], usage: result?.usage });
+      setMeta({ toolsUsed: result?.toolsUsed || [], usage: result?.usage, structured: result?.structured ?? null });
     } catch (err) {
       if (token !== abortRef.current) return;
       setError(err.message || 'AI request failed');

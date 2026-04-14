@@ -32,12 +32,20 @@ async function runAgent({ system, userMessage, db, model, maxTokens = 2048, comp
     outputTokens += response.usage?.output_tokens || 0;
 
     if (response.stop_reason !== 'tool_use') {
-      const text = response.content
+      const raw = response.content
         .filter(b => b.type === 'text')
         .map(b => b.text)
         .join('\n')
         .trim();
-      return { text, toolsUsed, inputTokens, outputTokens, stopReason: response.stop_reason };
+      // Extract optional structured JSON block fenced with ```json ... ```
+      let structured = null;
+      const jsonMatch = raw.match(/```json\s*([\s\S]*?)```/);
+      if (jsonMatch) {
+        try { structured = JSON.parse(jsonMatch[1].trim()); } catch (_) { /* ignore */ }
+      }
+      // Text without the json block
+      const text = raw.replace(/```json[\s\S]*?```/g, '').trim();
+      return { text, structured, toolsUsed, inputTokens, outputTokens, stopReason: response.stop_reason };
     }
 
     messages.push({ role: 'assistant', content: response.content });

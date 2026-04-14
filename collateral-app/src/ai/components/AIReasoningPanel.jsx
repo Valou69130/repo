@@ -1,5 +1,41 @@
 import { useAIStatus } from '@/ai/hooks/useAI';
 
+const SEVERITY_STYLES = {
+  Critical: 'bg-red-50 border-red-200 text-red-800',
+  Warning:  'bg-amber-50 border-amber-200 text-amber-800',
+  Info:     'bg-blue-50 border-blue-200 text-blue-800',
+};
+
+const ACTION_LABELS = {
+  top_up:       'Top-up required',
+  margin_call:  'Margin call warranted',
+  substitute:   'Substitution recommended',
+  monitor:      'Monitor closely',
+  none:         'No action needed',
+};
+
+function StructuredStrip({ data }) {
+  if (!data) return null;
+  const severityStyle = SEVERITY_STYLES[data.severity] || SEVERITY_STYLES.Info;
+  const actionLabel  = ACTION_LABELS[data.recommendedAction] || data.recommendedAction;
+  return (
+    <div className={`flex flex-wrap items-center gap-3 rounded-sm border px-3 py-2 text-[11px] font-medium ${severityStyle}`}>
+      <span className="uppercase tracking-[0.1em]">{data.severity}</span>
+      <span className="text-current/60">·</span>
+      <span>{actionLabel}</span>
+      {data.belowMTA && (
+        <><span className="text-current/60">·</span><span>Below MTA — no call needed</span></>
+      )}
+      {data.confidenceScore != null && (
+        <><span className="text-current/60">·</span><span>{Math.round(data.confidenceScore * 100)}% confidence</span></>
+      )}
+      {data.affectedRepos?.length > 0 && (
+        <><span className="text-current/60">·</span><span>{data.affectedRepos.join(', ')}</span></>
+      )}
+    </div>
+  );
+}
+
 function Spinner() {
   return (
     <span
@@ -125,6 +161,7 @@ export function AIReasoningPanel({ title, description, loading, error, text, met
         )}
         {text && (
           <div className="space-y-3 text-[13px]">
+            <StructuredStrip data={meta?.structured} />
             {renderBody(text)}
             {meta?.toolsUsed?.length > 0 && (
               <footer className="mt-4 border-t border-neutral-100 pt-2 text-[10.5px] uppercase tracking-[0.12em] text-neutral-400">

@@ -72,8 +72,9 @@ if (require.main === module) {
     console.log(`Collateral API → http://localhost:${PORT}`);
     const { getDb } = require('./db/schema');
     purgeOldAuditLogs(getDb());
-    // Re-run purge daily
     setInterval(() => purgeOldAuditLogs(getDb()), 24 * 60 * 60 * 1000);
+    // Start AI proactive scheduler (no-ops if AI_ENABLED=false)
+    require('./ai/scheduler').start(getDb());
   });
 }
 
