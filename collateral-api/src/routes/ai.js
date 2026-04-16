@@ -42,6 +42,7 @@ async function runWithAudit(req, res, agent, input, runner) {
     });
     res.json({
       text: result.text,
+      structured: result.structured ?? null,
       toolsUsed: result.toolsUsed,
       usage: { inputTokens: result.inputTokens, outputTokens: result.outputTokens },
     });
