@@ -122,4 +122,80 @@ router.post('/', requireAuth, requirePerm('canManageAgreements'), (req, res) => 
   res.status(201).json(rowToAgreement(row));
 });
 
+const MUTABLE = new Set([
+  'counterparty', 'governingLaw', 'threshold', 'minimumTransferAmount',
+  'rounding', 'callNoticeDeadlineTime', 'fourEyesThreshold',
+]);
+
+router.patch('/:id', requireAuth, requirePerm('canManageAgreements'), (req, res) => {
+  const db = getDb(req);
+  const existing = db.prepare('SELECT * FROM collateral_agreements WHERE id = ?').get(req.params.id);
+  if (!existing) return res.status(404).json({ error: 'Agreement not found' });
+
+  const b = req.body || {};
+  const keys = Object.keys(b);
+  for (const k of keys) {
+    if (!MUTABLE.has(k)) return badRequest(res, `field "${k}" is not mutable`);
+  }
+
+  const updates = [];
+  const params = [];
+  if (b.counterparty !== undefined) {
+    if (!isNonEmptyString(b.counterparty)) return badRequest(res, 'counterparty invalid');
+    updates.push('counterparty = ?'); params.push(b.counterparty);
+  }
+  if (b.governingLaw !== undefined) {
+    const gl = sanitise(b.governingLaw);
+    if (gl !== null && !isOptionalString(gl, MAX.shortText)) return badRequest(res, 'governingLaw invalid');
+    updates.push('governing_law = ?'); params.push(gl || null);
+  }
+  for (const [key, col] of [
+    ['threshold', 'threshold'],
+    ['minimumTransferAmount', 'minimum_transfer_amount'],
+    ['rounding', 'rounding'],
+    ['fourEyesThreshold', 'four_eyes_threshold'],
+  ]) {
+    if (b[key] !== undefined) {
+      if (!isFiniteNumber(b[key])) return badRequest(res, `${key} must be a finite number`);
+      updates.push(`${col} = ?`); params.push(b[key]);
+    }
+  }
+  if (b.callNoticeDeadlineTime !== undefined) {
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(b.callNoticeDeadlineTime)) {
+      return badRequest(res, 'callNoticeDeadlineTime must be HH:MM');
+    }
+    updates.push('call_notice_deadline_time = ?'); params.push(b.callNoticeDeadlineTime);
+  }
+  if (updates.length === 0) return badRequest(res, 'no mutable fields provided');
+
+  const now = new Date().toISOString();
+  updates.push('updated_at = ?'); params.push(now);
+  params.push(req.params.id);
+
+  db.prepare(`UPDATE collateral_agreements SET ${updates.join(', ')} WHERE id = ?`).run(...params);
+  appendAuditEntry(db, req.user, 'agreement updated', req.params.id, '', keys.join(','));
+
+  const row = db.prepare('SELECT * FROM collateral_agreements WHERE id = ?').get(req.params.id);
+  res.json(rowToAgreement(row));
+});
+
+router.post('/:id/terminate', requireAuth, requirePerm('canManageAgreements'), (req, res) => {
+  const db = getDb(req);
+  const existing = db.prepare('SELECT * FROM collateral_agreements WHERE id = ?').get(req.params.id);
+  if (!existing) return res.status(404).json({ error: 'Agreement not found' });
+  if (existing.status === 'terminated') return res.status(409).json({ error: 'Already terminated' });
+
+  const termDate = req.body?.terminationDate;
+  if (!isIsoDate(termDate)) return badRequest(res, 'terminationDate must be YYYY-MM-DD');
+
+  const now = new Date().toISOString();
+  db.prepare(
+    `UPDATE collateral_agreements SET status = 'terminated', termination_date = ?, updated_at = ? WHERE id = ?`
+  ).run(termDate, now, req.params.id);
+  appendAuditEntry(db, req.user, 'agreement terminated', req.params.id, existing.status, 'terminated');
+
+  const row = db.prepare('SELECT * FROM collateral_agreements WHERE id = ?').get(req.params.id);
+  res.json(rowToAgreement(row));
+});
+
 module.exports = router;

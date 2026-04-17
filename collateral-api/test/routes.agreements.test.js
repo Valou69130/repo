@@ -145,3 +145,74 @@ test('GET /agreements — Risk Reviewer (read-only) can read', async () => {
   assert.equal(res.status, 200);
   assert.equal(res.body.total, 1);
 });
+
+test('PATCH /agreements/:id — 200 updates allowed fields', async () => {
+  const { app } = setup();
+  const tok = tokenFor('Treasury Manager');
+  await request(app).post('/agreements').set('Authorization', `Bearer ${tok}`).send(validBody);
+  const res = await request(app)
+    .patch('/agreements/AGR-DBK-001')
+    .set('Authorization', `Bearer ${tok}`)
+    .send({ threshold: 50000, fourEyesThreshold: 2000000 });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.threshold, 50000);
+  assert.equal(res.body.fourEyesThreshold, 2000000);
+});
+
+test('PATCH /agreements/:id — 403 without perm', async () => {
+  const { app } = setup();
+  const tm = tokenFor('Treasury Manager');
+  await request(app).post('/agreements').set('Authorization', `Bearer ${tm}`).send(validBody);
+  const cm = tokenFor('Collateral Manager', 2);
+  const res = await request(app)
+    .patch('/agreements/AGR-DBK-001')
+    .set('Authorization', `Bearer ${cm}`)
+    .send({ threshold: 50000 });
+  assert.equal(res.status, 403);
+});
+
+test('PATCH /agreements/:id — 404 for unknown id', async () => {
+  const { app } = setup();
+  const tok = tokenFor('Treasury Manager');
+  const res = await request(app)
+    .patch('/agreements/AGR-NOPE')
+    .set('Authorization', `Bearer ${tok}`)
+    .send({ threshold: 1 });
+  assert.equal(res.status, 404);
+});
+
+test('PATCH /agreements/:id — 400 rejects immutable fields', async () => {
+  const { app } = setup();
+  const tok = tokenFor('Treasury Manager');
+  await request(app).post('/agreements').set('Authorization', `Bearer ${tok}`).send(validBody);
+  const res = await request(app)
+    .patch('/agreements/AGR-DBK-001')
+    .set('Authorization', `Bearer ${tok}`)
+    .send({ id: 'AGR-HACK' });
+  assert.equal(res.status, 400);
+});
+
+test('POST /agreements/:id/terminate — sets status=terminated + termination_date', async () => {
+  const { app } = setup();
+  const tok = tokenFor('Treasury Manager');
+  await request(app).post('/agreements').set('Authorization', `Bearer ${tok}`).send(validBody);
+  const res = await request(app)
+    .post('/agreements/AGR-DBK-001/terminate')
+    .set('Authorization', `Bearer ${tok}`)
+    .send({ terminationDate: '2026-06-30' });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.status, 'terminated');
+  assert.equal(res.body.terminationDate, '2026-06-30');
+});
+
+test('POST /agreements/:id/terminate — 409 if already terminated', async () => {
+  const { app } = setup();
+  const tok = tokenFor('Treasury Manager');
+  await request(app).post('/agreements').set('Authorization', `Bearer ${tok}`).send(validBody);
+  await request(app).post('/agreements/AGR-DBK-001/terminate').set('Authorization', `Bearer ${tok}`).send({ terminationDate: '2026-06-30' });
+  const res = await request(app)
+    .post('/agreements/AGR-DBK-001/terminate')
+    .set('Authorization', `Bearer ${tok}`)
+    .send({ terminationDate: '2026-07-01' });
+  assert.equal(res.status, 409);
+});
