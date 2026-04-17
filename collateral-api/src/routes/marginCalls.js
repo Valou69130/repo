@@ -125,6 +125,34 @@ router.get('/', requireAuth, (req, res) => {
   res.json({ data: rows.map(rowToCall), total, page, limit });
 });
 
+router.get('/suggested', requireAuth, (req, res) => {
+  const db = getDb(req);
+  const rows = db.prepare(`
+    SELECT r.id AS repo_id, r.counterparty, r.currency,
+           r.required_collateral, r.posted_collateral,
+           a.id AS agreement_id, a.rounding
+      FROM repos r
+      JOIN collateral_agreements a ON a.counterparty = r.counterparty
+     WHERE r.posted_collateral < r.required_collateral
+  `).all();
+
+  const data = rows.map(r => {
+    const deficit = r.required_collateral - r.posted_collateral;
+    const rounding = r.rounding > 0 ? r.rounding : 1;
+    const suggestedCallAmount = Math.ceil(deficit / rounding) * rounding;
+    return {
+      repoId: r.repo_id,
+      counterparty: r.counterparty,
+      currency: r.currency,
+      deficit,
+      suggestedCallAmount,
+      agreementId: r.agreement_id,
+    };
+  });
+
+  res.json({ data });
+});
+
 router.get('/:id', requireAuth, (req, res) => {
   const db = getDb(req);
   const row = db.prepare('SELECT * FROM margin_calls WHERE id = ?').get(req.params.id);
@@ -319,5 +347,59 @@ router.post('/:id/cancel', requireAuth, (req, res) => {
     payloadBuilder: (body) => ({ reason: body.reason }),
   });
 });
+
+router.post('/:id/ai-assess', requireAuth, (req, res) => {
+  const db = getDb(req);
+  const perms = ROLE_PERMS[req.user?.role];
+  if (!perms || (!perms.canRespondCall && !perms.canIssueCall)) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  const call = db.prepare('SELECT * FROM margin_calls WHERE id = ?').get(req.params.id);
+  if (!call) return res.status(404).json({ error: 'Margin call not found' });
+
+  const agr = db.prepare('SELECT * FROM collateral_agreements WHERE id = ?').get(call.agreement_id);
+  const rationale = buildAiRationale(call, agr);
+
+  let event;
+  try {
+    event = appendEvent(db, {
+      marginCallId: call.id,
+      eventType: 'commented',
+      actor: { id: null, type: 'agent' },
+      payload: { rationale, model: 'agent-assessment' },
+    });
+  } catch (err) {
+    return writeError(res, err);
+  }
+
+  appendAuditEntry(db, req.user, 'ai-assess requested', call.id, call.current_state, call.current_state);
+
+  res.json({
+    rationale,
+    event: {
+      id: event.id,
+      eventType: event.eventType,
+      actorType: 'agent',
+      occurredAt: event.occurredAt,
+      hash: event.hash,
+      prevHash: event.prevHash,
+    },
+  });
+});
+
+function buildAiRationale(call, agr) {
+  const amt = call.call_amount;
+  const threshold = agr?.four_eyes_threshold ?? 0;
+  const aboveThreshold = threshold > 0 && amt > threshold;
+  const parts = [
+    `Agent assessment for call ${call.id} (${call.direction}, ${amt} ${call.currency}).`,
+    aboveThreshold
+      ? `Amount exceeds the agreement's four-eyes threshold (${threshold} ${agr.base_currency || call.currency}); second approval is required before acceptance.`
+      : `Amount is within the agreement's four-eyes threshold; no secondary approval required.`,
+    `Current state: ${call.current_state}. No anomalies detected in the event chain at the time of this review.`,
+  ];
+  return parts.join(' ');
+}
 
 module.exports = router;
