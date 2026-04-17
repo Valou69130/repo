@@ -223,6 +223,50 @@ router.post('/:id/issue', requireAuth, (req, res) => {
 });
 
 router.post('/:id/accept', requireAuth, (req, res) => {
+  const db = getDb(req);
+  const perms = ROLE_PERMS[req.user?.role];
+  if (!perms?.canRespondCall) return res.status(403).json({ error: 'Forbidden' });
+
+  const call = db.prepare('SELECT * FROM margin_calls WHERE id = ?').get(req.params.id);
+  if (!call) return res.status(404).json({ error: 'Margin call not found' });
+  const agr = db.prepare('SELECT four_eyes_threshold FROM collateral_agreements WHERE id = ?').get(call.agreement_id);
+
+  if (agr && call.call_amount > agr.four_eyes_threshold) {
+    const body = req.body || {};
+    let event;
+    try {
+      event = appendEvent(db, {
+        marginCallId: call.id,
+        eventType: 'four_eyes_requested',
+        actor: { id: req.user.id, type: 'user' },
+        payload: { reason: 'accept_above_threshold', callAmount: call.call_amount },
+        expectedState: body.expectedState,
+      });
+    } catch (err) {
+      return writeError(res, err);
+    }
+
+    const approvalId = `APP-${call.id}-${Date.now()}`;
+    db.prepare(`
+      INSERT INTO approvals (id, entity_type, entity_id, requested_by_user_id, requested_at, status)
+      VALUES (?, 'margin_call_accept', ?, ?, ?, 'pending')
+    `).run(approvalId, call.id, req.user.id, event.occurredAt);
+
+    appendAuditEntry(db, req.user, 'four-eyes requested', call.id, call.current_state, 'pending_four_eyes');
+
+    const row = db.prepare('SELECT * FROM margin_calls WHERE id = ?').get(call.id);
+    return res.status(202).json({
+      marginCall: rowToCall(row),
+      event,
+      approvalPending: {
+        id: approvalId,
+        entityType: 'margin_call_accept',
+        entityId: call.id,
+        requiredRole: 'Credit Approver',
+      },
+    });
+  }
+
   runAction(req, res, {
     eventType: 'accepted',
     permCheck: (p) => p.canRespondCall,
