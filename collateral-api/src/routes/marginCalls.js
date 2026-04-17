@@ -132,6 +132,9 @@ router.get('/:id', requireAuth, (req, res) => {
   const events = db.prepare(
     'SELECT id, event_type, occurred_at, actor_user_id, actor_type, payload_json, prev_hash, hash FROM margin_call_events WHERE margin_call_id = ? ORDER BY id ASC'
   ).all(req.params.id);
+  const disputes = db.prepare(
+    'SELECT * FROM disputes WHERE margin_call_id = ? ORDER BY opened_at ASC'
+  ).all(req.params.id);
   res.json({
     ...rowToCall(row),
     events: events.map(e => ({
@@ -143,6 +146,19 @@ router.get('/:id', requireAuth, (req, res) => {
       payload: JSON.parse(e.payload_json),
       prevHash: e.prev_hash,
       hash: e.hash,
+    })),
+    disputes: disputes.map(d => ({
+      id: d.id,
+      marginCallId: d.margin_call_id,
+      openedByUserId: d.opened_by_user_id,
+      openedAt: d.opened_at,
+      reasonCode: d.reason_code,
+      theirProposedValue: d.their_proposed_value,
+      ourProposedValue: d.our_proposed_value,
+      delta: d.delta,
+      status: d.status,
+      resolutionNote: d.resolution_note,
+      resolvedAt: d.resolved_at,
     })),
   });
 });
