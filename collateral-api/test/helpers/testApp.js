@@ -30,7 +30,7 @@ function buildApp({ mount }) {
 }
 
 function tokenFor(role, userId = 1) {
-  return jwt.sign({ id: userId, role }, process.env.JWT_SECRET);
+  return jwt.sign({ id: userId, role, name: role }, process.env.JWT_SECRET);
 }
 
 module.exports = { buildApp, tokenFor };
