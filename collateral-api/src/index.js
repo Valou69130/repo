@@ -51,6 +51,7 @@ function createApp() {
   app.use('/agreements',    require('./routes/agreements'));
   app.use('/',              require('./routes/eligibilitySchedules'));
   app.use('/',              require('./routes/haircutSchedules'));
+  app.use('/margin-calls',  require('./routes/marginCalls'));
 
   app.get('/health', (_req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
 
