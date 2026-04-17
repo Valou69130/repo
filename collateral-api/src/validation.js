@@ -32,6 +32,17 @@ function isArrayOfStrings(value, max = MAX.id) {
   return Array.isArray(value) && value.every((item) => typeof item === 'string' && item.trim().length > 0 && item.length <= max);
 }
 
+function isIsoCurrency(value) {
+  return typeof value === 'string' && /^[A-Z]{3}$/.test(value);
+}
+
+function isIsoDate(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const d = new Date(value + 'T00:00:00Z');
+  if (Number.isNaN(d.getTime())) return false;
+  return d.toISOString().slice(0, 10) === value;
+}
+
 function badRequest(res, error) {
   return res.status(400).json({ error });
 }
@@ -43,5 +54,7 @@ module.exports = {
   isFiniteNumber,
   isOptionalString,
   isArrayOfStrings,
+  isIsoCurrency,
+  isIsoDate,
   badRequest,
 };
