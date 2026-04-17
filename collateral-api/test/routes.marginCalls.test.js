@@ -118,3 +118,42 @@ test('POST /margin-calls — sets four_eyes_required when callAmount > threshold
   assert.equal(res.status, 201);
   assert.equal(res.body.fourEyesRequired, true);
 });
+
+test('GET /margin-calls — 200 lists created calls', async () => {
+  const { app, cm, tm } = setup();
+  await seedAgreement(app, tm);
+  await request(app).post('/margin-calls').set('Authorization', `Bearer ${cm}`).send(callBody);
+  await request(app).post('/margin-calls').set('Authorization', `Bearer ${cm}`).send({ ...callBody, id: 'MC-2026-0002' });
+  const res = await request(app).get('/margin-calls').set('Authorization', `Bearer ${cm}`);
+  assert.equal(res.status, 200);
+  assert.equal(res.body.total, 2);
+  assert.equal(res.body.data.length, 2);
+});
+
+test('GET /margin-calls?state= — filters', async () => {
+  const { app, cm, tm } = setup();
+  await seedAgreement(app, tm);
+  await request(app).post('/margin-calls').set('Authorization', `Bearer ${cm}`).send(callBody);
+  await request(app).post('/margin-calls').set('Authorization', `Bearer ${cm}`).send({ ...callBody, id: 'MC-R', direction: 'received' });
+  const res = await request(app).get('/margin-calls?state=draft').set('Authorization', `Bearer ${cm}`);
+  assert.equal(res.body.total, 1);
+  assert.equal(res.body.data[0].currentState, 'draft');
+});
+
+test('GET /margin-calls/:id — 200 with events array', async () => {
+  const { app, cm, tm } = setup();
+  await seedAgreement(app, tm);
+  await request(app).post('/margin-calls').set('Authorization', `Bearer ${cm}`).send({ ...callBody, id: 'MC-R', direction: 'received' });
+  const res = await request(app).get('/margin-calls/MC-R').set('Authorization', `Bearer ${cm}`);
+  assert.equal(res.status, 200);
+  assert.equal(res.body.id, 'MC-R');
+  assert.ok(Array.isArray(res.body.events));
+  assert.equal(res.body.events.length, 1);
+  assert.equal(res.body.events[0].eventType, 'issued');
+});
+
+test('GET /margin-calls/:id — 404', async () => {
+  const { app, cm } = setup();
+  const res = await request(app).get('/margin-calls/MC-NONE').set('Authorization', `Bearer ${cm}`);
+  assert.equal(res.status, 404);
+});

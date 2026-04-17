@@ -104,4 +104,47 @@ router.post('/', requireAuth, (req, res) => {
   res.status(201).json(rowToCall(row));
 });
 
+router.get('/', requireAuth, (req, res) => {
+  const db = getDb(req);
+  const page  = Math.max(1, parseInt(req.query.page)  || 1);
+  const limit = Math.min(200, Math.max(1, parseInt(req.query.limit) || 100));
+  const offset = (page - 1) * limit;
+
+  const where = [];
+  const params = [];
+  if (req.query.state)        { where.push('current_state = ?'); params.push(req.query.state); }
+  if (req.query.agreement)    { where.push('agreement_id = ?'); params.push(req.query.agreement); }
+  if (req.query.direction)    { where.push('direction = ?'); params.push(req.query.direction); }
+  const whereSql = where.length ? 'WHERE ' + where.join(' AND ') : '';
+
+  const total = db.prepare(`SELECT COUNT(*) AS c FROM margin_calls ${whereSql}`).get(...params).c;
+  const rows  = db.prepare(
+    `SELECT * FROM margin_calls ${whereSql} ORDER BY created_at DESC LIMIT ? OFFSET ?`
+  ).all(...params, limit, offset);
+
+  res.json({ data: rows.map(rowToCall), total, page, limit });
+});
+
+router.get('/:id', requireAuth, (req, res) => {
+  const db = getDb(req);
+  const row = db.prepare('SELECT * FROM margin_calls WHERE id = ?').get(req.params.id);
+  if (!row) return res.status(404).json({ error: 'Margin call not found' });
+  const events = db.prepare(
+    'SELECT id, event_type, occurred_at, actor_user_id, actor_type, payload_json, prev_hash, hash FROM margin_call_events WHERE margin_call_id = ? ORDER BY id ASC'
+  ).all(req.params.id);
+  res.json({
+    ...rowToCall(row),
+    events: events.map(e => ({
+      id: e.id,
+      eventType: e.event_type,
+      occurredAt: e.occurred_at,
+      actorUserId: e.actor_user_id,
+      actorType: e.actor_type,
+      payload: JSON.parse(e.payload_json),
+      prevHash: e.prev_hash,
+      hash: e.hash,
+    })),
+  });
+});
+
 module.exports = router;
