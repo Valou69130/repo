@@ -42,6 +42,14 @@ const SECTIONS = [
     ],
   },
   {
+    label: "Margin Calls",
+    items: [
+      { key: "agreements", label: "Agreements", icon: Scale },
+      { key: "approvals", label: "Four-Eyes Approvals", icon: ShieldCheck },
+      { key: "audit-export", label: "Audit Export", icon: FileText },
+    ],
+  },
+  {
     label: "Operations",
     items: [
       { key: "operations", label: "Settlement / Ops", icon: ClipboardList },

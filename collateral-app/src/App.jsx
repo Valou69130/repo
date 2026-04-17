@@ -34,6 +34,11 @@ const IntegrationHub = lazyNamed(() => import("@/pages/IntegrationHub"), "Integr
 const PortfolioOptimisation = lazyNamed(() => import("@/pages/PortfolioOptimisation"), "PortfolioOptimisation");
 const BusinessCase = lazyNamed(() => import("@/pages/BusinessCase"), "BusinessCase");
 const ParametersRules = lazyNamed(() => import("@/pages/ParametersRules"), "ParametersRules");
+const Agreements = lazyNamed(() => import("@/pages/Agreements"), "Agreements");
+const AgreementDetail = lazyNamed(() => import("@/pages/AgreementDetail"), "AgreementDetail");
+const MarginCallDetail = lazyNamed(() => import("@/pages/MarginCallDetail"), "MarginCallDetail");
+const Approvals = lazyNamed(() => import("@/pages/Approvals"), "Approvals");
+const AuditExport = lazyNamed(() => import("@/pages/AuditExport"), "AuditExport");
 
 function PageFallback() {
   return (
@@ -60,8 +65,13 @@ function AppContent() {
   const [current, setCurrent]                   = useState("dashboard");
   const [selectedAsset, setSelectedAsset]       = useState(null);
   const [selectedRepoId, setSelectedRepoId]     = useState(null);
+  const [selectedAgreementId, setSelectedAgreementId] = useState(null);
+  const [selectedMarginCallId, setSelectedMarginCallId] = useState(null);
   const [apiError, setApiError]                 = useState(false);
   const [pendingSubstitutions, setPendingSubstitutions] = useState([]);
+
+  const openAgreement = (id) => { setSelectedAgreementId(id); setCurrent("agreement-detail"); };
+  const openMarginCall = (id) => { setSelectedMarginCallId(id); setCurrent("margin-call-detail"); };
 
   const role = user?.role || "Treasury Manager";
   const permissions = getPermissions(role);
@@ -393,6 +403,16 @@ function AppContent() {
         return <PortfolioOptimisation repos={repos} assets={assets} openRepo={openRepo} />;
       case "business-case":
         return <BusinessCase />;
+      case "agreements":
+        return <Agreements role={role} permissions={permissions} onOpenAgreement={openAgreement} />;
+      case "agreement-detail":
+        return <AgreementDetail agreementId={selectedAgreementId} onBack={() => setCurrent("agreements")} onOpenMarginCall={openMarginCall} permissions={permissions} />;
+      case "margin-call-detail":
+        return <MarginCallDetail callId={selectedMarginCallId} onBack={() => selectedAgreementId ? setCurrent("agreement-detail") : setCurrent("agreements")} permissions={permissions} />;
+      case "approvals":
+        return <Approvals permissions={permissions} onOpenMarginCall={openMarginCall} />;
+      case "audit-export":
+        return <AuditExport permissions={permissions} />;
       default:
         return <Dashboard assets={assets} repos={repos} notifications={notifications} openRepo={openRepo} pendingSubstitutions={pendingSubstitutions} role={role} onApproveSubstitution={approveSubstitution} onRejectSubstitution={rejectSubstitution} onNavigate={setCurrent} />;
     }

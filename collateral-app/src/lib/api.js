@@ -115,6 +115,38 @@ const remoteApi = {
     }
   },
 
+  // ── Collateral agreements ────────────────────────────────────────────
+  listAgreements: () => request('GET', '/agreements').then(r => r?.data ?? r),
+  getAgreement:   (id) => request('GET', `/agreements/${id}`),
+  createAgreement: (data) => request('POST', '/agreements', data),
+
+  // ── Margin calls (event-sourced) ─────────────────────────────────────
+  listMarginCalls: (query = {}) => {
+    const qs = new URLSearchParams(query).toString();
+    return request('GET', `/margin-calls${qs ? `?${qs}` : ''}`).then(r => r?.data ?? r);
+  },
+  getMarginCall:    (id) => request('GET', `/margin-calls/${id}`),
+  createMarginCall: (data) => request('POST', '/margin-calls', data),
+  issueMarginCall:  (id, body = {}) => request('POST', `/margin-calls/${id}/issue`, body),
+  acceptMarginCall: (id, body = {}) => request('POST', `/margin-calls/${id}/accept`, body),
+  markDelivered:    (id, body)      => request('POST', `/margin-calls/${id}/mark-delivered`, body),
+  confirmSettlement:(id, body = {}) => request('POST', `/margin-calls/${id}/confirm-settlement`, body),
+  cancelMarginCall: (id, body)      => request('POST', `/margin-calls/${id}/cancel`, body),
+  suggestedCalls:   () => request('GET', '/margin-calls/suggested').then(r => r?.data ?? r),
+  aiAssessCall:     (id) => request('POST', `/margin-calls/${id}/ai-assess`, {}),
+
+  // ── Disputes ─────────────────────────────────────────────────────────
+  openDispute:      (callId, body)    => request('POST', `/margin-calls/${callId}/disputes`, body),
+  proposeDispute:   (disputeId, body) => request('POST', `/disputes/${disputeId}/propose`, body),
+  agreeDispute:     (disputeId, body) => request('POST', `/disputes/${disputeId}/agree`, body),
+  withdrawDispute:  (disputeId, body) => request('POST', `/disputes/${disputeId}/withdraw`, body),
+  escalateDispute:  (disputeId, body) => request('POST', `/disputes/${disputeId}/escalate`, body),
+
+  // ── Approvals (four-eyes inbox) ──────────────────────────────────────
+  listPendingApprovals: () => request('GET', '/approvals/pending').then(r => r?.data ?? r),
+  grantApproval:  (id, body = {})  => request('POST', `/approvals/${id}/grant`, body),
+  rejectApproval: (id, body)       => request('POST', `/approvals/${id}/reject`, body),
+
   downloadCsvTemplate: async () => {
     const res = await fetch(`${BASE}/admin/csv-template`, {
       credentials: 'include',
