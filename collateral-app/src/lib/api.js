@@ -1,4 +1,5 @@
 import { mockApi } from "@/integrations/mockApi";
+import { ruleEngineSeed } from "@/data/ruleEngineSeed";
 
 const BASE =
   import.meta.env.VITE_API_URL ||
@@ -94,6 +95,25 @@ const remoteApi = {
   aiAnalysePortfolio:  () => request('POST', '/ai/margin/portfolio'),
   aiCorrelate:         () => request('POST', '/ai/exceptions/correlate'),
   aiChat:              (history) => request('POST', '/ai/chat', { history }),
+
+  getRuleEngine: () => {
+    try {
+      const stored = localStorage.getItem('co_rule_engine');
+      return Promise.resolve(stored ? JSON.parse(stored) : { ...ruleEngineSeed });
+    } catch {
+      return Promise.resolve({ ...ruleEngineSeed });
+    }
+  },
+  updateRuleEngine: (partial) => {
+    try {
+      const current = (() => { try { const s = localStorage.getItem('co_rule_engine'); return s ? JSON.parse(s) : { ...ruleEngineSeed }; } catch { return { ...ruleEngineSeed }; } })();
+      const updated = { ...current, ...partial };
+      localStorage.setItem('co_rule_engine', JSON.stringify(updated));
+      return Promise.resolve(updated);
+    } catch {
+      return Promise.resolve(partial);
+    }
+  },
 
   downloadCsvTemplate: async () => {
     const res = await fetch(`${BASE}/admin/csv-template`, {
