@@ -2,7 +2,7 @@ import { mockApi } from "@/integrations/mockApi";
 
 const BASE =
   import.meta.env.VITE_API_URL ||
-  (import.meta.env.DEV ? "http://localhost:3001" : "");
+  (import.meta.env.DEV ? "http://localhost:3001" : "/api");
 const USE_REMOTE_API = Boolean(BASE);
 
 let _refreshing = null; // in-flight refresh promise — collapses concurrent retries
