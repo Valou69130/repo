@@ -48,6 +48,9 @@ function createApp() {
   app.use('/notifications', require('./routes/notifications'));
   app.use('/admin',         require('./routes/admin'));
   app.use('/ai',            require('./routes/ai'));
+  app.use('/agreements',    require('./routes/agreements'));
+  app.use('/',              require('./routes/eligibilitySchedules'));
+  app.use('/',              require('./routes/haircutSchedules'));
 
   app.get('/health', (_req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
 
