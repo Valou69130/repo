@@ -157,3 +157,101 @@ test('GET /margin-calls/:id — 404', async () => {
   const res = await request(app).get('/margin-calls/MC-NONE').set('Authorization', `Bearer ${cm}`);
   assert.equal(res.status, 404);
 });
+
+test('POST /:id/issue — draft → issued', async () => {
+  const { app, cm, tm } = setup();
+  await seedAgreement(app, tm);
+  await request(app).post('/margin-calls').set('Authorization', `Bearer ${cm}`).send(callBody);
+  const res = await request(app)
+    .post('/margin-calls/MC-2026-0001/issue')
+    .set('Authorization', `Bearer ${cm}`)
+    .send({ expectedState: 'draft' });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.marginCall.currentState, 'issued');
+  assert.equal(res.body.event.eventType, 'issued');
+});
+
+test('POST /:id/issue — 409 on state mismatch', async () => {
+  const { app, cm, tm } = setup();
+  await seedAgreement(app, tm);
+  await request(app).post('/margin-calls').set('Authorization', `Bearer ${cm}`).send(callBody);
+  const res = await request(app)
+    .post('/margin-calls/MC-2026-0001/issue')
+    .set('Authorization', `Bearer ${cm}`)
+    .send({ expectedState: 'issued' });
+  assert.equal(res.status, 409);
+});
+
+test('POST /:id/accept — issued → agreed (when under threshold)', async () => {
+  const { app, cm, tm } = setup();
+  await seedAgreement(app, tm);
+  await request(app).post('/margin-calls').set('Authorization', `Bearer ${cm}`).send({ ...callBody, id: 'MC-R', direction: 'received' });
+  const res = await request(app)
+    .post('/margin-calls/MC-R/accept')
+    .set('Authorization', `Bearer ${cm}`)
+    .send({ expectedState: 'issued' });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.marginCall.currentState, 'agreed');
+});
+
+test('POST /:id/mark-delivered — agreed → delivered', async () => {
+  const { app, cm, tm } = setup();
+  await seedAgreement(app, tm);
+  await request(app).post('/margin-calls').set('Authorization', `Bearer ${cm}`).send({ ...callBody, id: 'MC-R', direction: 'received' });
+  await request(app).post('/margin-calls/MC-R/accept').set('Authorization', `Bearer ${cm}`).send({ expectedState: 'issued' });
+  const res = await request(app)
+    .post('/margin-calls/MC-R/mark-delivered')
+    .set('Authorization', `Bearer ${cm}`)
+    .send({ expectedState: 'agreed', settlementRef: 'STL-001', deliveredAmount: 500000 });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.marginCall.currentState, 'delivered');
+});
+
+test('POST /:id/mark-delivered — 400 on variance without reason', async () => {
+  const { app, cm, tm } = setup();
+  await seedAgreement(app, tm);
+  await request(app).post('/margin-calls').set('Authorization', `Bearer ${cm}`).send({ ...callBody, id: 'MC-R', direction: 'received' });
+  await request(app).post('/margin-calls/MC-R/accept').set('Authorization', `Bearer ${cm}`).send({ expectedState: 'issued' });
+  const res = await request(app)
+    .post('/margin-calls/MC-R/mark-delivered')
+    .set('Authorization', `Bearer ${cm}`)
+    .send({ expectedState: 'agreed', settlementRef: 'STL-001', deliveredAmount: 499999 });
+  assert.equal(res.status, 400);
+});
+
+test('POST /:id/confirm-settlement — delivered → settled → resolved', async () => {
+  const { app, cm, tm } = setup();
+  await seedAgreement(app, tm);
+  await request(app).post('/margin-calls').set('Authorization', `Bearer ${cm}`).send({ ...callBody, id: 'MC-R', direction: 'received' });
+  await request(app).post('/margin-calls/MC-R/accept').set('Authorization', `Bearer ${cm}`).send({ expectedState: 'issued' });
+  await request(app).post('/margin-calls/MC-R/mark-delivered').set('Authorization', `Bearer ${cm}`).send({ expectedState: 'agreed', settlementRef: 'STL-001', deliveredAmount: 500000 });
+  const res = await request(app)
+    .post('/margin-calls/MC-R/confirm-settlement')
+    .set('Authorization', `Bearer ${cm}`)
+    .send({ expectedState: 'delivered' });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.marginCall.currentState, 'resolved');
+});
+
+test('POST /:id/cancel — draft → cancelled', async () => {
+  const { app, cm, tm } = setup();
+  await seedAgreement(app, tm);
+  await request(app).post('/margin-calls').set('Authorization', `Bearer ${cm}`).send(callBody);
+  const res = await request(app)
+    .post('/margin-calls/MC-2026-0001/cancel')
+    .set('Authorization', `Bearer ${tm}`)
+    .send({ expectedState: 'draft', reason: 'entered in error' });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.marginCall.currentState, 'cancelled');
+});
+
+test('POST /:id/cancel — 403 without canCancelCall', async () => {
+  const { app, cm, tm } = setup();
+  await seedAgreement(app, tm);
+  await request(app).post('/margin-calls').set('Authorization', `Bearer ${cm}`).send(callBody);
+  const res = await request(app)
+    .post('/margin-calls/MC-2026-0001/cancel')
+    .set('Authorization', `Bearer ${cm}`)
+    .send({ expectedState: 'draft', reason: 'x' });
+  assert.equal(res.status, 403);
+});

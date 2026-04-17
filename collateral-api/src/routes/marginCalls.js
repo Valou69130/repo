@@ -147,4 +147,117 @@ router.get('/:id', requireAuth, (req, res) => {
   });
 });
 
+function runAction(req, res, { eventType, permCheck, payloadBuilder }) {
+  const db = getDb(req);
+  const id = req.params.id;
+  const body = req.body || {};
+  const perms = ROLE_PERMS[req.user?.role];
+  if (!perms) return res.status(403).json({ error: 'Forbidden' });
+  if (!permCheck(perms)) return res.status(403).json({ error: 'Forbidden' });
+
+  const call = db.prepare('SELECT * FROM margin_calls WHERE id = ?').get(id);
+  if (!call) return res.status(404).json({ error: 'Margin call not found' });
+
+  let event;
+  try {
+    event = appendEvent(db, {
+      marginCallId: id,
+      eventType,
+      actor: { id: req.user.id, type: 'user' },
+      payload: payloadBuilder ? payloadBuilder(body, call) : body,
+      expectedState: body.expectedState,
+    });
+  } catch (err) {
+    return writeError(res, err);
+  }
+
+  if (eventType === 'delivery_marked' && body.settlementRef) {
+    db.prepare('UPDATE margin_calls SET settlement_ref = ?, updated_at = ? WHERE id = ?')
+      .run(body.settlementRef, event.occurredAt, id);
+  }
+  if (event.newState === 'settled' || event.newState === 'resolved') {
+    db.prepare('UPDATE margin_calls SET resolved_at = ? WHERE id = ?').run(event.occurredAt, id);
+  }
+
+  // Auto-advance settled → resolved per spec.
+  if (event.newState === 'settled') {
+    try {
+      const sys = appendEvent(db, {
+        marginCallId: id,
+        eventType: 'resolved',
+        actor: { id: null, type: 'system' },
+        payload: { auto: true },
+        expectedState: 'settled',
+      });
+      db.prepare('UPDATE margin_calls SET resolved_at = ? WHERE id = ?').run(sys.occurredAt, id);
+    } catch (_) { /* swallow */ }
+  }
+
+  appendAuditEntry(db, req.user, `margin call ${eventType}`, id, call.current_state, '');
+  const row = db.prepare('SELECT * FROM margin_calls WHERE id = ?').get(id);
+  res.json({ marginCall: rowToCall(row), event });
+}
+
+router.post('/:id/issue', requireAuth, (req, res) => {
+  runAction(req, res, {
+    eventType: 'issued',
+    permCheck: (p) => p.canIssueCall,
+    payloadBuilder: (_b, c) => ({ callAmount: c.call_amount, currency: c.currency }),
+  });
+});
+
+router.post('/:id/accept', requireAuth, (req, res) => {
+  runAction(req, res, {
+    eventType: 'accepted',
+    permCheck: (p) => p.canRespondCall,
+    payloadBuilder: (_b, c) => ({ callAmount: c.call_amount }),
+  });
+});
+
+router.post('/:id/mark-delivered', requireAuth, (req, res) => {
+  const db = getDb(req);
+  const call = db.prepare('SELECT * FROM margin_calls WHERE id = ?').get(req.params.id);
+  const b = req.body || {};
+  if (call) {
+    if (!isNonEmptyString(b.settlementRef, MAX.shortText)) return badRequest(res, 'settlementRef required');
+    if (!isFiniteNumber(b.deliveredAmount)) return badRequest(res, 'deliveredAmount must be a finite number');
+    const variance = Math.abs(b.deliveredAmount - call.call_amount) > 0.01;
+    if (variance && !isNonEmptyString(b.varianceReason, MAX.mediumText)) {
+      return badRequest(res, 'varianceReason required when delivered amount differs from call amount');
+    }
+  }
+  runAction(req, res, {
+    eventType: 'delivery_marked',
+    permCheck: (p) => p.canRespondCall,
+    payloadBuilder: (body) => ({
+      settlementRef: body.settlementRef,
+      deliveredAmount: body.deliveredAmount,
+      varianceReason: body.varianceReason ?? null,
+    }),
+  });
+});
+
+router.post('/:id/confirm-settlement', requireAuth, (req, res) => {
+  runAction(req, res, {
+    eventType: 'settled',
+    permCheck: (p) => p.canRespondCall,
+    payloadBuilder: () => ({}),
+  });
+});
+
+router.post('/:id/cancel', requireAuth, (req, res) => {
+  const b = req.body || {};
+  if (!isNonEmptyString(b.reason, MAX.mediumText)) {
+    // Check perm first — only 400 after a permitted user proves perm.
+    const perms = ROLE_PERMS[req.user?.role];
+    if (!perms || !perms.canCancelCall) return res.status(403).json({ error: 'Forbidden' });
+    return badRequest(res, 'reason required');
+  }
+  runAction(req, res, {
+    eventType: 'cancelled',
+    permCheck: (p) => p.canCancelCall,
+    payloadBuilder: (body) => ({ reason: body.reason }),
+  });
+});
+
 module.exports = router;
