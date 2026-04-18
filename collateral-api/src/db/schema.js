@@ -238,11 +238,13 @@ function ensureSeedData(db) {
   const { USERS } = require('./demoData');
   const upsert = db.prepare(`
     INSERT OR IGNORE INTO users (name, email, password_hash, role, must_change_password)
-    VALUES (?, ?, ?, ?, 1)
+    VALUES (?, ?, ?, ?, 0)
   `);
   for (const u of USERS) {
     upsert.run(u.name, u.email, bcrypt.hashSync(u.password, 10), u.role);
   }
+  // Clear forced password-change for all demo accounts so users can log straight in
+  db.prepare(`UPDATE users SET must_change_password = 0 WHERE email IN (${USERS.map(() => '?').join(',')})`).run(USERS.map(u => u.email));
 }
 
 module.exports = { getDb, closeDb, initSchema };

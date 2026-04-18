@@ -182,7 +182,7 @@ function seedDemoData(db, { includeUsers = true } = {}) {
     `);
 
     if (includeUsers) {
-      const insertUser = db.prepare('INSERT INTO users (name, email, password_hash, role, must_change_password) VALUES (?, ?, ?, ?, 1)');
+      const insertUser = db.prepare('INSERT INTO users (name, email, password_hash, role, must_change_password) VALUES (?, ?, ?, ?, 0)');
       for (const user of USERS) {
         insertUser.run(user.name, user.email, bcrypt.hashSync(user.password, 10), user.role);
       }
