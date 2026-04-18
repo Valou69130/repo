@@ -10,7 +10,7 @@ let _refreshing = null; // in-flight refresh promise — collapses concurrent re
 
 async function tryRefresh() {
   if (_refreshing) return _refreshing;
-  _refreshing = fetch(`${BASE}/account/refresh`, { method: 'POST', credentials: 'include' })
+  _refreshing = fetch(`${BASE}/session/refresh`, { method: 'POST', credentials: 'include' })
     .then(r => r.ok)
     .catch(() => false)
     .finally(() => { _refreshing = null; });
@@ -27,7 +27,7 @@ async function request(method, path, body, _retry = true) {
     credentials: 'include',
     body: body ? JSON.stringify(body) : undefined,
   });
-  if (res.status === 401 && _retry && path !== '/account/login') {
+  if (res.status === 401 && _retry && path !== '/session/login') {
     const refreshed = await tryRefresh();
     if (refreshed) return request(method, path, body, false); // retry once
     localStorage.removeItem('co_user');
@@ -48,16 +48,16 @@ async function request(method, path, body, _retry = true) {
 
 const remoteApi = {
   login: async (email, password) => {
-    const data = await request('POST', '/account/login', { email, password });
+    const data = await request('POST', '/session/login', { email, password });
     if (data?.user) localStorage.setItem('co_user', JSON.stringify(data.user));
     return data;
   },
   logout: async () => {
-    await request('POST', '/account/logout');
+    await request('POST', '/session/logout');
     localStorage.removeItem('co_user');
   },
-  me: () => request('GET', '/account/me'),
-  changePassword: (currentPassword, newPassword) => request('PUT', '/account/password', { currentPassword, newPassword }),
+  me: () => request('GET', '/session/me'),
+  changePassword: (currentPassword, newPassword) => request('PUT', '/session/password', { currentPassword, newPassword }),
 
   getAssets:   () => request('GET', '/assets').then(r => r?.data ?? r),
   updateAsset: (id, data) => request('PUT', `/assets/${id}`, data),
