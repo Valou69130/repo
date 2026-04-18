@@ -8,7 +8,7 @@ router.post('/reset', requireAuth, requirePerm('canReset'), (req, res) => {
   const db = getDb();
 
   try {
-    seedDemoData(db, { includeUsers: false });
+    seedDemoData(db, { includeUsers: true });
     res.json({ ok: true, message: 'Demo data reset successfully' });
   } catch (err) {
     console.error('Admin reset error:', err);
