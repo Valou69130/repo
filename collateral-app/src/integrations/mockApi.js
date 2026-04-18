@@ -8,7 +8,8 @@ const USERS = [
   { id: 1, name: "Treasury Manager", email: "treasury@banca-demo.ro", password: "demo1234", role: "Treasury Manager" },
   { id: 2, name: "Collateral Manager", email: "collateral@banca-demo.ro", password: "demo1234", role: "Collateral Manager" },
   { id: 3, name: "Operations Analyst", email: "operations@banca-demo.ro", password: "demo1234", role: "Operations Analyst" },
-  { id: 4, name: "Risk Reviewer", email: "risk@banca-demo.ro", password: "demo1234", role: "Risk Reviewer" },
+  { id: 4, name: "Risk Reviewer",   email: "risk@banca-demo.ro",     password: "demo1234", role: "Risk Reviewer" },
+  { id: 5, name: "Credit Approver", email: "approver@banca-demo.ro", password: "demo1234", role: "Credit Approver" },
 ];
 
 const STORAGE_KEY = "collateral_demo_store_v2";
