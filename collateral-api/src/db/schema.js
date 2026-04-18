@@ -231,6 +231,17 @@ function ensureSeedData(db) {
   const hasAssets = db.prepare('SELECT COUNT(*) AS count FROM assets').get().count > 0;
   if (!hasUsers || !hasAssets) {
     seedDemoData(db, { includeUsers: true });
+    return;
+  }
+  // Upsert any demo users missing from this instance (e.g. new roles added after warm start)
+  const bcrypt = require('bcryptjs');
+  const { USERS } = require('./demoData');
+  const upsert = db.prepare(`
+    INSERT OR IGNORE INTO users (name, email, password_hash, role, must_change_password)
+    VALUES (?, ?, ?, ?, 1)
+  `);
+  for (const u of USERS) {
+    upsert.run(u.name, u.email, bcrypt.hashSync(u.password, 10), u.role);
   }
 }
 
