@@ -9,6 +9,7 @@ const DEMO_USERS = [
   { role: "Collateral Manager", email: "collateral@banca-demo.ro" },
   { role: "Operations Analyst", email: "operations@banca-demo.ro" },
   { role: "Risk Reviewer",      email: "risk@banca-demo.ro"       },
+  { role: "Credit Approver",    email: "approver@banca-demo.ro"   },
 ];
 
 export function Login({ onLogin, onPrivacy }) {
