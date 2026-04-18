@@ -9,6 +9,10 @@ const morgan = require('morgan');
 function createApp() {
   const app = express();
 
+  // Trust the first proxy hop (Vercel's load balancer) so req.ip is the client IP
+  // and express-rate-limit's trustProxy validation passes.
+  app.set('trust proxy', 1);
+
   app.use(helmet());
 
   // HTTP access log — 'combined' for prod, 'dev' for local readability
@@ -26,16 +30,18 @@ function createApp() {
     max: 10,
     standardHeaders: true,
     legacyHeaders: false,
+    validate: { trustProxy: false },
     message: { error: 'Too many login attempts, please try again later' },
   });
   app.use('/auth/login', loginLimiter);
 
   // Broad write limiter for all mutating endpoints
   const writeLimiter = rateLimit({
-    windowMs: 60 * 1000,        // 1-minute window
-    max: 120,                   // 120 mutations per minute per IP
+    windowMs: 60 * 1000,
+    max: 120,
     standardHeaders: true,
     legacyHeaders: false,
+    validate: { trustProxy: false },
     message: { error: 'Rate limit exceeded, please slow down' },
     skip: (req) => req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS',
   });
