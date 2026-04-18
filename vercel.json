@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "npm install && npm install --prefix collateral-app && npm install --prefix collateral-api",
+  "installCommand": "npm install && npm install --prefix collateral-app && npm install --prefix collateral-api && cd collateral-api && npm rebuild better-sqlite3",
   "buildCommand": "cd collateral-app && npm run build",
   "outputDirectory": "collateral-app/dist"
 }
