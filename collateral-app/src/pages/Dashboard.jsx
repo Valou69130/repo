@@ -21,6 +21,7 @@ import { RecommendedActions, deriveActionItems } from "@/components/dashboard/Re
 import { EodSummary } from "@/components/dashboard/EodSummary";
 import { PendingApprovalsWidget } from "@/components/dashboard/PendingApprovalsWidget";
 import { PortfolioOptWidget } from "@/components/dashboard/PortfolioOptWidget";
+import { SuggestedCallsPanel } from "@/components/dashboard/SuggestedCallsPanel";
 import { AIReasoningPanel } from "@/ai/components/AIReasoningPanel";
 import { useAICall } from "@/ai/hooks/useAI";
 import { api } from "@/lib/api";
@@ -72,6 +73,7 @@ export function Dashboard({
   onApproveSubstitution,
   onRejectSubstitution,
   onNavigate,
+  onOpenAgreement,
 }) {
   const today = new Date().toLocaleDateString("ro-RO", {
     day: "2-digit",
@@ -190,6 +192,9 @@ export function Dashboard({
           buttonLabel="Correlate alerts"
         />
       </div>
+
+      {/* ── Suggested margin calls (deficit-based) ── */}
+      <SuggestedCallsPanel onOpenAgreement={onOpenAgreement} />
 
       {/* ── 4-eye approvals ── */}
       <PendingApprovalsWidget

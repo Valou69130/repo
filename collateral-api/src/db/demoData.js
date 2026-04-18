@@ -1,10 +1,12 @@
 const bcrypt = require('bcryptjs');
+const { appendEvent } = require('./appendEvent');
 
 const USERS = [
   { name: 'Treasury Manager',   email: 'treasury@banca-demo.ro',   password: 'demo1234', role: 'Treasury Manager' },
   { name: 'Collateral Manager', email: 'collateral@banca-demo.ro', password: 'demo1234', role: 'Collateral Manager' },
   { name: 'Operations Analyst', email: 'operations@banca-demo.ro', password: 'demo1234', role: 'Operations Analyst' },
   { name: 'Risk Reviewer',      email: 'risk@banca-demo.ro',       password: 'demo1234', role: 'Risk Reviewer' },
+  { name: 'Credit Approver',    email: 'approver@banca-demo.ro',   password: 'demo1234', role: 'Credit Approver' },
 ];
 
 const ASSETS = [
@@ -43,6 +45,119 @@ const NOTIFICATIONS = [
   { severity:'Info', text:'Collateral release completed for R-1011', target:'R-1011' },
 ];
 
+const AGREEMENTS = [
+  {
+    id: 'AGR-UNI-001',
+    counterparty: 'UniBank Bucharest',
+    agreement_type: 'GMRA',
+    governing_law: 'English Law',
+    base_currency: 'RON',
+    threshold: 0,
+    minimum_transfer_amount: 100000,
+    rounding: 10000,
+    call_notice_deadline_time: '11:00',
+    four_eyes_threshold: 5000000,
+    status: 'active',
+    effective_date: '2025-01-15',
+  },
+  {
+    id: 'AGR-DAN-001',
+    counterparty: 'Danube Capital',
+    agreement_type: 'GMRA',
+    governing_law: 'English Law',
+    base_currency: 'EUR',
+    threshold: 0,
+    minimum_transfer_amount: 50000,
+    rounding: 5000,
+    call_notice_deadline_time: '11:00',
+    four_eyes_threshold: 1000000,
+    status: 'active',
+    effective_date: '2024-09-01',
+  },
+  {
+    id: 'AGR-CAR-001',
+    counterparty: 'Carpathia Bank',
+    agreement_type: 'GMRA',
+    governing_law: 'Romanian Law',
+    base_currency: 'RON',
+    threshold: 100000,
+    minimum_transfer_amount: 50000,
+    rounding: 10000,
+    call_notice_deadline_time: '11:00',
+    four_eyes_threshold: 10000000,
+    status: 'active',
+    effective_date: '2023-06-15',
+  },
+];
+
+// Seeded margin calls — `events` is the ordered sequence applied via appendEvent.
+// Each event is { type, actor: 'cm'|'tm'|'approver'|'system', payload }.
+// Keep amounts consistent with the parent agreement's four_eyes_threshold.
+const MARGIN_CALLS = [
+  {
+    id: 'MC-DEMO-001', agreement_id: 'AGR-UNI-001', direction: 'issued',
+    call_date: '2026-04-10', exposure_amount: 10300000, collateral_value: 9800000,
+    call_amount: 500000, currency: 'RON', issued_at: '2026-04-10T08:15:00Z',
+    deadline_at: '2026-04-10T11:00:00Z', issued_by: 'cm', four_eyes_required: 0,
+    events: [
+      { type: 'issued',          actor: 'cm', payload: { callAmount: 500000, currency: 'RON' } },
+      { type: 'accepted',        actor: 'cm', payload: { callAmount: 500000 } },
+      { type: 'delivery_marked', actor: 'cm', payload: { settlementRef: 'SWIFT-20260410-001', deliveredAmount: 500000, varianceReason: null } },
+      { type: 'settled',         actor: 'cm', payload: {} },
+      { type: 'resolved',        actor: 'system', payload: { auto: true } },
+    ],
+  },
+  {
+    id: 'MC-DEMO-002', agreement_id: 'AGR-DAN-001', direction: 'received',
+    call_date: '2026-04-14', exposure_amount: 4200000, collateral_value: 3800000,
+    call_amount: 400000, currency: 'EUR', issued_at: '2026-04-14T09:05:00Z',
+    deadline_at: '2026-04-14T11:00:00Z', issued_by: 'cm', four_eyes_required: 0,
+    events: [
+      { type: 'issued',         actor: 'cm', payload: { callAmount: 400000, currency: 'EUR', direction: 'received' } },
+      { type: 'dispute_opened', actor: 'cm', payload: { reasonCode: 'valuation', theirProposedValue: 400000, ourProposedValue: 310000 } },
+    ],
+    dispute: {
+      id: 'DSP-MC-DEMO-002-01', reason_code: 'valuation',
+      their_proposed_value: 400000, our_proposed_value: 310000, delta: 90000,
+      opened_by: 'cm', opened_at: '2026-04-14T09:08:00Z', status: 'open',
+    },
+  },
+  {
+    id: 'MC-DEMO-003', agreement_id: 'AGR-UNI-001', direction: 'received',
+    call_date: '2026-04-15', exposure_amount: 62500000, collateral_value: 56000000,
+    call_amount: 6500000, currency: 'RON', issued_at: '2026-04-15T08:45:00Z',
+    deadline_at: '2026-04-15T11:00:00Z', issued_by: 'cm', four_eyes_required: 1,
+    events: [
+      { type: 'issued',              actor: 'cm', payload: { callAmount: 6500000, currency: 'RON', direction: 'received' } },
+      { type: 'four_eyes_requested', actor: 'cm', payload: { reason: 'accept_above_threshold', callAmount: 6500000 } },
+    ],
+    approval: {
+      id: 'APP-MC-DEMO-003-01', entity_type: 'margin_call_accept',
+      requested_by: 'cm', requested_at: '2026-04-15T08:50:00Z', status: 'pending',
+    },
+  },
+  {
+    id: 'MC-DEMO-004', agreement_id: 'AGR-CAR-001', direction: 'received',
+    call_date: '2026-04-16', exposure_amount: 7900000, collateral_value: 7200000,
+    call_amount: 700000, currency: 'RON', issued_at: '2026-04-16T08:30:00Z',
+    deadline_at: '2026-04-16T11:00:00Z', issued_by: 'cm', four_eyes_required: 0,
+    events: [
+      { type: 'issued',   actor: 'cm', payload: { callAmount: 700000, currency: 'RON', direction: 'received' } },
+      { type: 'accepted', actor: 'cm', payload: { callAmount: 700000 } },
+    ],
+  },
+  {
+    id: 'MC-DEMO-005', agreement_id: 'AGR-DAN-001', direction: 'issued',
+    call_date: '2026-04-12', exposure_amount: 4100000, collateral_value: 4090000,
+    call_amount: 10000, currency: 'EUR', issued_at: '2026-04-12T08:40:00Z',
+    deadline_at: '2026-04-12T11:00:00Z', issued_by: 'cm', four_eyes_required: 0,
+    events: [
+      { type: 'issued',    actor: 'cm', payload: { callAmount: 10000, currency: 'EUR' } },
+      { type: 'cancelled', actor: 'tm', payload: { reason: 'Below MTA after intraday revaluation — call withdrawn.' } },
+    ],
+  },
+];
+
 const AUDIT_EVENTS = [
   { ts:'2026-04-01 09:12', user_name:'Treasury Manager', role:'Treasury', action:'repo created', object:'R-1024', prev_state:'Draft', next_state:'Approved', comment:'Trade terms captured and submitted.' },
   { ts:'2026-04-01 09:18', user_name:'Collateral Manager', role:'Collateral', action:'allocation approved', object:'R-1024', prev_state:'No collateral', next_state:'AST-005 allocated', comment:'Basket approved with single bond line.' },
@@ -53,6 +168,11 @@ const AUDIT_EVENTS = [
 function seedDemoData(db, { includeUsers = true } = {}) {
   const reset = db.transaction(() => {
     db.exec(`
+      DELETE FROM margin_call_events;
+      DELETE FROM disputes;
+      DELETE FROM approvals;
+      DELETE FROM margin_calls;
+      DELETE FROM collateral_agreements;
       DELETE FROM audit_events;
       DELETE FROM notifications;
       DELETE FROM repo_assets;
@@ -93,9 +213,98 @@ function seedDemoData(db, { includeUsers = true } = {}) {
       VALUES (@ts, @user_name, @role, @action, @object, @prev_state, @next_state, @comment)
     `);
     for (const event of AUDIT_EVENTS) insertAuditEvent.run(event);
+
+    const insertAgreement = db.prepare(`
+      INSERT INTO collateral_agreements
+        (id, counterparty, agreement_type, governing_law, base_currency,
+         threshold, minimum_transfer_amount, rounding, call_notice_deadline_time,
+         four_eyes_threshold, status, effective_date)
+      VALUES (@id, @counterparty, @agreement_type, @governing_law, @base_currency,
+              @threshold, @minimum_transfer_amount, @rounding, @call_notice_deadline_time,
+              @four_eyes_threshold, @status, @effective_date)
+    `);
+    for (const agr of AGREEMENTS) insertAgreement.run(agr);
+
+    // Only seed margin calls if users exist — the event chain references user ids.
+    const userRows = db.prepare('SELECT id, role FROM users').all();
+    if (userRows.length === 0) return;
+
+    const userByRole = {};
+    for (const u of userRows) userByRole[u.role] = u.id;
+    const actors = {
+      cm: userByRole['Collateral Manager'],
+      tm: userByRole['Treasury Manager'],
+      approver: userByRole['Credit Approver'],
+      system: null,
+    };
+
+    const insertCall = db.prepare(`
+      INSERT INTO margin_calls
+        (id, agreement_id, direction, call_date, exposure_amount, collateral_value,
+         call_amount, currency, current_state, issued_by_user_id, issued_at,
+         four_eyes_required, deadline_at, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?, ?)
+    `);
+    const insertDispute = db.prepare(`
+      INSERT INTO disputes
+        (id, margin_call_id, opened_by_user_id, opened_at, reason_code,
+         their_proposed_value, our_proposed_value, delta, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    const insertApproval = db.prepare(`
+      INSERT INTO approvals (id, entity_type, entity_id, requested_by_user_id, requested_at, status)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `);
+    const setResolvedAt = db.prepare('UPDATE margin_calls SET resolved_at = ? WHERE id = ?');
+
+    for (const call of MARGIN_CALLS) {
+      const issuedBy = actors[call.issued_by] ?? null;
+      insertCall.run(
+        call.id, call.agreement_id, call.direction, call.call_date,
+        call.exposure_amount, call.collateral_value, call.call_amount, call.currency,
+        issuedBy, call.issued_at, call.four_eyes_required, call.deadline_at,
+        call.issued_at, call.issued_at
+      );
+
+      // Build occurred_at timestamps walking forward in 1-minute steps from issued_at.
+      const baseTime = new Date(call.issued_at).getTime();
+      let stepSeconds = 0;
+      let lastEvent = null;
+      for (const ev of call.events) {
+        const actorId = actors[ev.actor];
+        const actorType = ev.actor === 'system' ? 'system' : 'user';
+        const occurredAt = new Date(baseTime + stepSeconds * 1000).toISOString();
+        stepSeconds += 60;
+        lastEvent = appendEvent(db, {
+          marginCallId: call.id,
+          eventType: ev.type,
+          actor: { id: actorId, type: actorType },
+          payload: ev.payload ?? {},
+          occurredAt,
+        });
+        if (lastEvent.newState === 'settled' || lastEvent.newState === 'resolved') {
+          setResolvedAt.run(lastEvent.occurredAt, call.id);
+        }
+      }
+
+      if (call.dispute) {
+        const d = call.dispute;
+        insertDispute.run(
+          d.id, call.id, actors[d.opened_by] ?? null, d.opened_at, d.reason_code,
+          d.their_proposed_value, d.our_proposed_value, d.delta, d.status
+        );
+      }
+      if (call.approval) {
+        const a = call.approval;
+        insertApproval.run(
+          a.id, a.entity_type, call.id, actors[a.requested_by] ?? null,
+          a.requested_at, a.status
+        );
+      }
+    }
   });
 
   reset();
 }
 
-module.exports = { seedDemoData, USERS };
+module.exports = { seedDemoData, USERS, AGREEMENTS, MARGIN_CALLS };

@@ -372,7 +372,7 @@ function AppContent() {
   const renderCurrentPage = () => {
     switch (current) {
       case "dashboard":
-        return <Dashboard assets={assets} repos={repos} notifications={notifications} openRepo={openRepo} pendingSubstitutions={pendingSubstitutions} role={role} onApproveSubstitution={approveSubstitution} onRejectSubstitution={rejectSubstitution} onNavigate={setCurrent} />;
+        return <Dashboard assets={assets} repos={repos} notifications={notifications} openRepo={openRepo} pendingSubstitutions={pendingSubstitutions} role={role} onApproveSubstitution={approveSubstitution} onRejectSubstitution={rejectSubstitution} onNavigate={setCurrent} onOpenAgreement={openAgreement} />;
       case "inventory":
         return <Inventory assets={assets} selectedAsset={selectedAsset} setSelectedAsset={setSelectedAsset} importAssets={importAssets} />;
       case "repos":
@@ -414,7 +414,7 @@ function AppContent() {
       case "audit-export":
         return <AuditExport permissions={permissions} />;
       default:
-        return <Dashboard assets={assets} repos={repos} notifications={notifications} openRepo={openRepo} pendingSubstitutions={pendingSubstitutions} role={role} onApproveSubstitution={approveSubstitution} onRejectSubstitution={rejectSubstitution} onNavigate={setCurrent} />;
+        return <Dashboard assets={assets} repos={repos} notifications={notifications} openRepo={openRepo} pendingSubstitutions={pendingSubstitutions} role={role} onApproveSubstitution={approveSubstitution} onRejectSubstitution={rejectSubstitution} onNavigate={setCurrent} onOpenAgreement={openAgreement} />;
     }
   };
 
