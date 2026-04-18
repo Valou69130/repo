@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import {
   ArrowRightLeft, TrendingUp, Package, Zap, CheckCircle2,
-  AlertTriangle, Clock, ChevronRight, Sparkles, BarChart3,
+  AlertTriangle, Clock, ChevronRight, BarChart3, Target,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -424,18 +424,13 @@ export function PortfolioOptimisation({ repos, assets, openRepo }) {
       {/* ── Header ── */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
-            Portfolio Optimisation
-          </h1>
-          <p className="mt-1 text-slate-500">
+          <h1 className="text-2xl font-semibold text-slate-900">Portfolio Optimisation</h1>
+          <p className="mt-1 text-sm text-slate-500">
             System-wide collateral efficiency analysis — identify, prioritise, and act on portfolio-level improvements.
           </p>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <Sparkles className="h-4 w-4 text-blue-500" />
-          <span className="text-[11px] text-blue-600 font-medium uppercase tracking-wide">
-            {opps.length} opportunit{opps.length === 1 ? "y" : "ies"} detected
-          </span>
+        <div className="flex items-center gap-2 flex-shrink-0 text-sm text-slate-500">
+          {opps.length} opportunit{opps.length === 1 ? "y" : "ies"} detected
         </div>
       </div>
 
@@ -463,7 +458,7 @@ export function PortfolioOptimisation({ repos, assets, openRepo }) {
               ? `${summary.highPriorityCount} high-priority — action required`
               : "No critical issues"
           }
-          icon={Sparkles}
+          icon={Target}
           alert={summary.highPriorityCount > 0}
         />
         <KpiCard

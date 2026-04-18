@@ -4,7 +4,10 @@
       "mcp__Claude_Preview__preview_screenshot",
       "mcp__Claude_Preview__preview_console_logs",
       "mcp__Claude_Preview__preview_snapshot",
-      "mcp__Claude_Preview__preview_logs"
+      "mcp__Claude_Preview__preview_logs",
+      "Bash(curl -s https://www.collateralos.app/api/health *)",
+      "Bash(curl -s http://localhost:3001/health *)",
+      "Bash(curl -s -o /dev/null -D - *)"
     ]
   }
 }

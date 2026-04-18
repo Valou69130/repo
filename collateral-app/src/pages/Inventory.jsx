@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowUpRight, Download, Filter, Search, ShieldCheck, Sparkles, Upload } from "lucide-react";
+import { ArrowUpRight, Download, Filter, Search, ShieldCheck, Upload } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,33 +71,9 @@ export function Inventory({ assets, selectedAsset, setSelectedAsset, importAsset
 
   return (
     <div className="space-y-6">
-      <div className="relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-[linear-gradient(135deg,#fbfdff_0%,#eff6ff_40%,#f8fafc_100%)] px-6 py-6 shadow-sm">
-        <div className="absolute right-0 top-0 h-36 w-36 rounded-full bg-blue-200/35 blur-3xl" />
-        <div className="absolute bottom-0 left-10 h-28 w-28 rounded-full bg-emerald-100/60 blur-3xl" />
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/80 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-blue-700 shadow-sm">
-              <Sparkles className="h-3.5 w-3.5" />
-              Inventory command center
-            </div>
-            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900">Collateral Inventory</h1>
-            <p className="mt-2 max-w-2xl text-slate-600">
-              Monitor usable inventory, eligibility quality, and custody concentration before assets are posted into secured funding workflows.
-            </p>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm">
-              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Eligible buffer</div>
-              <div className="mt-1 text-lg font-semibold text-slate-900">{fmtMoney(metrics.readyCollateral)}</div>
-              <div className="mt-1 text-xs text-slate-500">Adjusted value ready for repo allocation</div>
-            </div>
-            <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm">
-              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Search scope</div>
-              <div className="mt-1 text-lg font-semibold text-slate-900">{filtered.length}</div>
-              <div className="mt-1 text-xs text-slate-500">Assets currently matching your inventory filters</div>
-            </div>
-          </div>
-        </div>
+      <div>
+        <h1 className="text-2xl font-semibold text-slate-900">Collateral Inventory</h1>
+        <p className="mt-1 text-sm text-slate-500">Monitor usable inventory, eligibility quality, and custody concentration before assets are posted into secured funding workflows.</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">

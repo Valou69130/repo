@@ -174,17 +174,10 @@ export function RepoDetail({ repo, assets, closeRepo, topUpRepo, substituteColla
   return (
     <div className="space-y-6">
       <RoleBanner role={role} perms={permissions} />
-      <div className="relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-[linear-gradient(135deg,#f8fbff_0%,#eef6ff_42%,#f8fafc_100%)] px-6 py-6 shadow-sm">
-        <div className="absolute right-0 top-0 h-36 w-36 rounded-full bg-blue-200/35 blur-3xl" />
-        <div className="absolute bottom-0 left-10 h-28 w-28 rounded-full bg-emerald-100/60 blur-3xl" />
-        <div className="relative flex items-center justify-between gap-4 flex-wrap">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/80 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-blue-700 shadow-sm">
-              <Clock3 className="h-3.5 w-3.5" />
-              Repo lifecycle
-            </div>
-            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900">Repo Lifecycle — {repo.id}</h1>
-            <p className="mt-2 text-slate-600">{repo.counterparty} · {fmtMoney(repo.amount, repo.currency)} · {repo.startDate} → {repo.maturityDate}</p>
+            <h1 className="text-2xl font-semibold text-slate-900">Repo Lifecycle — {repo.id}</h1>
+            <p className="mt-1 text-sm text-slate-500">{repo.counterparty} · {fmtMoney(repo.amount, repo.currency)} · {repo.startDate} → {repo.maturityDate}</p>
           </div>
           <div className="flex gap-2 flex-wrap">
           {repo.state !== "Closed" && canRollover && (
@@ -209,7 +202,6 @@ export function RepoDetail({ repo, assets, closeRepo, topUpRepo, substituteColla
             </Button>
           )}
           </div>
-        </div>
       </div>
 
       {/* KPI strip */}

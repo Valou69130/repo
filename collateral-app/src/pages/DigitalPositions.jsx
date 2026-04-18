@@ -732,7 +732,7 @@ export function DigitalPositions({ assets: propAssets, audit: propAudit }) {
       <div>
         <div className="flex items-center gap-2">
           <Layers className="h-5 w-5 text-slate-600" />
-          <h1 className="text-2xl font-semibold tracking-tight">Digital Position Explorer</h1>
+          <h1 className="text-2xl font-semibold text-slate-900">Digital Position Explorer</h1>
         </div>
         <p className="mt-1 text-slate-500 text-sm max-w-2xl">
           CollateralPosition as a first-class operational object — settlement identity, ownership chain,

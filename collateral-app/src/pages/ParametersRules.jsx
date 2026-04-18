@@ -311,7 +311,7 @@ export function ParametersRules() {
       <div className="mb-6 flex items-center gap-3">
         <Settings2 className="h-5 w-5 text-slate-400" />
         <div>
-          <h1 className="text-lg font-semibold text-slate-900">Parameters & Rules</h1>
+          <h1 className="text-2xl font-semibold text-slate-900">Parameters & Rules</h1>
           <p className="text-sm text-slate-500">
             Configurable rule engine — each section is editable only by the role that owns it.
           </p>

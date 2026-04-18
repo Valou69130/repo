@@ -100,7 +100,7 @@ export function AuditTrail({ audit }) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">Audit Trail</h1>
+        <h1 className="text-2xl font-semibold text-slate-900">Audit Trail</h1>
         <p className="mt-1 text-slate-500">
           Immutable event log for all collateral, repo lifecycle, and margin actions. Full traceability for compliance and operational review.
         </p>

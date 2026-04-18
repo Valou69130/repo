@@ -205,7 +205,7 @@ export function SFTRReport({ repos, assets }) {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">SFTR Regulatory Report</h1>
+          <h1 className="text-2xl font-semibold text-slate-900">SFTR Regulatory Report</h1>
           <p className="mt-1 text-slate-500">
             Securities Financing Transaction Regulation (EU 2015/2365) — trade-level reporting per ESMA RTS 2019/363.
           </p>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { AlertCircle, AlertTriangle, ArrowUpRight, Bell, CheckCircle2, Clock3, Info, ShieldAlert, Sparkles, X } from "lucide-react";
+import { AlertCircle, AlertTriangle, ArrowUpRight, Bell, CheckCircle2, Clock3, Info, ShieldAlert, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -157,33 +157,9 @@ export function Notifications({ notifications, onDismissNotification, openRepo }
 
   return (
     <div className="space-y-6">
-      <div className="relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-[linear-gradient(135deg,#fffdf8_0%,#fff7ed_38%,#f8fafc_100%)] px-6 py-6 shadow-sm">
-        <div className="absolute right-0 top-0 h-36 w-36 rounded-full bg-amber-200/35 blur-3xl" />
-        <div className="absolute bottom-0 left-10 h-28 w-28 rounded-full bg-blue-100/60 blur-3xl" />
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-white/80 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-amber-700 shadow-sm">
-              <Sparkles className="h-3.5 w-3.5" />
-              Alert center
-            </div>
-            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900">Notifications</h1>
-            <p className="mt-2 max-w-2xl text-slate-600">
-              Prioritise critical operational events, respond within SLA, and move from alert intake to acknowledgement or escalation without losing context.
-            </p>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm">
-              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Current posture</div>
-              <div className={`mt-1 text-lg font-semibold ${critical > 0 ? "text-red-700" : "text-slate-900"}`}>{critical > 0 ? "Elevated" : "Controlled"}</div>
-              <div className="mt-1 text-xs text-slate-500">Critical alerts are highlighted first, with timers keeping the desk focused on response windows.</div>
-            </div>
-            <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm">
-              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Action flow</div>
-              <div className="mt-1 text-lg font-semibold text-slate-900">{acknowledged + escalated}</div>
-              <div className="mt-1 text-xs text-slate-500">Alerts handled in this working session through acknowledgement or escalation.</div>
-            </div>
-          </div>
-        </div>
+      <div>
+        <h1 className="text-2xl font-semibold text-slate-900">Notifications</h1>
+        <p className="mt-1 text-sm text-slate-500">Prioritise critical operational events and move from alert intake to acknowledgement or escalation.</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">

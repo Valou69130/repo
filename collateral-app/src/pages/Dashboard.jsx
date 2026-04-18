@@ -146,7 +146,7 @@ export function Dashboard({
       {/* ── Page header ── */}
       <div className="flex items-center justify-between border-b border-slate-200 pb-5">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">Collateral Control Center</h1>
+          <h1 className="text-2xl font-semibold text-slate-900">Collateral Control Center</h1>
           <p className="mt-1 text-sm text-slate-500">Margin monitoring, substitution analysis, and daily controls across the repo book.</p>
         </div>
         <div className="flex items-center gap-4 flex-shrink-0">

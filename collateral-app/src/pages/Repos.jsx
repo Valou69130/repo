@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
-import { AlertTriangle, CheckCircle2, ChevronRight, Filter, Search, Star } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ChevronRight, Filter, Search } from "lucide-react";
+import { KpiCard } from "@/components/shared/KpiCard";
 import { AllocationRecommendation } from "@/components/allocation/AllocationRecommendation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -163,38 +164,14 @@ export function Repos({ repos, assets, openRepo, createDemoRepo, role, permissio
 
   return (
     <div className="space-y-6">
-      <div className="relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-[linear-gradient(135deg,#f8fbff_0%,#eef6ff_42%,#f8fafc_100%)] px-6 py-6 shadow-sm">
-        <div className="absolute right-0 top-0 h-36 w-36 rounded-full bg-blue-200/35 blur-3xl" />
-        <div className="absolute bottom-0 left-12 h-28 w-28 rounded-full bg-emerald-100/60 blur-3xl" />
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/80 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-blue-700 shadow-sm">
-              <Star className="h-3.5 w-3.5" />
-              Secured funding workflow
-            </div>
-            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900">Repo Transactions</h1>
-            <p className="mt-2 max-w-2xl text-slate-600">
-              Create, allocate, approve, and track secured funding flows from trade terms through collateral basket selection and booking.
-            </p>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm">
-              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Open repos</div>
-              <div className="mt-1 text-lg font-semibold text-slate-900">{repos.filter((r) => r.state !== "Closed").length}</div>
-              <div className="mt-1 text-xs text-slate-500">Current active funding lines</div>
-            </div>
-            <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm">
-              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Available assets</div>
-              <div className="mt-1 text-lg font-semibold text-slate-900">{assets.filter((a) => a.status === "Available").length}</div>
-              <div className="mt-1 text-xs text-slate-500">Eligible inventory for allocation</div>
-            </div>
-            <div className="rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm">
-              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Counterparties</div>
-              <div className="mt-1 text-lg font-semibold text-slate-900">{counterpartyNames.length}</div>
-              <div className="mt-1 text-xs text-slate-500">Profiles with limits and criteria</div>
-            </div>
-          </div>
-        </div>
+      <div>
+        <h1 className="text-2xl font-semibold text-slate-900">Repo Transactions</h1>
+        <p className="mt-1 text-sm text-slate-500">Create, allocate, approve, and track secured funding flows from trade terms through collateral basket selection and booking.</p>
+      </div>
+      <div className="grid gap-4 md:grid-cols-3">
+        <KpiCard title="Open Repos" value={String(repos.filter((r) => r.state !== "Closed").length)} description="Active funding lines" />
+        <KpiCard title="Available Assets" value={String(assets.filter((a) => a.status === "Available").length)} description="Eligible inventory for allocation" />
+        <KpiCard title="Counterparties" value={String(counterpartyNames.length)} description="Profiles with limits and criteria" />
       </div>
       <RoleBanner role={role} perms={permissions} />
 

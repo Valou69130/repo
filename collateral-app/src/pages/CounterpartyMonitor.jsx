@@ -100,7 +100,7 @@ export function CounterpartyMonitor({ repos, assets }) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">Counterparty Monitor</h1>
+        <h1 className="text-2xl font-semibold text-slate-900">Counterparty Monitor</h1>
         <p className="mt-1 text-slate-500">
           Credit limit utilisation, bilateral agreement terms, and eligible collateral per counterparty.
         </p>

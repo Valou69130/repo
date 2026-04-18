@@ -121,7 +121,7 @@ export function RegulatoryCompliance({ repos, assets }) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">Regulatory Compliance</h1>
+        <h1 className="text-2xl font-semibold text-slate-900">Regulatory Compliance</h1>
         <p className="mt-1 text-slate-500">
           BNR large exposure limits (CRR Art. 395), collateral concentration, haircut compliance, MTA tracking, and benchmark rate spreads.
         </p>

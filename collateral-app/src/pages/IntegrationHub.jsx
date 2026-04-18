@@ -1035,7 +1035,7 @@ export function IntegrationHub({ integration, repos, assets }) {
       {/* Header */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Integration Hub</h1>
+          <h1 className="text-2xl font-semibold text-slate-900">Integration Hub</h1>
           <p className="mt-1 text-slate-500">
             Adapter-based integration layer — trade intake, settlement instructions, position sync, and reconciliation.
             Structured for drop-in replacement of mock adapters with live Bloomberg, SaFIR, or DLT connectors.
