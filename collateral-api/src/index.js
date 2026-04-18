@@ -33,7 +33,7 @@ function createApp() {
     validate: { trustProxy: false },
     message: { error: 'Too many login attempts, please try again later' },
   });
-  app.use('/auth/login', loginLimiter);
+  app.use('/account/login', loginLimiter);
 
   // Broad write limiter for all mutating endpoints
   const writeLimiter = rateLimit({
@@ -47,7 +47,7 @@ function createApp() {
   });
   app.use(writeLimiter);
 
-  app.use('/auth',          require('./routes/auth'));
+  app.use('/account',          require('./routes/auth'));
   app.use('/assets',        require('./routes/assets'));
   app.use('/repos',         require('./routes/repos'));
   app.use('/audit',         require('./routes/audit'));
