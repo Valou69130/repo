@@ -37,7 +37,7 @@ const SECTIONS = [
     items: [
       { key: "repos", label: "Repo Transactions", icon: ArrowRightLeft },
       { key: "margin", label: "Margin Monitor", icon: ShieldCheck },
-      { key: "portfolio-opt", label: "Portfolio Optimisation", icon: Sparkles },
+      { key: "portfolio-opt", label: "Portfolio Optimisation", icon: TrendingUp },
     ],
   },
   {
