@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { AlertTriangle, CheckCircle2, ChevronRight, Filter, Search } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ChevronRight, Filter, Search, Star } from "lucide-react";
 import { KpiCard } from "@/components/shared/KpiCard";
 import { AllocationRecommendation } from "@/components/allocation/AllocationRecommendation";
 import { Badge } from "@/components/ui/badge";
