@@ -10,6 +10,7 @@ import { useAgentRunner } from "@/workflows/hooks/useAgentRunner";
 import { DomainProvider, useDomain, useDispatch } from "@/domain/store";
 import { ChangePasswordModal } from "@/components/shared/ChangePasswordModal";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
+import { WelcomeModal, TourOverlay } from "@/components/shared/OnboardingTour";
 import { COUNTERPARTY_PROFILES } from "@/domain/counterparties";
 
 function lazyNamed(loader, exportName) {
@@ -70,6 +71,8 @@ function AppContent() {
   const [selectedMarginCallId, setSelectedMarginCallId] = useState(null);
   const [apiError, setApiError]                 = useState(false);
   const [pendingSubstitutions, setPendingSubstitutions] = useState([]);
+  const [showWelcome, setShowWelcome]           = useState(false);
+  const [tourActive, setTourActive]             = useState(false);
 
   const openAgreement = (id) => { setSelectedAgreementId(id); setCurrent("agreement-detail"); };
   const openMarginCall = (id) => { setSelectedMarginCallId(id); setCurrent("margin-call-detail"); };
@@ -427,7 +430,17 @@ function AppContent() {
   const handleLogin = (loggedInUser, requiresPwChange = false) => {
     dispatch({ type: "USER_LOGGED_IN", payload: loggedInUser });
     if (requiresPwChange) setMustChangePassword(true);
+    const seen = localStorage.getItem(`co_tour_seen_${loggedInUser.email}`);
+    if (!seen) setShowWelcome(true);
   };
+
+  const startTour = () => {
+    setShowWelcome(false);
+    setTourActive(true);
+    localStorage.setItem(`co_tour_seen_${user?.email}`, "1");
+  };
+
+  const endTour = () => setTourActive(false);
 
   if (!user) {
     return (
@@ -454,6 +467,16 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
+      {showWelcome && (
+        <WelcomeModal
+          user={user}
+          onStartTour={startTour}
+          onSkip={() => { setShowWelcome(false); localStorage.setItem(`co_tour_seen_${user?.email}`, "1"); }}
+        />
+      )}
+      {tourActive && (
+        <TourOverlay role={role} navigate={setCurrent} onEnd={endTour} />
+      )}
       <div className="flex min-h-screen">
         <Sidebar current={current} setCurrent={setCurrent} notificationCount={notifications.filter(n => n.severity === "Critical").length} />
         <div className="flex-1 flex flex-col min-w-0">
@@ -467,6 +490,7 @@ function AppContent() {
             assets={assets}
             onEodLock={eodLock}
             onSwitchRole={handleSwitchRole}
+            onStartTour={() => { setTourActive(true); }}
             onNavigate={(page, repoId) => {
               if (repoId) { setSelectedRepoId(repoId); }
               setCurrent(page);

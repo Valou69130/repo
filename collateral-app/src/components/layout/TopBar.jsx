@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Bell, LogOut, RefreshCw, Search, X, AlertTriangle, Info, AlertCircle, Lock, FileText, ChevronDown, UserCheck } from "lucide-react";
+import { Bell, BookOpen, LogOut, RefreshCw, Search, X, AlertTriangle, Info, AlertCircle, Lock, FileText, ChevronDown, UserCheck } from "lucide-react";
 
 const SEVERITY_ICON = {
   Critical: AlertTriangle,
@@ -48,7 +48,7 @@ function SearchResult({ result, onSelect }) {
 
 export function TopBar({
   notifications, role, onLogout, onDismissNotification, onReset,
-  repos, assets, onNavigate, onEodLock, onSwitchRole,
+  repos, assets, onNavigate, onEodLock, onSwitchRole, onStartTour,
 }) {
   const [bellOpen, setBellOpen]   = useState(false);
   const [resetting, setResetting] = useState(false);
@@ -341,6 +341,16 @@ export function TopBar({
                 {unread > 9 ? "9+" : unread}
               </span>
             )}
+          </button>
+
+          {/* Tour */}
+          <button
+            className="h-9 rounded-xl px-3 flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition"
+            onClick={onStartTour}
+            title="Guided tour"
+          >
+            <BookOpen className="h-3.5 w-3.5" />
+            Tour
           </button>
 
           {/* Reset */}
