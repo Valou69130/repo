@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
-import { AlertTriangle, CalendarClock, CheckCircle2, Clock3, Download, FileBarChart, FileCode, FileText } from "lucide-react";
+import { useMemo, useState, useEffect, useCallback } from "react";
+import { AlertTriangle, CalendarClock, CheckCircle2, Clock3, Download, FileBarChart, FileCode, FileText, Send } from "lucide-react";
+import { api } from "@/integrations/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -143,14 +144,46 @@ function buildXML(rows) {
 
 export function SFTRReport({ repos, assets }) {
   const [expanded, setExpanded] = useState(null);
+  const [submissions, setSubmissions] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+
+  const loadSubmissions = useCallback(async () => {
+    try {
+      const data = await api.listSFTRSubmissions();
+      setSubmissions(Array.isArray(data) ? data : []);
+    } catch {}
+  }, []);
+
+  useEffect(() => { loadSubmissions(); }, [loadSubmissions]);
+
+  const submittedUtis = useMemo(() => new Set(submissions.map((s) => s.uti)), [submissions]);
 
   const rows = useMemo(() =>
     repos.map((r) => buildSFTRRow(r, assets)),
     [repos, assets]
   );
 
-  const pending  = rows.filter((r) => r.reportStatus === "Pending").length;
-  const accepted = rows.filter((r) => r.reportStatus === "Accepted" || r.reportStatus === "Submitted").length;
+  const pending  = rows.filter((r) => !submittedUtis.has(r.uti) && r.reportStatus === "Pending").length;
+  const accepted = rows.filter((r) => submittedUtis.has(r.uti) || r.reportStatus === "Accepted" || r.reportStatus === "Submitted").length;
+
+  const submitAll = async () => {
+    setSubmitting(true);
+    try {
+      const toSubmit = rows.filter((r) => !submittedUtis.has(r.uti));
+      await Promise.all(toSubmit.map((r) =>
+        api.submitSFTRReport({
+          uti: r.uti,
+          repoId: r._raw.repo.id,
+          reportType: r.reportType,
+          principalAmount: r.principalAmount,
+          currency: r.currency,
+        }).catch(() => {})
+      ));
+      await loadSubmissions();
+    } finally {
+      setSubmitting(false);
+    }
+  };
   // Collateral breakdown by type
   const collateralBreakdown = useMemo(() => {
     const map = {};
@@ -216,6 +249,10 @@ export function SFTRReport({ repos, assets }) {
           </Button>
           <Button variant="outline" className="rounded-md" onClick={exportXML}>
             <FileCode className="h-4 w-4 mr-1.5" /> Export XML
+          </Button>
+          <Button className="rounded-md" onClick={submitAll} disabled={submitting || pending === 0}>
+            <Send className="h-4 w-4 mr-1.5" />
+            {submitting ? "Submitting…" : `Submit to Regis-TR${pending > 0 ? ` (${pending})` : ""}`}
           </Button>
         </div>
       </div>
@@ -310,7 +347,12 @@ export function SFTRReport({ repos, assets }) {
                       onClick={() => setExpanded(expanded === row.uti ? null : row.uti)}
                     >
                       <TableCell className="font-mono text-xs">{row.uti}</TableCell>
-                      <TableCell><ReportTypeBadge type={row.reportType} status={row.reportStatus} /></TableCell>
+                      <TableCell>
+                        <ReportTypeBadge
+                          type={row.reportType}
+                          status={submittedUtis.has(row.uti) ? "Submitted" : row.reportStatus}
+                        />
+                      </TableCell>
                       <TableCell className="font-mono text-xs text-slate-500">{row.otherCptyLei}</TableCell>
                       <TableCell className="font-medium">{fmtMoney(row.principalAmount, row.currency)}</TableCell>
                       <TableCell>{row.repoRate}%</TableCell>

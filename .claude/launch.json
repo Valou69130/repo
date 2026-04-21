@@ -2,6 +2,14 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "distressed-bot",
+      "cwd": ".",
+      "runtimeExecutable": "/Users/vali/Desktop/distressed-bot/.venv/bin/python",
+      "runtimeArgs": ["-m", "streamlit", "run", "/Users/vali/Desktop/distressed-bot/dashboard.py", "--server.port=8501", "--server.headless=true", "--browser.gatherUsageStats=false"],
+      "port": 8501,
+      "autoPort": false
+    },
+    {
       "name": "collateral-app",
       "cwd": "collateral-app",
       "runtimeExecutable": "/usr/local/bin/node",

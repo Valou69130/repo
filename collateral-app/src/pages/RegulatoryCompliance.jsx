@@ -3,6 +3,7 @@ import { AlertTriangle, CheckCircle2, Scale, ShieldCheck, TrendingUp } from "luc
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { KpiCard } from "@/components/shared/KpiCard";
 import { fmtMoney } from "@/domain/format";
@@ -45,7 +46,7 @@ function LimitBar({ used, limit, label }) {
   );
 }
 
-export function RegulatoryCompliance({ repos, assets }) {
+export function RegulatoryCompliance({ repos, assets, navigate }) {
   const activeRepos = repos.filter((r) => r.state !== "Closed");
 
   // Large exposure per counterparty (CRR Art. 395 — max 25% of own funds)
@@ -244,7 +245,14 @@ export function RegulatoryCompliance({ repos, assets }) {
                     <TableCell className="font-semibold text-red-600">{fmtMoney(b.deficit)}</TableCell>
                     <TableCell className="text-slate-500">{fmtMoney(b.mta)}</TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="text-xs rounded bg-amber-50 text-amber-700 border-amber-200">Issue margin call immediately</Badge>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-xs rounded border-amber-300 text-amber-700 hover:bg-amber-50"
+                        onClick={() => navigate?.('agreements')}
+                      >
+                        Issue margin call
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}

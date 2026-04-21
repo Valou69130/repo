@@ -178,6 +178,8 @@ function seedDemoData(db, { includeUsers = true } = {}) {
       DELETE FROM repo_assets;
       DELETE FROM repos;
       DELETE FROM assets;
+      DELETE FROM sftr_submissions;
+      DELETE FROM idempotency_keys;
       ${includeUsers ? 'DELETE FROM users;' : ''}
     `);
 

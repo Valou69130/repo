@@ -39,6 +39,7 @@ const AgreementDetail = lazyNamed(() => import("@/pages/AgreementDetail"), "Agre
 const MarginCallDetail = lazyNamed(() => import("@/pages/MarginCallDetail"), "MarginCallDetail");
 const Approvals = lazyNamed(() => import("@/pages/Approvals"), "Approvals");
 const AuditExport = lazyNamed(() => import("@/pages/AuditExport"), "AuditExport");
+const Admin = lazyNamed(() => import("@/pages/Admin"), "Admin");
 
 function PageFallback() {
   return (
@@ -394,7 +395,7 @@ function AppContent() {
       case "notifications":
         return <Notifications notifications={notifications} onDismissNotification={dismissNotification} openRepo={(id) => { openRepo(id); setCurrent("repo-detail"); }} />;
       case "compliance":
-        return <RegulatoryCompliance repos={repos} assets={assets} />;
+        return <RegulatoryCompliance repos={repos} assets={assets} navigate={setCurrent} />;
       case "integration":
         return <IntegrationHub integration={integration} repos={repos} assets={assets} />;
       case "parameters-rules":
@@ -413,6 +414,8 @@ function AppContent() {
         return <Approvals permissions={permissions} onOpenMarginCall={openMarginCall} />;
       case "audit-export":
         return <AuditExport permissions={permissions} />;
+      case "admin":
+        return <Admin onReset={resetDemo} />;
       default:
         return <Dashboard assets={assets} repos={repos} notifications={notifications} openRepo={openRepo} pendingSubstitutions={pendingSubstitutions} role={role} onApproveSubstitution={approveSubstitution} onRejectSubstitution={rejectSubstitution} onNavigate={setCurrent} onOpenAgreement={openAgreement} />;
     }

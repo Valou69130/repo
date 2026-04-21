@@ -12,6 +12,7 @@ import {
   Scale,
   Settings2,
   ShieldCheck,
+  SlidersHorizontal,
   TrendingUp,
   Wallet,
 } from "lucide-react";
@@ -58,6 +59,12 @@ const SECTIONS = [
       { key: "parameters-rules", label: "Parameters & Rules", icon: Settings2 },
       { key: "audit", label: "Audit Trail", icon: FileText },
       { key: "notifications", label: "Notifications", icon: Bell },
+    ],
+  },
+  {
+    label: "System",
+    items: [
+      { key: "admin", label: "Admin", icon: SlidersHorizontal },
     ],
   },
 ];

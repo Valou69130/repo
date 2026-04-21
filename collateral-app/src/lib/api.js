@@ -96,24 +96,26 @@ const remoteApi = {
   aiCorrelate:         () => request('POST', '/ai/exceptions/correlate'),
   aiChat:              (history) => request('POST', '/ai/chat', { history }),
 
-  getRuleEngine: () => {
-    try {
-      const stored = localStorage.getItem('co_rule_engine');
-      return Promise.resolve(stored ? JSON.parse(stored) : { ...ruleEngineSeed });
-    } catch {
-      return Promise.resolve({ ...ruleEngineSeed });
-    }
-  },
-  updateRuleEngine: (partial) => {
-    try {
-      const current = (() => { try { const s = localStorage.getItem('co_rule_engine'); return s ? JSON.parse(s) : { ...ruleEngineSeed }; } catch { return { ...ruleEngineSeed }; } })();
-      const updated = { ...current, ...partial };
-      localStorage.setItem('co_rule_engine', JSON.stringify(updated));
-      return Promise.resolve(updated);
-    } catch {
-      return Promise.resolve(partial);
-    }
-  },
+  getRuleEngine: () =>
+    request('GET', '/admin/rule-engine').catch(() => {
+      try {
+        const s = localStorage.getItem('co_rule_engine');
+        return s ? JSON.parse(s) : { ...ruleEngineSeed };
+      } catch { return { ...ruleEngineSeed }; }
+    }),
+  updateRuleEngine: (partial) =>
+    request('PUT', '/admin/rule-engine', partial).catch(() => {
+      try {
+        const current = (() => { try { const s = localStorage.getItem('co_rule_engine'); return s ? JSON.parse(s) : { ...ruleEngineSeed }; } catch { return { ...ruleEngineSeed }; } })();
+        const updated = { ...current, ...partial };
+        localStorage.setItem('co_rule_engine', JSON.stringify(updated));
+        return updated;
+      } catch { return partial; }
+    }),
+
+  // ── SFTR ─────────────────────────────────────────────────────────────
+  listSFTRSubmissions: () => request('GET', '/admin/sftr/submissions').then(r => r?.data ?? r),
+  submitSFTRReport: (data) => request('POST', '/admin/sftr/submit', data),
 
   // ── Collateral agreements ────────────────────────────────────────────
   listAgreements: () => request('GET', '/agreements').then(r => r?.data ?? r),

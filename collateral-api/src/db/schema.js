@@ -207,6 +207,27 @@ function initSchema(db) {
     CREATE INDEX IF NOT EXISTS idx_approvals_entity ON approvals(entity_type, entity_id);
     CREATE INDEX IF NOT EXISTS idx_approvals_pending ON approvals(status) WHERE status='pending';
 
+    CREATE TABLE IF NOT EXISTS rule_engine (
+      key TEXT PRIMARY KEY,
+      value_json TEXT NOT NULL,
+      updated_by_user_id INTEGER,
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS sftr_submissions (
+      id TEXT PRIMARY KEY,
+      uti TEXT NOT NULL,
+      repo_id TEXT NOT NULL,
+      submitted_by_user_id INTEGER NOT NULL,
+      submitted_at TEXT NOT NULL DEFAULT (datetime('now')),
+      report_type TEXT NOT NULL,
+      principal_amount REAL NOT NULL,
+      currency TEXT NOT NULL DEFAULT 'RON',
+      status TEXT NOT NULL DEFAULT 'submitted' CHECK (status IN ('submitted','accepted','rejected')),
+      tr_response TEXT,
+      FOREIGN KEY (submitted_by_user_id) REFERENCES users(id)
+    );
+
     CREATE TABLE IF NOT EXISTS idempotency_keys (
       idempotency_key TEXT NOT NULL,
       actor_user_id INTEGER NOT NULL,

@@ -25,6 +25,15 @@ function createApp() {
   app.use(cookieParser());
   app.use(express.json());
 
+  // Reject state-changing requests from unexpected origins (defence-in-depth alongside SameSite=Strict)
+  app.use((req, res, next) => {
+    if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') return next();
+    const origin = req.headers.origin;
+    if (!origin) return next(); // same-origin requests carry no Origin header
+    if (allowedOrigins.includes(origin)) return next();
+    return res.status(403).json({ error: 'Origin not allowed' });
+  });
+
   const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 10,
@@ -46,6 +55,18 @@ function createApp() {
     skip: (req) => req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS',
   });
   app.use(writeLimiter);
+
+  // Sensitive admin operations: tighter cap
+  const adminLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    validate: { trustProxy: false },
+    message: { error: 'Too many admin requests' },
+  });
+  app.use('/admin/reset', adminLimiter);
+  app.use('/session/password', adminLimiter);
 
   app.use('/session',          require('./routes/auth'));
   app.use('/assets',        require('./routes/assets'));
