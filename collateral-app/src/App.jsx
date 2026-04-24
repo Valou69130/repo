@@ -73,6 +73,19 @@ function AppContent() {
   const [pendingSubstitutions, setPendingSubstitutions] = useState([]);
   const [showWelcome, setShowWelcome]           = useState(false);
   const [tourActive, setTourActive]             = useState(false);
+  const [authChecked, setAuthChecked]           = useState(false);
+
+  // Rehydrate auth state from session cookie on every page load/reload
+  useEffect(() => {
+    const stored = localStorage.getItem('co_user');
+    if (stored) {
+      try { dispatch({ type: 'USER_LOGGED_IN', payload: JSON.parse(stored) }); } catch {}
+    }
+    api.me()
+      .then(u => { if (u) dispatch({ type: 'USER_LOGGED_IN', payload: u }); })
+      .catch(() => { localStorage.removeItem('co_user'); })
+      .finally(() => setAuthChecked(true));
+  }, [dispatch]);
 
   const openAgreement = (id) => { setSelectedAgreementId(id); setCurrent("agreement-detail"); };
   const openMarginCall = (id) => { setSelectedMarginCallId(id); setCurrent("margin-call-detail"); };
@@ -441,6 +454,14 @@ function AppContent() {
   };
 
   const endTour = () => setTourActive(false);
+
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-slate-500 text-sm">Loading...</div>
+      </div>
+    );
+  }
 
   if (!user) {
     return (

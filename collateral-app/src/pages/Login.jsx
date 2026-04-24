@@ -32,7 +32,20 @@ export function Login({ onLogin, onPrivacy }) {
     }
   };
 
-  const fill = (u) => { setEmail(u.email); setPassword("demo1234"); };
+  const quickLogin = async (u) => {
+    setEmail(u.email);
+    setPassword("demo1234");
+    setError("");
+    setLoading(true);
+    try {
+      const { user, mustChangePassword } = await api.login(u.email, "demo1234");
+      onLogin(user, mustChangePassword === true);
+    } catch (err) {
+      setError(err.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0d14] flex">
@@ -62,7 +75,7 @@ export function Login({ onLogin, onPrivacy }) {
             <button
               key={u.email}
               type="button"
-              onClick={() => fill(u)}
+              onClick={() => quickLogin(u)}
               className="flex w-full items-center justify-between rounded-md px-3 py-2.5 text-left transition-colors hover:bg-white/4"
             >
               <span className="text-sm text-slate-400">{u.role}</span>
@@ -130,7 +143,7 @@ export function Login({ onLogin, onPrivacy }) {
                 <button
                   key={u.email}
                   type="button"
-                  onClick={() => fill(u)}
+                  onClick={() => quickLogin(u)}
                   className="flex w-full items-center justify-between rounded-md px-2 py-2 text-left hover:bg-white/4"
                 >
                   <span className="text-xs text-slate-400">{u.role}</span>

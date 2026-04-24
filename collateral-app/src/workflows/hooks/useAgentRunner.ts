@@ -42,7 +42,7 @@ const RECON_BREAK_STATES     = new Set(["unmatched", "break_detected"]);
 
 export function useAgentRunner() {
   const dispatch       = useDispatch();
-  const { repos, assets, notifications } = useDomain();
+  const { repos, assets, notifications, user } = useDomain();
   const marginWorkflow = useMarginWorkflow();
 
   // Stable refs — intervals read these instead of closing over stale state.
@@ -53,16 +53,19 @@ export function useAgentRunner() {
   const reposRef    = useRef(repos);
   const assetsRef   = useRef(assets);
   const notifsRef   = useRef(notifications);
+  const userRef     = useRef(user);
   const runScanRef  = useRef(marginWorkflow.runScan);
 
   useEffect(() => { reposRef.current   = repos;                  }, [repos]);
   useEffect(() => { assetsRef.current  = assets;                 }, [assets]);
   useEffect(() => { notifsRef.current  = notifications;          }, [notifications]);
+  useEffect(() => { userRef.current    = user;                   }, [user]);
   useEffect(() => { runScanRef.current = marginWorkflow.runScan; }, [marginWorkflow.runScan]);
 
   // ── Margin Protection Agent ───────────────────────────────────────────────
 
   const runMarginScan = useCallback(async () => {
+    if (!userRef.current) return; // don't scan when unauthenticated — avoids 401 floods
     await runScanRef.current({
       repos:  reposRef.current  as Parameters<typeof marginWorkflow.runScan>[0]["repos"],
       assets: assetsRef.current as Parameters<typeof marginWorkflow.runScan>[0]["assets"],
@@ -83,6 +86,7 @@ export function useAgentRunner() {
 
   useEffect(() => {
     const scanExceptions = () => {
+      if (!userRef.current) return;
       const repos  = reposRef.current;
       const notifs = notifsRef.current;
       const now    = Date.now();
