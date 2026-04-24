@@ -28,6 +28,7 @@ import { useEffect, useRef, useCallback } from "react";
 import { useDomain, useDispatch }          from "@/domain/store";
 import { useMarginWorkflow }               from "@/workflows/hooks/useWorkflows";
 import { api }                             from "@/integrations/api";
+import type { MarginScanResult }           from "@/agents/margin";
 
 // ── Auto margin call threshold ────────────────────────────────────────────────
 // A Critical alert means coverage dropped below (required - MTA).
@@ -85,30 +86,31 @@ export function useAgentRunner() {
 
     // Auto margin call creation for Critical alerts
     if (!scanResult) return;
-    const criticalAlerts = (scanResult as any)?.alerts?.filter?.(
-      (a: any) => a.severity === "Critical" && a.repoId,
-    ) ?? [];
+    const criticalAlerts = (scanResult as MarginScanResult).alerts.filter(
+      (a) => a.severity === "Critical" && a.position?.repoId,
+    );
 
     for (const alert of criticalAlerts) {
-      const repo = reposRef.current.find((r) => r.id === alert.repoId);
+      const repoId = alert.position.repoId;
+      const repo = reposRef.current.find((r) => r.id === repoId);
       if (!repo || (repo as any).state === "Closed") continue;
 
       const today = new Date().toISOString().slice(0, 10);
-      const mcId  = `${MC_AUTO_ID_PREFIX}-${alert.repoId}-${today}`;
+      const mcId  = `${MC_AUTO_ID_PREFIX}-${repoId}-${today}`;
 
       // Fetch the agreement for this repo's counterparty
       let agreementId: string | null = null;
       try {
         const suggested = await (api as any).suggestedCalls?.() ?? [];
-        const match = suggested.find?.((s: any) => s.repoId === alert.repoId);
+        const match = suggested.find?.((s: any) => s.repoId === repoId);
         agreementId = match?.agreementId ?? null;
       } catch { /* if suggested fails, skip */ }
 
       if (!agreementId) continue;
 
-      const coveragePct  = Math.round(((alert as any).coverageRatio ?? 0) * 100);
-      const requiredPct  = Math.round(((alert as any).requiredRatio ?? 1.03) * 100);
-      const callAmount   = Math.abs((alert as any).deficit ?? 0);
+      const coveragePct  = Math.round((alert.position.coverageRatio ?? 0) * 100);
+      const requiredPct  = Math.round((alert.position.targetRatio   ?? 1.03) * 100);
+      const callAmount   = Math.abs(alert.position.deficit ?? 0);
 
       try {
         const created = await (api as any).createMarginCall({
@@ -123,11 +125,11 @@ export function useAgentRunner() {
         });
 
         const notif = {
-          id:       `N-AUTOMC-${alert.repoId}`,
+          id:       `N-AUTOMC-${repoId}`,
           severity: "Critical" as const,
           type:     "Critical" as const,
-          title:    `Margin Call Created — ${alert.repoId}`,
-          text:     `Coverage was ${coveragePct}% (threshold: ${requiredPct}%) at time of scan. Draft margin call for ${alert.repoId} (${(repo as any).counterparty}) created automatically. Four-eyes approval required before issuance.`,
+          title:    `Margin Call Created — ${repoId}`,
+          text:     `Coverage was ${coveragePct}% (threshold: ${requiredPct}%) at time of scan. Draft margin call for ${repoId} (${(repo as any).counterparty}) created automatically. Four-eyes approval required before issuance.`,
           target:   created?.id ?? mcId,
           ts:       new Date().toISOString(),
         };

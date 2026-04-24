@@ -17,7 +17,7 @@ import { runAllocation, approveAllocation } from "@/workflows/AllocationWorkflow
 import { runMarginScan, advanceAlert, approveTopUp } from "@/workflows/MarginWorkflow";
 import { api }   from "@/integrations/api";
 import type { AppRepo, AppAsset, RecommendOptions, AllocationResult } from "@/agents/collateral";
-import type { MarginAlert, MarginAlertState, AppMarginRepo, AppMarginAsset } from "@/agents/margin";
+import type { MarginAlert, MarginAlertState, MarginScanResult, AppMarginRepo, AppMarginAsset } from "@/agents/margin";
 
 // ── Context helper ────────────────────────────────────────────────────────────
 
@@ -114,8 +114,8 @@ export function useAllocationWorkflow(): AllocationWorkflowActions {
 // ── Margin workflow hook ──────────────────────────────────────────────────────
 
 export interface MarginWorkflowActions {
-  /** Run a full margin scan and store the result globally. */
-  runScan(params: { repos: AppRepo[]; assets: AppAsset[] }): Promise<void>;
+  /** Run a full margin scan and store the result globally. Returns the scan result for callers that need it (e.g. auto-MC). */
+  runScan(params: { repos: AppRepo[]; assets: AppAsset[] }): Promise<MarginScanResult | null>;
   /** Advance an alert's lifecycle state. */
   advanceAlert(params: { alert: MarginAlert; newState: MarginAlertState }): Promise<MarginAlert | null>;
   /** Approve a top-up proposal (reviewed → approved). */
@@ -138,7 +138,7 @@ export function useMarginWorkflow(): MarginWorkflowActions {
 
   const runScanFn = useCallback(async ({
     repos, assets,
-  }: { repos: AppRepo[]; assets: AppAsset[] }): Promise<void> => {
+  }: { repos: AppRepo[]; assets: AppAsset[] }): Promise<MarginScanResult | null> => {
     dispatch({ type: "MARGIN_SCAN_PENDING" });
 
     const mtaMap = ruleEngine  // ruleEngine in deps — stale closure fix
@@ -154,7 +154,7 @@ export function useMarginWorkflow(): MarginWorkflowActions {
 
     if (!wf.success) {
       dispatch({ type: "MARGIN_SCAN_FAILED", payload: wf.error ?? "Scan failed" });
-      return;
+      return null;
     }
 
     dispatch({ type: "MARGIN_SCAN_COMPLETED", payload: wf.payload });
@@ -186,6 +186,8 @@ export function useMarginWorkflow(): MarginWorkflowActions {
         api.addNotification(notif).catch(console.error);
       }
     }
+
+    return wf.payload;
   }, [dispatch, ctx, ruleEngine]);
 
   const advanceFn = useCallback(async ({
