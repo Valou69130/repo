@@ -28,16 +28,18 @@ async function request(method, path, body, _retry = true) {
     body: body ? JSON.stringify(body) : undefined,
   });
   if (res.status === 401 && _retry && path !== '/session/login') {
+    const hadUser = !!localStorage.getItem('co_user');
     const refreshed = await tryRefresh();
     if (refreshed) return request(method, path, body, false); // retry once
     localStorage.removeItem('co_user');
-    window.location.reload();
+    // Only reload if the user had an active session — prevents infinite loop for
+    // unauthenticated visitors where refresh always fails (no cookie to send).
+    if (hadUser) window.location.reload();
     return;
   }
   if (res.status === 401) {
     localStorage.removeItem('co_user');
-    window.location.reload();
-    return;
+    return; // refresh succeeded but token still rejected — let caller handle gracefully
   }
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }));

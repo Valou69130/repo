@@ -22,7 +22,7 @@ const REFRESH_COOKIE_OPTS = {
   secure: process.env.NODE_ENV === 'production',
   sameSite: 'strict',
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  path: '/auth/refresh',             // scoped — only sent to the refresh endpoint
+  path: '/api/session/refresh',      // scoped — only sent to the refresh endpoint
 };
 
 router.post('/login', (req, res) => {
@@ -77,14 +77,14 @@ router.post('/refresh', (req, res) => {
     res.json({ ok: true });
   } catch {
     res.clearCookie('co_token',   { path: '/' });
-    res.clearCookie('co_refresh', { path: '/auth/refresh' });
+    res.clearCookie('co_refresh', { path: '/api/session/refresh' });
     res.status(401).json({ error: 'Refresh token invalid or expired' });
   }
 });
 
 router.post('/logout', (req, res) => {
   res.clearCookie('co_token',   { path: '/' });
-  res.clearCookie('co_refresh', { path: '/auth/refresh' });
+  res.clearCookie('co_refresh', { path: '/api/session/refresh' });
   res.json({ ok: true });
 });
 
