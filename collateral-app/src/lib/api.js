@@ -136,6 +136,7 @@ const remoteApi = {
   cancelMarginCall: (id, body)      => request('POST', `/margin-calls/${id}/cancel`, body),
   suggestedCalls:   () => request('GET', '/margin-calls/suggested').then(r => r?.data ?? r),
   aiAssessCall:     (id) => request('POST', `/margin-calls/${id}/ai-assess`, {}),
+  downloadMarginCallPdf: (id) => fetch(`${BASE}/margin-calls/${id}/pdf`, { credentials: 'include' }),
 
   // ── Disputes ─────────────────────────────────────────────────────────
   openDispute:      (callId, body)    => request('POST', `/margin-calls/${callId}/disputes`, body),

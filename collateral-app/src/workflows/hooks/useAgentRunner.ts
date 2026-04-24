@@ -5,6 +5,8 @@
 //   Margin Protection Agent  — every 45 s
 //     Real margin scan via useMarginWorkflow().runScan().
 //     Generates alerts, top-up proposals, audit entries, and notifications.
+//     After each scan, auto-creates draft margin calls for Critical alerts
+//     that have no existing open call (server returns 409 if one exists).
 //
 //   Exception Agent          — every 30 s
 //     Scans for SaFIR settlement failures, reconciliation breaks, and
@@ -26,6 +28,12 @@ import { useEffect, useRef, useCallback } from "react";
 import { useDomain, useDispatch }          from "@/domain/store";
 import { useMarginWorkflow }               from "@/workflows/hooks/useWorkflows";
 import { api }                             from "@/integrations/api";
+
+// ── Auto margin call threshold ────────────────────────────────────────────────
+// A Critical alert means coverage dropped below (required - MTA).
+// When we see one we auto-create a draft margin call so the four-eyes
+// approval flow can proceed without manual intervention.
+const MC_AUTO_ID_PREFIX = "MC-AUTO";
 
 // ── Intervals ─────────────────────────────────────────────────────────────────
 
@@ -66,10 +74,71 @@ export function useAgentRunner() {
 
   const runMarginScan = useCallback(async () => {
     if (!userRef.current) return; // don't scan when unauthenticated — avoids 401 floods
-    await runScanRef.current({
+    // Visibility guard: skip if tab is backgrounded — reduces multi-tab 409 noise.
+    // Server-side 409 is the safety net; this is a best-effort optimisation.
+    if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+
+    const scanResult = await runScanRef.current({
       repos:  reposRef.current  as Parameters<typeof marginWorkflow.runScan>[0]["repos"],
       assets: assetsRef.current as Parameters<typeof marginWorkflow.runScan>[0]["assets"],
     }).catch(console.error);
+
+    // Auto margin call creation for Critical alerts
+    if (!scanResult) return;
+    const criticalAlerts = (scanResult as any)?.alerts?.filter?.(
+      (a: any) => a.severity === "Critical" && a.repoId,
+    ) ?? [];
+
+    for (const alert of criticalAlerts) {
+      const repo = reposRef.current.find((r) => r.id === alert.repoId);
+      if (!repo || (repo as any).state === "Closed") continue;
+
+      const today = new Date().toISOString().slice(0, 10);
+      const mcId  = `${MC_AUTO_ID_PREFIX}-${alert.repoId}-${today}`;
+
+      // Fetch the agreement for this repo's counterparty
+      let agreementId: string | null = null;
+      try {
+        const suggested = await (api as any).suggestedCalls?.() ?? [];
+        const match = suggested.find?.((s: any) => s.repoId === alert.repoId);
+        agreementId = match?.agreementId ?? null;
+      } catch { /* if suggested fails, skip */ }
+
+      if (!agreementId) continue;
+
+      const coveragePct  = Math.round(((alert as any).coverageRatio ?? 0) * 100);
+      const requiredPct  = Math.round(((alert as any).requiredRatio ?? 1.03) * 100);
+      const callAmount   = Math.abs((alert as any).deficit ?? 0);
+
+      try {
+        const created = await (api as any).createMarginCall({
+          id:              mcId,
+          agreementId,
+          direction:       "issued",
+          callDate:        today,
+          exposureAmount:  (repo as any).amount ?? 0,
+          collateralValue: (repo as any).postedCollateral ?? 0,
+          callAmount,
+          currency:        (repo as any).currency ?? "RON",
+        });
+
+        const notif = {
+          id:       `N-AUTOMC-${alert.repoId}`,
+          severity: "Critical" as const,
+          type:     "Critical" as const,
+          title:    `Margin Call Created — ${alert.repoId}`,
+          text:     `Coverage was ${coveragePct}% (threshold: ${requiredPct}%) at time of scan. Draft margin call for ${alert.repoId} (${(repo as any).counterparty}) created automatically. Four-eyes approval required before issuance.`,
+          target:   created?.id ?? mcId,
+          ts:       new Date().toISOString(),
+        };
+        dispatch({ type: "NOTIFICATION_ADDED", payload: notif });
+        (api as any).addNotification(notif).catch(console.error);
+      } catch (err: any) {
+        // 409 = open call already exists — expected, not an error
+        if (err?.message?.includes("409") || err?.message?.includes("Open margin call")) return;
+        console.error("Auto MC creation failed:", err);
+      }
+    }
   }, []); // stable — all reads go through refs
 
   useEffect(() => {

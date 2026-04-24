@@ -6,6 +6,7 @@ const { ConflictError, NotFoundError } = require('../db/errors');
 const {
   MAX, badRequest, isNonEmptyString, isFiniteNumber, isIsoCurrency, isIsoDate,
 } = require('../validation');
+const { generateMarginCallPdf } = require('../ops/pdfGenerator');
 
 const DIRECTIONS = new Set(['issued', 'received']);
 
@@ -67,6 +68,12 @@ router.post('/', requireAuth, (req, res) => {
 
   const existing = db.prepare('SELECT id FROM margin_calls WHERE id = ?').get(b.id);
   if (existing) return res.status(409).json({ error: 'Margin call id already exists' });
+
+  // Dedup: reject if an open call already exists for this agreement
+  const openCall = db.prepare(
+    `SELECT id FROM margin_calls WHERE agreement_id = ? AND current_state NOT IN ('resolved','cancelled')`
+  ).get(b.agreementId);
+  if (openCall) return res.status(409).json({ error: 'Open margin call exists', existingId: openCall.id });
 
   const fourEyes = b.callAmount > agr.four_eyes_threshold ? 1 : 0;
   const now = new Date().toISOString();
@@ -386,6 +393,17 @@ router.post('/:id/ai-assess', requireAuth, (req, res) => {
       prevHash: event.prevHash,
     },
   });
+});
+
+router.get('/:id/pdf', requireAuth, (req, res) => {
+  const db = getDb(req);
+  const row = db.prepare('SELECT * FROM margin_calls WHERE id = ?').get(req.params.id);
+  if (!row) return res.status(404).json({ error: 'Margin call not found' });
+  try {
+    generateMarginCallPdf(rowToCall(row), res);
+  } catch (err) {
+    if (!res.headersSent) res.status(500).json({ error: 'PDF generation failed' });
+  }
 });
 
 function buildAiRationale(call, agr) {

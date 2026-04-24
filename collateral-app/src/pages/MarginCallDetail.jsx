@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { DownloadPdfButton } from "@/components/shared/DownloadPdfButton";
 import { api } from "@/integrations/api";
 
 const TERMINAL = new Set(["resolved", "cancelled"]);
@@ -160,6 +161,7 @@ export function MarginCallDetail({ callId, onBack, permissions }) {
                   <Sparkles className="h-4 w-4" /> AI assessment
                 </Button>
               )}
+              <DownloadPdfButton callId={call.id} />
             </div>
 
             {actionErr && (

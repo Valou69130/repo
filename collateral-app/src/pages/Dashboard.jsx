@@ -74,6 +74,7 @@ export function Dashboard({
   onRejectSubstitution,
   onNavigate,
   onOpenAgreement,
+  isLive = false,
 }) {
   const today = new Date().toLocaleDateString("ro-RO", {
     day: "2-digit",
@@ -256,8 +257,18 @@ export function Dashboard({
       <div className="grid gap-6 xl:grid-cols-2">
         <Card className="rounded-lg border-slate-200 shadow-sm">
           <CardHeader className="pb-4">
-            <CardTitle>Portfolio Allocation</CardTitle>
-            <CardDescription>Market value by encumbrance status</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Portfolio Allocation</CardTitle>
+                <CardDescription>Market value by encumbrance status</CardDescription>
+              </div>
+              {isLive && (
+                <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  LIVE
+                </span>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-8">

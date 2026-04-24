@@ -7,6 +7,7 @@ import { getPermissions } from "@/domain/permissions";
 import { api } from "@/integrations/api";
 import { useIntegration } from "@/hooks/useIntegration";
 import { useAgentRunner } from "@/workflows/hooks/useAgentRunner";
+import { useMarketFeed }  from "@/hooks/useMarketFeed";
 import { DomainProvider, useDomain, useDispatch } from "@/domain/store";
 import { ChangePasswordModal } from "@/components/shared/ChangePasswordModal";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
@@ -62,7 +63,7 @@ function AppContent() {
   const state    = useDomain();
   const dispatch = useDispatch();
 
-  const { user, assets, repos, audit, notifications, loading, ruleEngine } = state;
+  const { user, assets, repos, audit, notifications, loading, ruleEngine, marketLive } = state;
 
   const [current, setCurrent]                   = useState("dashboard");
   const [selectedAsset, setSelectedAsset]       = useState(null);
@@ -162,6 +163,8 @@ function AppContent() {
 
   // Autonomous background agents — margin scan every 45 s, exception scan every 30 s
   useAgentRunner();
+  // Client-side price simulation — dispatches ASSETS_BULK_UPDATED every 5 s
+  useMarketFeed();
 
   const integration = useIntegration({ appendAudit, addNotification });
 
@@ -389,7 +392,7 @@ function AppContent() {
   const renderCurrentPage = () => {
     switch (current) {
       case "dashboard":
-        return <Dashboard assets={assets} repos={repos} notifications={notifications} openRepo={openRepo} pendingSubstitutions={pendingSubstitutions} role={role} onApproveSubstitution={approveSubstitution} onRejectSubstitution={rejectSubstitution} onNavigate={setCurrent} onOpenAgreement={openAgreement} />;
+        return <Dashboard assets={assets} repos={repos} notifications={notifications} openRepo={openRepo} pendingSubstitutions={pendingSubstitutions} role={role} onApproveSubstitution={approveSubstitution} onRejectSubstitution={rejectSubstitution} onNavigate={setCurrent} onOpenAgreement={openAgreement} isLive={marketLive} />;
       case "inventory":
         return <Inventory assets={assets} selectedAsset={selectedAsset} setSelectedAsset={setSelectedAsset} importAssets={importAssets} />;
       case "repos":
@@ -433,7 +436,7 @@ function AppContent() {
       case "admin":
         return <Admin onReset={resetDemo} />;
       default:
-        return <Dashboard assets={assets} repos={repos} notifications={notifications} openRepo={openRepo} pendingSubstitutions={pendingSubstitutions} role={role} onApproveSubstitution={approveSubstitution} onRejectSubstitution={rejectSubstitution} onNavigate={setCurrent} onOpenAgreement={openAgreement} />;
+        return <Dashboard assets={assets} repos={repos} notifications={notifications} openRepo={openRepo} pendingSubstitutions={pendingSubstitutions} role={role} onApproveSubstitution={approveSubstitution} onRejectSubstitution={rejectSubstitution} onNavigate={setCurrent} onOpenAgreement={openAgreement} isLive={marketLive} />;
     }
   };
 

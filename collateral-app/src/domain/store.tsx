@@ -76,6 +76,8 @@ export interface DomainState {
   agentState:     AgentState;
   loading:        boolean;
   error:          string | null;
+  /** True once the first ASSETS_BULK_UPDATED tick fires — drives LIVE badge. */
+  marketLive:     boolean;
 }
 
 const initialState: DomainState = {
@@ -90,8 +92,9 @@ const initialState: DomainState = {
     allocation: { results: {}, pending: {}, errors: {} },
     margin:     { scanResult: null, pending: false, error: null, lastScanAt: null, scanCount: 0 },
   },
-  loading: false,
-  error:   null,
+  loading:     false,
+  error:       null,
+  marketLive:  false,
 };
 
 // ── Actions ───────────────────────────────────────────────────────────────────
@@ -108,8 +111,9 @@ export type DomainAction =
   | { type: "REPO_CREATED"; payload: Repo }
   | { type: "REPO_UPDATED"; payload: Repo }
   // Assets
-  | { type: "ASSET_UPDATED";   payload: Asset }
-  | { type: "ASSETS_REPLACED"; payload: Asset[] }
+  | { type: "ASSET_UPDATED";        payload: Asset }
+  | { type: "ASSETS_REPLACED";      payload: Asset[] }
+  | { type: "ASSETS_BULK_UPDATED";  payload: Asset[] }
   // Audit & notifications
   | { type: "AUDIT_APPENDED";         payload: AuditEntry }
   | { type: "NOTIFICATION_ADDED";     payload: Notification }
@@ -165,6 +169,8 @@ function reducer(state: DomainState, action: DomainAction): DomainState {
       };
     case "ASSETS_REPLACED":
       return { ...state, assets: action.payload };
+    case "ASSETS_BULK_UPDATED":
+      return { ...state, assets: action.payload, marketLive: true };
 
     case "AUDIT_APPENDED":
       return { ...state, audit: [action.payload, ...state.audit].slice(0, 500) };

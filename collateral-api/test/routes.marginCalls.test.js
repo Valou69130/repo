@@ -122,8 +122,11 @@ test('POST /margin-calls — sets four_eyes_required when callAmount > threshold
 test('GET /margin-calls — 200 lists created calls', async () => {
   const { app, cm, tm } = setup();
   await seedAgreement(app, tm);
+  // Second agreement needed: dedup blocks two open calls on the same agreement
+  const agr2 = { ...agreementBody, id: 'AGR-DBK-002', counterparty: 'Citibank' };
+  await request(app).post('/agreements').set('Authorization', `Bearer ${tm}`).send(agr2);
   await request(app).post('/margin-calls').set('Authorization', `Bearer ${cm}`).send(callBody);
-  await request(app).post('/margin-calls').set('Authorization', `Bearer ${cm}`).send({ ...callBody, id: 'MC-2026-0002' });
+  await request(app).post('/margin-calls').set('Authorization', `Bearer ${cm}`).send({ ...callBody, id: 'MC-2026-0002', agreementId: 'AGR-DBK-002' });
   const res = await request(app).get('/margin-calls').set('Authorization', `Bearer ${cm}`);
   assert.equal(res.status, 200);
   assert.equal(res.body.total, 2);
