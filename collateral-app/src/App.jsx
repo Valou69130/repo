@@ -82,7 +82,7 @@ function AppContent() {
       try { dispatch({ type: 'USER_LOGGED_IN', payload: JSON.parse(stored) }); } catch {}
     }
     api.me()
-      .then(u => { if (u) dispatch({ type: 'USER_LOGGED_IN', payload: u }); })
+      .then(data => { if (data?.user) dispatch({ type: 'USER_LOGGED_IN', payload: data.user }); })
       .catch(() => { localStorage.removeItem('co_user'); })
       .finally(() => setAuthChecked(true));
   }, [dispatch]);
