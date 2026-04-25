@@ -118,6 +118,8 @@ const remoteApi = {
   // ── SFTR ─────────────────────────────────────────────────────────────
   listSFTRSubmissions: () => request('GET', '/admin/sftr/submissions').then(r => r?.data ?? r),
   submitSFTRReport: (data) => request('POST', '/admin/sftr/submit', data),
+  downloadSFTRXml: (repoId) => fetch(`${BASE}/admin/sftr/generate-xml/${repoId}`, { credentials: 'include' }),
+  downloadSFTRPortfolioXml: () => fetch(`${BASE}/admin/sftr/generate-xml`, { credentials: 'include' }),
 
   // ── Collateral agreements ────────────────────────────────────────────
   listAgreements: () => request('GET', '/agreements').then(r => r?.data ?? r),

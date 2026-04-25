@@ -88,6 +88,65 @@ router.get('/sftr/submissions', requireAuth, (req, res) => {
   res.json({ data: rows });
 });
 
+// ── SFTR ISO 20022 XML — per-trade download ────────────────────────────────────
+router.get('/sftr/generate-xml/:repoId', requireAuth, (req, res) => {
+  const db = getDb();
+  const repo = db.prepare('SELECT * FROM repos WHERE id = ?').get(req.params.repoId);
+  if (!repo) return res.status(404).json({ error: 'Repo not found' });
+
+  const assets = db.prepare(`
+    SELECT a.* FROM assets a
+    JOIN repo_assets ra ON ra.asset_id = a.id
+    WHERE ra.repo_id = ?
+  `).all(req.params.repoId);
+
+  const actionType = repo.state === 'Closed' ? 'ETRM' : 'NEWT';
+  const { generateSFTRXml } = require('../sftr/xmlGenerator');
+  const xml = generateSFTRXml({ repo, assets, actionType });
+
+  const filename = `SFTR_${repo.id}_${new Date().toISOString().slice(0, 10)}.xml`;
+  res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.send(xml);
+});
+
+// ── SFTR ISO 20022 XML — full portfolio ───────────────────────────────────────
+router.get('/sftr/generate-xml', requireAuth, (req, res) => {
+  const db = getDb();
+  const repos = db.prepare('SELECT * FROM repos WHERE state != ?').all('Closed');
+  const { generateSFTRXml, REPORTING_ENTITY, buildUTI } = require('../sftr/xmlGenerator');
+
+  const now = new Date();
+  const submissionDtTm = now.toISOString().replace(/\.\d{3}Z$/, '');
+  const reportDate = now.toISOString().slice(0, 10);
+
+  const reports = repos.map((repo) => {
+    const assets = db.prepare(`
+      SELECT a.* FROM assets a
+      JOIN repo_assets ra ON ra.asset_id = a.id
+      WHERE ra.repo_id = ?
+    `).all(repo.id);
+    return generateSFTRXml({ repo, assets, actionType: 'NEWT' });
+  });
+
+  // Wrap in a batch envelope — one Document per trade, concatenated
+  const batch = reports.join('\n\n<!-- ─────────────────────────────────────── -->\n\n');
+  const envelope = `<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SFTR Batch Report — ${repos.length} trade(s)
+  Schema:    ISO 20022 auth.030.001.03
+  Entity:    ${REPORTING_ENTITY.name} (${REPORTING_ENTITY.lei})
+  Date:      ${reportDate}
+  Generated: ${submissionDtTm}Z
+-->
+${batch}`;
+
+  const filename = `SFTR_Portfolio_${reportDate}.xml`;
+  res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.send(envelope);
+});
+
 router.post('/sftr/submit', requireAuth, (req, res) => {
   const db = getDb();
   const { uti, repoId, reportType, principalAmount, currency } = req.body;

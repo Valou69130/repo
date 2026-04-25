@@ -101,46 +101,7 @@ function ReportTypeBadge({ type, status }) {
   );
 }
 
-function buildXML(rows) {
-  const date = new Date().toISOString().slice(0, 10);
-  const trades = rows.map((r) => `
-    <sftr:Trade>
-      <sftr:UTI>${r.uti}</sftr:UTI>
-      <sftr:ReportType>${r.reportType}</sftr:ReportType>
-      <sftr:ReportingCounterpartyLEI>${r.reportingCptyLei}</sftr:ReportingCounterpartyLEI>
-      <sftr:OtherCounterpartyLEI>${r.otherCptyLei}</sftr:OtherCounterpartyLEI>
-      <sftr:TransactionType>REPO</sftr:TransactionType>
-      <sftr:PrincipalAmount currency="${r.currency}">${r.principalAmount}</sftr:PrincipalAmount>
-      <sftr:StartDate>${r.startDate}</sftr:StartDate>
-      <sftr:MaturityDate>${r.maturityDate}</sftr:MaturityDate>
-      <sftr:Tenor>${r.tenor}</sftr:Tenor>
-      <sftr:FixedRate>${r.repoRate}</sftr:FixedRate>
-      <sftr:DayCountConvention>${r.dayCountConvention}</sftr:DayCountConvention>
-      <sftr:SettlementType>${r.settlementType}</sftr:SettlementType>
-      <sftr:ExecutionVenue>${r.executionVenue}</sftr:ExecutionVenue>
-      <sftr:CollateralType>${r.collateralType}</sftr:CollateralType>
-      <sftr:CollateralMarketValue currency="${r.collateralCurrency}">${r.collateralMarketValue}</sftr:CollateralMarketValue>
-      <sftr:Haircut>${r.haircut}</sftr:Haircut>
-      <sftr:CollateralISINs>${r.collateralISINs.map((isin) => `<sftr:ISIN>${isin}</sftr:ISIN>`).join("")}</sftr:CollateralISINs>
-      <sftr:ReUse>${r.reuseFlag}</sftr:ReUse>
-      <sftr:ReportStatus>${r.reportStatus}</sftr:ReportStatus>
-    </sftr:Trade>`).join("\n");
-
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<sftr:SFTRReport
-  xmlns:sftr="urn:esma:sftr:v1"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="urn:esma:sftr:v1 SFTR_v1.xsd">
-  <sftr:Header>
-    <sftr:ReportingEntity>${rows[0]?.reportingCptyLei ?? "549300BNCDEMORO00066"}</sftr:ReportingEntity>
-    <sftr:ReportDate>${date}</sftr:ReportDate>
-    <sftr:TradeRepository>Regis-TR</sftr:TradeRepository>
-    <sftr:TotalTrades>${rows.length}</sftr:TotalTrades>
-  </sftr:Header>
-  <sftr:TradeData>${trades}
-  </sftr:TradeData>
-</sftr:SFTRReport>`;
-}
+// XML export now served from backend — ISO 20022 auth.030.001.03 schema
 
 export function SFTRReport({ repos, assets }) {
   const [expanded, setExpanded] = useState(null);
@@ -225,13 +186,36 @@ export function SFTRReport({ repos, assets }) {
     URL.revokeObjectURL(url);
   };
 
-  const exportXML = () => {
-    const xml = buildXML(rows);
-    const blob = new Blob([xml], { type: "application/xml" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url; link.download = `SFTR_${new Date().toISOString().slice(0,10)}.xml`; link.click();
-    URL.revokeObjectURL(url);
+  const exportXML = async () => {
+    try {
+      const res = await api.downloadSFTRPortfolioXml();
+      if (!res.ok) throw new Error('Download failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `SFTR_Portfolio_${new Date().toISOString().slice(0,10)}.xml`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert('XML export failed — check API connection');
+    }
+  };
+
+  const exportTradeXML = async (repoId) => {
+    try {
+      const res = await api.downloadSFTRXml(repoId);
+      if (!res.ok) throw new Error('Download failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `SFTR_${repoId}_${new Date().toISOString().slice(0,10)}.xml`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert('XML export failed — check API connection');
+    }
   };
 
   return (
@@ -369,6 +353,11 @@ export function SFTRReport({ repos, assets }) {
                     {expanded === row.uti && (
                       <TableRow key={`${row.uti}-detail`} className="bg-slate-50">
                         <TableCell colSpan={12} className="py-4 px-6">
+                          <div className="flex justify-end mb-3">
+                            <Button size="sm" variant="outline" className="rounded-md text-xs gap-1.5" onClick={() => exportTradeXML(row._raw.repo.id)}>
+                              <Download className="h-3.5 w-3.5" /> Download ISO 20022 XML
+                            </Button>
+                          </div>
                           <div className="grid gap-6 md:grid-cols-2">
                             <div>
                               <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-3">Collateral Securities (Table 3)</div>
