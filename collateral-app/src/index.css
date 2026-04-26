@@ -12,6 +12,9 @@ body {
   -moz-osx-font-smoothing: grayscale;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1, "kern" 1;
+  /* Warm white base — softer than pure #fff */
+  background-color: #f8f9fb;
+  color: #0f172a;
 }
 
 #root {
@@ -26,31 +29,60 @@ th {
   font-variant-numeric: tabular-nums;
 }
 
-/* Suppress default focus ring where custom styles exist */
+/* Focus ring — accessible but not jarring */
 button:focus-visible,
-input:focus-visible {
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
   outline: 2px solid #3b82f6;
-  outline-offset: 1px;
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 /* Scrollbar — thin, institutional */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
   background: #334155;
-  border-radius: 3px;
+  border-radius: 99px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #475569;
+}
+
+/* Scrollbar inside light panels */
+.bg-white ::-webkit-scrollbar-thumb,
+.bg-slate-50 ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+.bg-white ::-webkit-scrollbar-thumb:hover,
+.bg-slate-50 ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 /* Selection */
 ::selection {
   background: #1e40af;
   color: #fff;
+}
+
+/* Chart tooltips — dark style for consistency */
+.recharts-tooltip-wrapper .bg-white {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f1f5f9 !important;
+}
+
+/* Subtle page transition */
+.page-enter {
+  animation: fadeSlideUp 180ms ease-out both;
+}
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }

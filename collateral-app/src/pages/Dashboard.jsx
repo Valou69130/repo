@@ -40,9 +40,9 @@ const STATUS_COLORS = {
 const PieTooltip = ({ active, payload }) => {
   if (active && payload?.length) {
     return (
-      <div className="bg-white border rounded shadow-lg px-3 py-2 text-sm">
-        <div className="font-medium text-slate-800">{payload[0].name}</div>
-        <div className="text-slate-500">{fmtMoney(payload[0].value)}</div>
+      <div className="bg-slate-800 border border-slate-700 rounded-lg shadow-xl px-3 py-2 text-sm">
+        <div className="font-medium text-slate-100">{payload[0].name}</div>
+        <div className="text-slate-400 tabular-nums">{fmtMoney(payload[0].value)}</div>
       </div>
     );
   }
@@ -52,9 +52,9 @@ const PieTooltip = ({ active, payload }) => {
 const BarTooltip = ({ active, payload, label }) => {
   if (active && payload?.length) {
     return (
-      <div className="bg-white border rounded shadow-lg px-3 py-2 text-sm">
-        <div className="font-medium text-slate-800">{label}</div>
-        <div className="text-slate-500">Coverage: {payload[0].value}%</div>
+      <div className="bg-slate-800 border border-slate-700 rounded-lg shadow-xl px-3 py-2 text-sm">
+        <div className="font-medium text-slate-100">{label}</div>
+        <div className="text-slate-400 tabular-nums">Coverage: {payload[0].value}%</div>
       </div>
     );
   }

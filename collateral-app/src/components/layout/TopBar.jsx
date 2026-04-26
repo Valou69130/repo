@@ -219,21 +219,18 @@ export function TopBar({
       )}
 
       {/* ── TopBar ── */}
-      <div className="flex items-center justify-between px-6 py-0 h-14 border-b border-slate-200/80 bg-white/95 backdrop-blur flex-shrink-0 gap-3 relative z-30">
+      <div className="flex items-center justify-between px-6 py-0 h-14 border-b border-slate-200/60 bg-white/98 backdrop-blur-sm flex-shrink-0 gap-3 relative z-30">
         {/* Left: institution context */}
-        <div className="flex items-center gap-4 flex-shrink-0">
+        <div className="flex items-center gap-3 flex-shrink-0">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 uppercase tracking-widest">Institution</span>
-            <span className="text-sm font-semibold text-slate-900">Banca Demo Romania</span>
+            <span className="text-[11px] font-medium text-slate-400 uppercase tracking-widest hidden md:block">Institution</span>
+            <span className="text-sm font-semibold text-slate-800">Banca Demo Romania</span>
           </div>
           <div className="hidden h-4 w-px bg-slate-200 md:block" />
-          {/* Demo mode badge — prominent pill */}
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-[11px] font-semibold text-amber-700 shadow-sm shadow-amber-100 tracking-wide uppercase">
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
-            Demo mode
-          </span>
-          <span className="hidden font-mono text-xs text-slate-500 xl:block">
-            {new Date().toLocaleDateString("ro-RO", { day: "2-digit", month: "short", year: "numeric" })}
+          {/* Demo badge — subtle, not distracting */}
+          <span className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10.5px] font-medium text-slate-500 tracking-wide">
+            <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+            Demo
           </span>
         </div>
 
