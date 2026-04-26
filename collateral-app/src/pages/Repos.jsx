@@ -484,67 +484,95 @@ export function Repos({ repos, assets, openRepo, createDemoRepo, role, permissio
         {/* ── REPO BOOK ──────────────────────────────────────────────── */}
         <TabsContent value="list">
           <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
+            {/* Filter bar */}
             <CardContent className="border-b p-4 flex gap-3 flex-col md:flex-row md:items-center">
-              <div className="relative flex-1 max-w-sm">
-                <Search className="h-4 w-4 absolute left-3 top-3 text-slate-400" />
+              <div className="relative flex-1 max-w-xs">
+                <Search className="h-4 w-4 absolute left-3 top-2.5 text-slate-400" />
                 <Input value={search} onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search repo ID or counterparty…" className="pl-9 rounded-xl" />
+                  placeholder="Search repo ID or counterparty…" className="pl-9 rounded-xl h-9 text-sm" />
               </div>
-              <Select value={stateFilter} onValueChange={setStateFilter}>
-                <SelectTrigger className="w-[180px] rounded-xl">
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="All states" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All states</SelectItem>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Maturing">Maturing</SelectItem>
-                  <SelectItem value="Margin deficit">Margin deficit</SelectItem>
-                  <SelectItem value="Closed">Closed</SelectItem>
-                </SelectContent>
-              </Select>
-              <div className="text-xs text-slate-400 ml-auto">{filteredRepos.length} of {repos.length} repos</div>
+              {/* State filter chips */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {[
+                  { value: "all",            label: "All" },
+                  { value: "Active",         label: "Active" },
+                  { value: "Maturing",       label: "Maturing" },
+                  { value: "Margin deficit", label: "Margin Deficit" },
+                  { value: "Closed",         label: "Closed" },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setStateFilter(opt.value)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${
+                      stateFilter === opt.value
+                        ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                        : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:text-slate-800"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              <div className="text-xs text-slate-400 ml-auto tabular-nums">
+                {filteredRepos.length} of {repos.length} repos
+              </div>
             </CardContent>
+
+            {/* Table */}
             <CardContent className="p-0">
               <div className="overflow-hidden rounded-b-[1.5rem]">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Repo ID</TableHead>
-                    <TableHead>Counterparty</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Rate</TableHead>
-                    <TableHead>Start</TableHead>
-                    <TableHead>Maturity</TableHead>
-                    <TableHead>Days Left</TableHead>
-                    <TableHead>Accrued Interest</TableHead>
-                    <TableHead>State</TableHead>
-                    <TableHead>Settlement</TableHead>
+                  <TableRow className="bg-slate-50/80">
+                    <TableHead className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide pl-5">Repo ID</TableHead>
+                    <TableHead className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Counterparty</TableHead>
+                    <TableHead className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">State</TableHead>
+                    <TableHead className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide text-right">Notional</TableHead>
+                    <TableHead className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide text-right">Rate</TableHead>
+                    <TableHead className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Start</TableHead>
+                    <TableHead className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Maturity</TableHead>
+                    <TableHead className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide text-right">Days Left</TableHead>
+                    <TableHead className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide text-right">Buffer</TableHead>
+                    <TableHead className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide text-right pr-5">Accrued Int.</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredRepos.map((r) => {
+                  {filteredRepos.map((r, i) => {
                     const dtm = daysToMaturity(r.maturityDate);
                     const elapsed = Math.max(0, Math.ceil((new Date() - new Date(r.startDate)) / 86400000));
                     const accrued = interestAccrual(r.amount, r.rate, elapsed);
+                    const bufferPct = r.requiredCollateral > 0
+                      ? ((r.postedCollateral - r.requiredCollateral) / r.requiredCollateral) * 100
+                      : null;
+                    const bufferPositive = bufferPct !== null && bufferPct >= 0;
                     return (
-                      <TableRow key={r.id} className="cursor-pointer" onClick={() => openRepo(r.id)}>
-                        <TableCell className="font-mono text-sm font-medium">{r.id}</TableCell>
-                        <TableCell>{r.counterparty}</TableCell>
-                        <TableCell>{fmtMoney(r.amount, r.currency)}</TableCell>
-                        <TableCell>{r.rate}%</TableCell>
-                        <TableCell className="text-slate-500">{r.startDate}</TableCell>
-                        <TableCell className="text-slate-500">{r.maturityDate}</TableCell>
-                        <TableCell>
-                          <span className={`font-semibold text-sm ${dtm <= 1 ? "text-red-600" : dtm <= 3 ? "text-amber-600" : "text-slate-700"}`}>
+                      <TableRow
+                        key={r.id}
+                        className={`cursor-pointer h-11 transition-colors hover:bg-blue-50/40 ${i % 2 === 1 ? "bg-slate-50/40" : ""}`}
+                        onClick={() => openRepo(r.id)}
+                      >
+                        <TableCell className="pl-5 font-mono text-xs font-semibold text-blue-600 tracking-tight">{r.id}</TableCell>
+                        <TableCell className="text-sm font-medium text-slate-800">{r.counterparty}</TableCell>
+                        <TableCell><StatusBadge status={r.state} /></TableCell>
+                        <TableCell className="text-right font-mono text-sm tabular-nums text-slate-800">{fmtMoney(r.amount, r.currency)}</TableCell>
+                        <TableCell className="text-right font-mono text-sm tabular-nums text-slate-700">{r.rate}%</TableCell>
+                        <TableCell className="text-sm text-slate-500 tabular-nums">{r.startDate}</TableCell>
+                        <TableCell className="text-sm text-slate-500 tabular-nums">{r.maturityDate}</TableCell>
+                        <TableCell className="text-right">
+                          <span className={`font-mono text-sm font-semibold tabular-nums ${dtm <= 1 ? "text-red-600" : dtm <= 3 ? "text-amber-600" : "text-slate-700"}`}>
                             {r.state === "Closed" ? "—" : `${dtm}d`}
                           </span>
                         </TableCell>
-                        <TableCell className="font-medium text-slate-700">
+                        <TableCell className="text-right">
+                          {bufferPct !== null ? (
+                            <span className={`font-mono text-xs font-semibold tabular-nums ${bufferPositive ? "text-emerald-600" : "text-red-600"}`}>
+                              {bufferPositive ? "+" : ""}{bufferPct.toFixed(2)}%
+                            </span>
+                          ) : <span className="text-slate-400">—</span>}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-sm tabular-nums text-slate-700 pr-5">
                           {r.state !== "Closed" ? fmtMoney(accrued, r.currency) : "—"}
                         </TableCell>
-                        <TableCell><StatusBadge status={r.state} /></TableCell>
-                        <TableCell><StatusBadge status={r.settlement} /></TableCell>
                       </TableRow>
                     );
                   })}
@@ -552,6 +580,20 @@ export function Repos({ repos, assets, openRepo, createDemoRepo, role, permissio
               </Table>
               </div>
             </CardContent>
+
+            {/* Bottom summary bar */}
+            <div className="border-t border-slate-100 px-5 py-2.5 flex items-center justify-between bg-slate-50/60 rounded-b-[1.5rem]">
+              <span className="text-xs text-slate-500">
+                Showing <span className="font-semibold text-slate-700">{filteredRepos.length}</span> of{" "}
+                <span className="font-semibold text-slate-700">{repos.length}</span> transactions
+              </span>
+              <span className="text-xs text-slate-500 tabular-nums">
+                Total notional:{" "}
+                <span className="font-semibold text-slate-700 font-mono">
+                  {fmtMoney(filteredRepos.reduce((s, r) => s + r.amount, 0), "RON")}
+                </span>
+              </span>
+            </div>
           </Card>
         </TabsContent>
       </Tabs>
