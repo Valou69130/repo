@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useAIStatus } from '@/ai/hooks/useAI';
 
 const SEVERITY_STYLES = {
@@ -110,16 +111,33 @@ function formatInline(s) {
  *  - loading, error, text, meta, onRun, onReset: shape returned by useAICall
  *  - buttonLabel: label for the trigger
  */
+// Cycles through "monitoring" phrases to show the panel is live when idle
+const MONITOR_PHRASES = [
+  "Monitoring collateral exposure…",
+  "Tracking margin requirements…",
+  "Watching position coverage ratios…",
+  "Ready to analyse portfolio on demand…",
+];
+
 export function AIReasoningPanel({ title, description, loading, error, text, meta, onRun, onReset, buttonLabel = 'Run AI analysis' }) {
   const aiEnabled = useAIStatus();
   const disabled = aiEnabled === false;
 
+  const [phraseIdx, setPhraseIdx] = useState(0);
+  useEffect(() => {
+    if (text || loading) return;
+    const id = setInterval(() => setPhraseIdx((i) => (i + 1) % MONITOR_PHRASES.length), 4_000);
+    return () => clearInterval(id);
+  }, [text, loading]);
+
+  const dotColor = loading ? "bg-blue-400 animate-pulse" : text ? "bg-emerald-500" : "bg-amber-400 animate-pulse";
+
   return (
-    <section className="rounded-md border border-neutral-200 bg-white">
+    <section className="border border-neutral-200 bg-white">
       <header className="flex items-start justify-between gap-4 border-b border-neutral-200 px-4 py-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />
+            <span className={`h-1.5 w-1.5 rounded-full ${dotColor}`} aria-hidden />
             <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-900">{title}</h3>
           </div>
           {description && <p className="mt-1 text-xs text-neutral-500">{description}</p>}
@@ -152,7 +170,7 @@ export function AIReasoningPanel({ title, description, loading, error, text, met
           </p>
         )}
         {!disabled && !text && !loading && !error && (
-          <p className="text-xs text-neutral-500">No analysis yet. Run the agent to produce a briefing.</p>
+          <p className="text-[11px] font-mono text-amber-600/80">{MONITOR_PHRASES[phraseIdx]}</p>
         )}
         {error && (
           <div className="rounded-sm border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">

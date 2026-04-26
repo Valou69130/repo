@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { fmtMoney } from "@/domain/format";
@@ -9,6 +9,7 @@ import { PendingApprovalsWidget } from "@/components/dashboard/PendingApprovalsW
 import { AIReasoningPanel } from "@/ai/components/AIReasoningPanel";
 import { useAICall } from "@/ai/hooks/useAI";
 import { api } from "@/lib/api";
+import { useDomain } from "@/domain/store";
 import { FileText, Lock } from "lucide-react";
 
 const ASSET_COLORS = {
@@ -101,6 +102,17 @@ export function Dashboard({
 
   const portfolioAI = useAICall(api.aiAnalysePortfolio);
   const correlateAI = useAICall(api.aiCorrelate);
+
+  // Auto-trigger portfolio briefing once after the first real margin scan completes.
+  // This makes the AI panel feel alive on load rather than waiting for manual action.
+  const { agentState } = useDomain();
+  const autoTriggeredRef = useRef(false);
+  useEffect(() => {
+    if (agentState.margin.scanCount > 0 && !autoTriggeredRef.current) {
+      autoTriggeredRef.current = true;
+      portfolioAI.run();
+    }
+  }, [agentState.margin.scanCount]);
 
   const SEVERITY_BORDER = {
     "margin-deficit":           "border-l-red-500",
