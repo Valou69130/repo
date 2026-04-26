@@ -153,7 +153,7 @@ export function Operations({ repos, assets, permissions }) {
 
       {/* Fails tracker */}
       {fails.length > 0 && (
-        <Card className="rounded-[1.5rem] shadow-sm border-red-200 bg-red-50/40">
+        <Card className="rounded shadow-sm border-red-200 bg-red-50/40">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-800">
               <AlertTriangle className="h-4 w-4" /> Settlement Fails Tracker
@@ -210,7 +210,7 @@ export function Operations({ repos, assets, permissions }) {
 
       {/* All instructions */}
       <div className="grid gap-6 xl:grid-cols-3">
-        <Card className="xl:col-span-2 rounded-[1.5rem] shadow-sm">
+        <Card className="xl:col-span-2 rounded shadow-sm">
           <CardHeader>
             <CardTitle>Settlement Instructions</CardTitle>
             <CardDescription>Click any row to view the full instruction, MT543 preview, and lifecycle timeline.</CardDescription>
@@ -278,7 +278,7 @@ export function Operations({ repos, assets, permissions }) {
         </Card>
 
         {/* Exceptions panel */}
-        <Card className="rounded-[1.5rem] shadow-sm">
+        <Card className="rounded shadow-sm">
           <CardHeader>
             <CardTitle>Operational Exceptions</CardTitle>
             <CardDescription>Breaks and escalations requiring resolution.</CardDescription>
@@ -307,7 +307,7 @@ export function Operations({ repos, assets, permissions }) {
               </div>
             ))}
             {fails.length === 0 && repos.filter((r) => r.state === "Maturing").length === 0 && (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-8 text-center">
+              <div className="rounded border border-slate-200 bg-slate-50/70 px-4 py-8 text-center">
                 <div className="text-sm font-medium text-slate-800">No active exceptions</div>
                 <div className="mt-1 text-sm text-slate-500">The current settlement queue is clean, with no maturing trades or unresolved breaks requiring intervention.</div>
               </div>

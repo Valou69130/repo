@@ -78,6 +78,18 @@ textarea:focus-visible {
   color: #f1f5f9 !important;
 }
 
+/* Institutional: flatten border-radius across the design system */
+@theme {
+  --radius-sm:   0px;
+  --radius:      2px;
+  --radius-md:   2px;
+  --radius-lg:   2px;
+  --radius-xl:   2px;
+  --radius-2xl:  2px;
+  --radius-3xl:  2px;
+  --radius-full: 9999px;
+}
+
 /* Subtle page transition */
 .page-enter {
   animation: fadeSlideUp 180ms ease-out both;

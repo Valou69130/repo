@@ -181,23 +181,23 @@ export function RepoDetail({ repo, assets, closeRepo, topUpRepo, substituteColla
           </div>
           <div className="flex gap-2 flex-wrap">
           {repo.state !== "Closed" && canRollover && (
-            <Button variant="outline" className="rounded-xl bg-white/80" onClick={() => { setRollRate(String(repo.rate)); setRollSheetOpen(true); }}>
+            <Button variant="outline" className="rounded bg-white/80" onClick={() => { setRollRate(String(repo.rate)); setRollSheetOpen(true); }}>
               <RefreshCw className="h-4 w-4 mr-2" /> Roll Repo
             </Button>
           )}
           {repo.state !== "Closed" && canTopUp && (
-            <Button variant="outline" className="rounded-xl bg-white/80"
+            <Button variant="outline" className="rounded bg-white/80"
               onClick={() => availableAsset && topUpRepo(repo.id, availableAsset.id)}>
               Request Top-Up
             </Button>
           )}
           {repo.state !== "Closed" && canSubstitute && (
-            <Button variant="outline" className="rounded-xl bg-white/80" onClick={() => setSubSheetOpen(true)}>
+            <Button variant="outline" className="rounded bg-white/80" onClick={() => setSubSheetOpen(true)}>
               <GitCompareArrows className="h-4 w-4 mr-2" /> Substitute Collateral
             </Button>
           )}
           {repo.state !== "Closed" && canClose && (
-            <Button className="rounded-xl" onClick={() => closeRepo(repo.id)}>
+            <Button className="rounded" onClick={() => closeRepo(repo.id)}>
               Prepare Unwind / Close
             </Button>
           )}
@@ -217,7 +217,7 @@ export function RepoDetail({ repo, assets, closeRepo, topUpRepo, substituteColla
 
       <div className="grid gap-6 xl:grid-cols-3">
         {/* Lifecycle */}
-        <Card className="xl:col-span-2 rounded-[1.5rem] border-slate-200 shadow-sm">
+        <Card className="xl:col-span-2 rounded border-slate-200 shadow-sm">
           <CardHeader className="pb-4">
             <CardTitle>Lifecycle Timeline</CardTitle>
             <CardDescription>Full workflow history from booking to unwind — each step linked to SaFIR events and audit trail.</CardDescription>
@@ -228,7 +228,7 @@ export function RepoDetail({ repo, assets, closeRepo, topUpRepo, substituteColla
         </Card>
 
         {/* Settlement */}
-        <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
+        <Card className="rounded border-slate-200 shadow-sm">
           <CardHeader className="pb-4">
             <CardTitle>Settlement Status</CardTitle>
             <CardDescription>Instruction lifecycle, custody confirmation, and integration state.</CardDescription>
@@ -253,7 +253,7 @@ export function RepoDetail({ repo, assets, closeRepo, topUpRepo, substituteColla
 
       {/* Collateral basket + Margin */}
       <div className="grid gap-6 xl:grid-cols-3">
-        <Card className="xl:col-span-2 rounded-[1.5rem] border-slate-200 shadow-sm">
+        <Card className="xl:col-span-2 rounded border-slate-200 shadow-sm">
           <CardHeader className="pb-4">
             <CardTitle>Collateral Basket</CardTitle>
             <CardDescription>Assets currently locked in custody to support this transaction.</CardDescription>
@@ -276,7 +276,7 @@ export function RepoDetail({ repo, assets, closeRepo, topUpRepo, substituteColla
           </CardContent>
         </Card>
 
-        <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
+        <Card className="rounded border-slate-200 shadow-sm">
           <CardHeader className="pb-4">
             <CardTitle>Margin Status</CardTitle>
             <CardDescription>Live coverage and exposure metrics.</CardDescription>
@@ -307,7 +307,7 @@ export function RepoDetail({ repo, assets, closeRepo, topUpRepo, substituteColla
       </div>
 
       {/* Notes */}
-      <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
+      <Card className="rounded border-slate-200 shadow-sm">
         <CardHeader>
           <CardTitle>Activity Notes</CardTitle>
           <CardDescription>{repo.notes}</CardDescription>
@@ -316,7 +316,7 @@ export function RepoDetail({ repo, assets, closeRepo, topUpRepo, substituteColla
 
       {/* Pending substitutions */}
       {repoPending.length > 0 && (
-        <Card className="rounded-[1.5rem] border-violet-200 shadow-sm">
+        <Card className="rounded border-violet-200 shadow-sm">
           <CardHeader>
             <div className="flex items-center justify-between gap-3">
               <div>

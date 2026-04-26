@@ -6,7 +6,7 @@ export function PrivacyPolicy({ onClose }) {
       <div className="mx-auto max-w-3xl">
         <div className="mb-8 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-600 text-white">
+            <div className="flex h-10 w-10 items-center justify-center rounded bg-blue-600 text-white">
               <Shield className="h-5 w-5" />
             </div>
             <div>
@@ -24,7 +24,7 @@ export function PrivacyPolicy({ onClose }) {
           )}
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-8 text-sm leading-7 text-slate-300 space-y-6">
+        <div className="rounded border border-slate-800 bg-slate-900/60 p-8 text-sm leading-7 text-slate-300 space-y-6">
           <div>
             <h1 className="text-xl font-semibold text-white mb-1">Privacy Policy</h1>
             <p className="text-xs text-slate-500">Last updated: April 10, 2026</p>

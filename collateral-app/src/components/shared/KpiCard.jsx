@@ -1,31 +1,25 @@
-import { Card, CardContent } from "@/components/ui/card";
-
 export function KpiCard({ title, value, description, alert, trendUp }) {
-  const accentColor = alert
-    ? "bg-red-500"
+  const topBorder = alert
+    ? "border-t-red-500"
     : trendUp === false
-    ? "bg-amber-400"
-    : "bg-blue-500";
+    ? "border-t-amber-400"
+    : "border-t-blue-500";
 
   return (
-    <Card className={`overflow-hidden rounded-xl border shadow-sm transition-shadow hover:shadow-md ${
-      alert ? "border-red-200 bg-red-50/40" : "border-slate-200/80 bg-white"
+    <div className={`border border-t-2 bg-white p-4 flex flex-col justify-between ${topBorder} ${
+      alert ? "border-red-200" : "border-slate-200/80"
     }`}>
-      {/* Top accent bar */}
-      <div className={`h-0.5 w-full ${accentColor} opacity-80`} />
-      <CardContent className="p-5">
-        <div className="min-w-0">
-          <div className="text-[10.5px] font-semibold uppercase tracking-[0.2em] text-slate-400">{title}</div>
-          <div className={`mt-2.5 whitespace-nowrap text-[clamp(1.15rem,1.6vw,1.9rem)] font-bold leading-tight tracking-tight ${
-            alert ? "text-red-700" : "text-slate-900"
-          }`}>{value}</div>
-          <div className={`mt-1.5 text-[11.5px] leading-5 ${
-            alert ? "font-semibold text-red-500" : trendUp ? "font-medium text-emerald-600" : "text-slate-400"
-          }`}>
-            {description}
-          </div>
+      <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 mb-3">{title}</div>
+      <div>
+        <div className={`text-[1.45rem] font-bold leading-none tabular-nums tracking-tight ${
+          alert ? "text-red-600" : "text-slate-900"
+        }`}>{value}</div>
+        <div className={`mt-1.5 text-[11px] font-medium ${
+          alert ? "text-red-500" : trendUp ? "text-emerald-600" : "text-slate-400"
+        }`}>
+          {description}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

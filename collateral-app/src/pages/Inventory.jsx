@@ -83,7 +83,7 @@ export function Inventory({ assets, selectedAsset, setSelectedAsset, importAsset
         <KpiCard title="Ready Collateral" value={fmtMoney(metrics.readyCollateral)} description="Eligible adjusted value after haircuts" icon={CheckCircle2} trendUp={metrics.readyCollateral > 0} />
       </div>
 
-      <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
+      <Card className="rounded border-slate-200 shadow-sm">
         <CardContent className="p-5 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex gap-3 w-full xl:max-w-xl">
             <div className="relative flex-1">
@@ -96,7 +96,7 @@ export function Inventory({ assets, selectedAsset, setSelectedAsset, importAsset
               />
             </div>
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="w-[190px] rounded-xl">
+              <SelectTrigger className="w-[190px] rounded">
                 <Filter className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
@@ -111,20 +111,20 @@ export function Inventory({ assets, selectedAsset, setSelectedAsset, importAsset
           </div>
           <div className="flex gap-2 self-start sm:justify-end xl:min-w-[340px]">
             <input type="file" accept=".csv" id="csv-import" className="hidden" onChange={handleImport} />
-            <Button variant="outline" className="rounded-xl" onClick={() => api.downloadCsvTemplate()}>
+            <Button variant="outline" className="rounded" onClick={() => api.downloadCsvTemplate()}>
               <Download className="mr-2 h-4 w-4" />
               Template
             </Button>
-            <Button variant="outline" className="rounded-xl" disabled={importing} onClick={() => document.getElementById("csv-import").click()}>
+            <Button variant="outline" className="rounded" disabled={importing} onClick={() => document.getElementById("csv-import").click()}>
               <Upload className="mr-2 h-4 w-4" />
               {importing ? "Importing..." : "Import CSV"}
             </Button>
-            <Button className="rounded-xl" onClick={exportCSV}>Export CSV</Button>
+            <Button className="rounded" onClick={exportCSV}>Export CSV</Button>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
+      <Card className="rounded border-slate-200 shadow-sm">
         <CardContent className="p-0">
           <Table>
             <TableHeader>

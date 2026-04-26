@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CollateralOS Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-surface": "#2b3040",
+                    "primary-container": "#2563eb",
+                    "inverse-primary": "#b4c5ff",
+                    "on-secondary-fixed": "#0b1c30",
+                    "primary-fixed": "#dbe1ff",
+                    "error-container": "#ffdad6",
+                    "error": "#ba1a1a",
+                    "on-background": "#161b2b",
+                    "surface-container-low": "#f2f3ff",
+                    "on-secondary-container": "#54647a",
+                    "surface-dim": "#d5d9ef",
+                    "surface-bright": "#faf8ff",
+                    "surface-container-lowest": "#ffffff",
+                    "background": "#faf8ff",
+                    "on-tertiary": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "tertiary-fixed-dim": "#ffb596",
+                    "on-error-container": "#93000a",
+                    "surface": "#faf8ff",
+                    "surface-container-high": "#e3e7fd",
+                    "secondary-fixed": "#d3e4fe",
+                    "on-surface-variant": "#434655",
+                    "surface-container": "#ebedff",
+                    "surface-tint": "#0053db",
+                    "tertiary-container": "#bc4800",
+                    "tertiary-fixed": "#ffdbcd",
+                    "on-primary-container": "#eeefff",
+                    "primary-fixed-dim": "#b4c5ff",
+                    "tertiary": "#943700",
+                    "on-error": "#ffffff",
+                    "on-surface": "#161b2b",
+                    "outline": "#737686",
+                    "on-tertiary-fixed": "#360f00",
+                    "on-primary-fixed": "#00174b",
+                    "on-primary-fixed-variant": "#003ea8",
+                    "surface-container-highest": "#dee1f7",
+                    "inverse-on-surface": "#eef0ff",
+                    "primary": "#004ac6",
+                    "on-secondary": "#ffffff",
+                    "secondary": "#505f76",
+                    "on-tertiary-fixed-variant": "#7d2d00",
+                    "on-tertiary-container": "#ffede6",
+                    "surface-variant": "#dee1f7",
+                    "secondary-container": "#d0e1fb",
+                    "secondary-fixed-dim": "#b7c8e1",
+                    "outline-variant": "#c3c6d7",
+                    "on-secondary-fixed-variant": "#38485d"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {},
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "display": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            },
+            "fontSize": {}
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #FAF8FF; color: #161B2B; font-variant-numeric: tabular-nums; }
+        .tabular-nums { font-variant-numeric: tabular-nums; }
+        .tracking-tight-custom { letter-spacing: -0.02em; }
+        .text-2xs { font-size: 0.6875rem; }
+    </style>
+</head>
+<body class="bg-background text-on-surface h-screen overflow-hidden flex">
+<!-- SideNavBar -->
+<nav class="w-[220px] h-screen fixed left-0 top-0 rounded-none border-r border-slate-800/50 bg-[#0A0F1E] dark:bg-slate-950 flex flex-col z-20">
+<div class="p-4 border-b border-white/10">
+<div class="flex items-center gap-3">
+<img alt="System Logo" class="w-8 h-8 rounded-none object-cover" data-alt="Abstract geometric logo mark with sharp edges representing precision architecture in a dark navy context" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD62Wt7zX2NHiloqDW68_LuwU6T09Xp2S3aI2XZw5ClWG2OoNG5rFqivI-5clDnwa7oHTV7pwQyplCG3xpyaq9zq3eUjgvp_yxW1IG_Kf8_mARWryWSz_aVIo75OstLLDDbeUiRvvUzUIm10hB5OazMNZFG7mr4GgaMiKzKSYoEekMTCf4idBb77N9rPzo6nEv3GJfE0u0cqeCR-0-AzeONUUzPaZ8Rumd78nRKXJbdc5YgVB_kENYpMxelm9RXCKxTDRDy22oVoUHh"/>
+<div>
+<div class="text-sm font-black tracking-widest text-white tracking-tight-custom">CollateralOS</div>
+<div class="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Institutional Terminal</div>
+</div>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto py-4 flex flex-col gap-1 font-['Inter'] font-feature-settings-['tnum'] tracking-tight text-[12px] uppercase">
+<a class="border-l-2 border-[#2563EB] text-white bg-white/5 font-bold flex items-center px-4 py-3 hover:bg-white/10 hover:text-white transition-colors duration-100" href="#">
+<span class="material-symbols-outlined mr-3 text-[18px]">grid_view</span>
+                Dashboard
+            </a>
+<a class="text-slate-400 flex items-center px-4 py-3 hover:bg-white/10 hover:text-white transition-colors duration-100 border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined mr-3 text-[18px]">inventory_2</span>
+                Inventory
+            </a>
+<a class="text-slate-400 flex items-center px-4 py-3 hover:bg-white/10 hover:text-white transition-colors duration-100 border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined mr-3 text-[18px]">analytics</span>
+                Exposure
+            </a>
+<a class="text-slate-400 flex items-center px-4 py-3 hover:bg-white/10 hover:text-white transition-colors duration-100 border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined mr-3 text-[18px]">sync_alt</span>
+                Settlements
+            </a>
+<a class="text-slate-400 flex items-center px-4 py-3 hover:bg-white/10 hover:text-white transition-colors duration-100 border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined mr-3 text-[18px]">description</span>
+                Reporting
+            </a>
+</div>
+<div class="mt-auto border-t border-white/10 py-4 flex flex-col gap-1 font-['Inter'] font-feature-settings-['tnum'] tracking-tight text-[12px] uppercase">
+<a class="text-slate-400 flex items-center px-4 py-3 hover:bg-white/10 hover:text-white transition-colors duration-100 border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined mr-3 text-[18px]">settings</span>
+                Settings
+            </a>
+<a class="text-slate-400 flex items-center px-4 py-3 hover:bg-white/10 hover:text-white transition-colors duration-100 border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined mr-3 text-[18px]">contact_support</span>
+                Support
+            </a>
+</div>
+</nav>
+<!-- Main Content Wrapper -->
+<div class="flex-1 ml-[220px] flex flex-col h-screen overflow-hidden">
+<!-- TopAppBar -->
+<header class="bg-white dark:bg-slate-900 h-[56px] w-full border-b border-slate-200 dark:border-slate-800 rounded-none flex justify-between items-center px-4 z-10 flex-shrink-0 font-['Inter'] tabular-nums text-[13px] font-medium">
+<div class="flex items-center gap-4">
+<div class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 tracking-tight-custom">
+                    Romanian Institutional Bank
+                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
+<input class="w-full h-8 pl-8 pr-3 bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 rounded-none text-[12px] placeholder:text-outline tabular-nums" placeholder="Search ISIN, Counterparty..." type="text"/>
+</div>
+<div class="flex items-center gap-3">
+<button class="text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 p-1.5 rounded-none flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<button class="text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 p-1.5 rounded-none flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">help_outline</span>
+</button>
+<div class="w-8 h-8 bg-surface-container-highest border border-outline-variant flex items-center justify-center text-xs font-bold text-on-surface ml-2">
+                        JD
+                    </div>
+</div>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="flex-1 overflow-y-auto p-4 bg-background">
+<div class="max-w-[1440px] mx-auto flex flex-col gap-4">
+<!-- 1. PAGE HEADER -->
+<div class="flex justify-between items-end mb-2">
+<div>
+<h1 class="text-2xl font-black text-on-surface tracking-tight-custom m-0 leading-none mb-1">Dashboard</h1>
+<p class="text-xs text-on-surface-variant font-medium tabular-nums uppercase">OCT 24, 2023 • 14:32 EET</p>
+</div>
+<div class="flex gap-2">
+<button class="px-4 py-2 text-xs font-bold uppercase tracking-tight-custom border border-outline-variant text-on-surface hover:bg-surface-container-low transition-colors rounded-none flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">download</span>
+                            Generate Report
+                        </button>
+<button class="px-4 py-2 text-xs font-bold uppercase tracking-tight-custom bg-primary-container text-white border border-primary hover:bg-primary transition-colors rounded-none flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">calculate</span>
+                            EoD Valuations
+                        </button>
+</div>
+</div>
+<!-- 2. KPI ROW -->
+<div class="grid grid-cols-4 gap-4">
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest border border-outline-variant/20 rounded-none border-t-2 border-t-primary-container p-4 flex flex-col justify-between">
+<div class="text-2xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Total Collateral</div>
+<div class="flex items-baseline justify-between">
+<div class="text-xl font-bold text-on-surface tabular-nums tracking-tight-custom">RON 186.4M</div>
+<div class="text-xs font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5">+2.1%</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest border border-outline-variant/20 rounded-none border-t-2 border-t-primary-container p-4 flex flex-col justify-between">
+<div class="text-2xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Free/Available</div>
+<div class="flex items-baseline justify-between">
+<div class="text-xl font-bold text-on-surface tabular-nums tracking-tight-custom">RON 42.1M</div>
+<div class="text-xs text-on-surface-variant tabular-nums">22.6% of total</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-lowest border border-outline-variant/20 rounded-none border-t-2 border-t-tertiary p-4 flex flex-col justify-between">
+<div class="text-2xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Active Repos</div>
+<div class="flex items-baseline justify-between">
+<div class="text-xl font-bold text-on-surface tabular-nums tracking-tight-custom">9</div>
+<div class="text-xs font-medium text-tertiary bg-tertiary-container/10 px-1.5 py-0.5">3 maturing</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="bg-surface-container-lowest border border-outline-variant/20 rounded-none border-t-2 border-t-error p-4 flex flex-col justify-between">
+<div class="text-2xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Margin Deficits</div>
+<div class="flex items-baseline justify-between">
+<div class="text-xl font-black text-error tabular-nums tracking-tight-custom">2</div>
+<div class="text-xs font-bold text-error bg-error-container px-1.5 py-0.5 uppercase tracking-tighter">Immediate Action</div>
+</div>
+</div>
+</div>
+<!-- 3. TWO COLUMNS -->
+<div class="grid grid-cols-12 gap-4">
+<!-- Left: Recommended Actions (58% ~ 7 cols) -->
+<div class="col-span-7 flex flex-col">
+<div class="bg-surface-container-lowest border border-outline-variant/20 rounded-none flex-1 flex flex-col">
+<div class="px-4 py-3 border-b border-outline-variant/20 bg-surface flex justify-between items-center">
+<h2 class="text-sm font-bold text-on-surface tracking-tight-custom">Recommended Actions</h2>
+<span class="text-2xs font-bold text-on-surface-variant uppercase">Priority Queue</span>
+</div>
+<div class="flex flex-col p-4 gap-3">
+<!-- Action 1 -->
+<div class="border-l-4 border-l-error bg-surface-container-low/50 p-3 flex justify-between items-center hover:bg-surface-container-low transition-colors">
+<div>
+<div class="text-xs font-bold text-on-surface uppercase mb-0.5">Margin Call • Societe Generale</div>
+<div class="text-sm font-bold text-error tabular-nums tracking-tight-custom">Deficit: RON 2.4M</div>
+</div>
+<button class="px-3 py-1.5 text-xs font-bold uppercase tracking-tight-custom bg-error text-white border border-error hover:bg-error/90 transition-colors rounded-none">
+                                        Resolve
+                                    </button>
+</div>
+<!-- Action 2 -->
+<div class="border-l-4 border-l-tertiary bg-surface-container-low/50 p-3 flex justify-between items-center hover:bg-surface-container-low transition-colors">
+<div>
+<div class="text-xs font-bold text-on-surface uppercase mb-0.5">Substitution • UniCredit</div>
+<div class="text-sm font-bold text-on-surface tabular-nums tracking-tight-custom">Recall: ROMGB 4.25 2026</div>
+</div>
+<button class="px-3 py-1.5 text-xs font-bold uppercase tracking-tight-custom border border-outline-variant text-on-surface hover:bg-surface-container-low transition-colors rounded-none">
+                                        Review
+                                    </button>
+</div>
+<!-- Action 3 -->
+<div class="border-l-4 border-l-primary-container bg-surface-container-low/50 p-3 flex justify-between items-center hover:bg-surface-container-low transition-colors">
+<div>
+<div class="text-xs font-bold text-on-surface uppercase mb-0.5">Repo Maturity • BCR</div>
+<div class="text-sm font-bold text-on-surface tabular-nums tracking-tight-custom">Return: RON 15.0M</div>
+</div>
+<button class="px-3 py-1.5 text-xs font-bold uppercase tracking-tight-custom border border-outline-variant text-on-surface hover:bg-surface-container-low transition-colors rounded-none">
+                                        Review
+                                    </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Right: Stacked (42% ~ 5 cols) -->
+<div class="col-span-5 flex flex-col gap-4">
+<!-- Donut Chart Area -->
+<div class="bg-surface-container-lowest border border-outline-variant/20 rounded-none flex-1 flex flex-col min-h-[160px]">
+<div class="px-4 py-2 border-b border-outline-variant/20 bg-surface">
+<h2 class="text-sm font-bold text-on-surface tracking-tight-custom">Collateral Breakdown</h2>
+</div>
+<div class="p-4 flex items-center gap-6 h-full">
+<!-- Abstract Donut Representation -->
+<div class="relative w-24 h-24 rounded-full border-[16px] border-primary-container flex-shrink-0" style="border-right-color: #505f76; border-bottom-color: #0d9488; transform: rotate(-45deg);">
+<div class="absolute inset-0 bg-surface-container-lowest rounded-full" style="transform: scale(0.6);"></div>
+</div>
+<div class="flex flex-col gap-2 w-full">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 bg-primary-container"></div>
+<span class="text-xs font-medium text-on-surface">Gov Bonds</span>
+</div>
+<span class="text-xs font-bold text-on-surface tabular-nums">72%</span>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 bg-secondary"></div>
+<span class="text-xs font-medium text-on-surface">Corporate</span>
+</div>
+<span class="text-xs font-bold text-on-surface tabular-nums">18%</span>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 bg-teal-600"></div>
+<span class="text-xs font-medium text-on-surface">Cash</span>
+</div>
+<span class="text-xs font-bold text-on-surface tabular-nums">10%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Compact Table -->
+<div class="bg-surface-container-lowest border border-outline-variant/20 rounded-none flex-1 flex flex-col">
+<div class="px-4 py-2 border-b border-outline-variant/20 bg-surface">
+<h2 class="text-sm font-bold text-on-surface tracking-tight-custom">Margin Exposure (Top 3)</h2>
+</div>
+<div class="flex flex-col">
+<div class="grid grid-cols-3 px-4 py-1.5 bg-surface-container border-b border-outline-variant/20 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">
+<div>Entity</div>
+<div class="text-right">Exposure</div>
+<div class="text-right">Status</div>
+</div>
+<div class="grid grid-cols-3 px-4 py-2 border-b border-outline-variant/10 text-xs font-medium text-on-surface items-center hover:bg-surface-container-low">
+<div>SocGen</div>
+<div class="text-right tabular-nums">14.2M</div>
+<div class="text-right flex justify-end"><div class="w-1.5 h-1.5 bg-error rounded-full"></div></div>
+</div>
+<div class="grid grid-cols-3 px-4 py-2 border-b border-outline-variant/10 text-xs font-medium text-on-surface items-center hover:bg-surface-container-low">
+<div>ING</div>
+<div class="text-right tabular-nums">8.5M</div>
+<div class="text-right flex justify-end"><div class="w-1.5 h-1.5 bg-primary-container rounded-full"></div></div>
+</div>
+<div class="grid grid-cols-3 px-4 py-2 text-xs font-medium text-on-surface items-center hover:bg-surface-container-low">
+<div>Erste</div>
+<div class="text-right tabular-nums">6.1M</div>
+<div class="text-right flex justify-end"><div class="w-1.5 h-1.5 bg-primary-container rounded-full"></div></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- 4. FULL-WIDTH TABLE -->
+<div class="bg-surface-container-lowest border border-outline-variant/20 rounded-none border-t-2 border-t-primary-container mt-2">
+<div class="px-4 py-3 border-b border-outline-variant/20 bg-surface flex justify-between items-center">
+<h2 class="text-sm font-bold text-on-surface tracking-tight-custom">Active Repo Transactions</h2>
+<button class="text-xs text-primary-container font-bold uppercase tracking-tight-custom hover:underline">View All</button>
+</div>
+<div class="w-full overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container border-b border-outline-variant/20 text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">
+<th class="px-4 py-2 font-bold w-24">TXN ID</th>
+<th class="px-4 py-2 font-bold">Counterparty</th>
+<th class="px-4 py-2 font-bold w-16 text-center">State</th>
+<th class="px-4 py-2 font-bold text-right">Notional</th>
+<th class="px-4 py-2 font-bold text-right">Rate</th>
+<th class="px-4 py-2 font-bold text-right">Maturity</th>
+<th class="px-4 py-2 font-bold text-right">Buffer</th>
+</tr>
+</thead>
+<tbody class="text-xs font-medium text-on-surface">
+<!-- Row 1 -->
+<tr class="border-b border-outline-variant/10 h-[40px] hover:bg-surface-container-low transition-colors">
+<td class="px-4 py-2 text-primary-container font-mono text-[11px] font-bold">R-1021</td>
+<td class="px-4 py-2 font-bold">Erste Group Bank AG</td>
+<td class="px-4 py-2 text-center">
+<div class="inline-flex items-center justify-center w-full"><div class="w-1.5 h-1.5 bg-primary-container rounded-full"></div></div>
+</td>
+<td class="px-4 py-2 text-right tabular-nums">50,000,000</td>
+<td class="px-4 py-2 text-right tabular-nums">4.25%</td>
+<td class="px-4 py-2 text-right tabular-nums text-on-surface-variant">25 Oct 2023</td>
+<td class="px-4 py-2 text-right tabular-nums text-emerald-600">+1.2M</td>
+</tr>
+<!-- Row 2 -->
+<tr class="border-b border-outline-variant/10 h-[40px] bg-surface/30 hover:bg-surface-container-low transition-colors">
+<td class="px-4 py-2 text-primary-container font-mono text-[11px] font-bold">R-1022</td>
+<td class="px-4 py-2 font-bold">Societe Generale</td>
+<td class="px-4 py-2 text-center">
+<div class="inline-flex items-center justify-center w-full"><div class="w-1.5 h-1.5 bg-error rounded-full"></div></div>
+</td>
+<td class="px-4 py-2 text-right tabular-nums">25,500,000</td>
+<td class="px-4 py-2 text-right tabular-nums">4.10%</td>
+<td class="px-4 py-2 text-right tabular-nums text-on-surface-variant">02 Nov 2023</td>
+<td class="px-4 py-2 text-right tabular-nums text-error font-bold">-2.4M</td>
+</tr>
+<!-- Row 3 -->
+<tr class="border-b border-outline-variant/10 h-[40px] hover:bg-surface-container-low transition-colors">
+<td class="px-4 py-2 text-primary-container font-mono text-[11px] font-bold">R-1018</td>
+<td class="px-4 py-2 font-bold">BNP Paribas</td>
+<td class="px-4 py-2 text-center">
+<div class="inline-flex items-center justify-center w-full"><div class="w-1.5 h-1.5 bg-primary-container rounded-full"></div></div>
+</td>
+<td class="px-4 py-2 text-right tabular-nums">10,000,000</td>
+<td class="px-4 py-2 text-right tabular-nums">3.95%</td>
+<td class="px-4 py-2 text-right tabular-nums text-on-surface-variant">15 Nov 2023</td>
+<td class="px-4 py-2 text-right tabular-nums text-emerald-600">+0.8M</td>
+</tr>
+<!-- Row 4 -->
+<tr class="border-b border-outline-variant/10 h-[40px] bg-surface/30 hover:bg-surface-container-low transition-colors">
+<td class="px-4 py-2 text-primary-container font-mono text-[11px] font-bold">R-1015</td>
+<td class="px-4 py-2 font-bold">UniCredit Bank</td>
+<td class="px-4 py-2 text-center">
+<div class="inline-flex items-center justify-center w-full"><div class="w-1.5 h-1.5 bg-tertiary rounded-full"></div></div>
+</td>
+<td class="px-4 py-2 text-right tabular-nums">42,000,000</td>
+<td class="px-4 py-2 text-right tabular-nums">4.30%</td>
+<td class="px-4 py-2 text-right tabular-nums text-on-surface-variant">24 Oct 2023</td>
+<td class="px-4 py-2 text-right tabular-nums text-emerald-600">+0.1M</td>
+</tr>
+<!-- Row 5 -->
+<tr class="h-[40px] hover:bg-surface-container-low transition-colors">
+<td class="px-4 py-2 text-primary-container font-mono text-[11px] font-bold">R-1012</td>
+<td class="px-4 py-2 font-bold">ING Bank NV</td>
+<td class="px-4 py-2 text-center">
+<div class="inline-flex items-center justify-center w-full"><div class="w-1.5 h-1.5 bg-primary-container rounded-full"></div></div>
+</td>
+<td class="px-4 py-2 text-right tabular-nums">18,250,000</td>
+<td class="px-4 py-2 text-right tabular-nums">4.05%</td>
+<td class="px-4 py-2 text-right tabular-nums text-on-surface-variant">10 Dec 2023</td>
+<td class="px-4 py-2 text-right tabular-nums text-emerald-600">+1.5M</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

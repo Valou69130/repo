@@ -2,6 +2,9 @@
 .DS_Store
 Thumbs.db
 
+# MCP server config (contains API keys)
+.mcp.json
+
 # Temp Office files
 ~$*.docx
 ~$*.doc
@@ -27,3 +30,4 @@ collateral-api/*.db
 collateral-api/*.db-shm
 collateral-api/*.db-wal
 
+.gstack/

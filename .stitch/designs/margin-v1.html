@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Margin Monitor - CollateralOS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "tertiary": "#943700",
+                        "inverse-on-surface": "#f0f1f3",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "surface-dim": "#d9dadc",
+                        "tertiary-fixed": "#ffdbcd",
+                        "outline": "#737686",
+                        "error": "#ba1a1a",
+                        "secondary": "#595e70",
+                        "primary-container": "#2563eb",
+                        "on-primary-fixed": "#00174b",
+                        "background": "#f8f9fb",
+                        "on-secondary-fixed": "#161b2b",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container": "#edeef0",
+                        "on-primary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f2f4f6",
+                        "inverse-primary": "#b4c5ff",
+                        "surface-tint": "#0053db",
+                        "outline-variant": "#c3c6d7",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-fixed": "#360f00",
+                        "on-surface-variant": "#434655",
+                        "tertiary-container": "#bc4800",
+                        "primary-fixed": "#dbe1ff",
+                        "on-surface": "#191c1e",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "surface": "#f8f9fb",
+                        "on-error-container": "#93000a",
+                        "secondary-container": "#dbdff4",
+                        "surface-bright": "#f8f9fb",
+                        "on-primary-container": "#eeefff",
+                        "secondary-fixed": "#dee1f7",
+                        "on-secondary-container": "#5d6274",
+                        "surface-variant": "#e1e2e4",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "secondary-fixed-dim": "#c2c6db",
+                        "surface-container-high": "#e7e8ea",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "primary": "#004ac6",
+                        "on-secondary-fixed-variant": "#414658",
+                        "on-error": "#ffffff",
+                        "on-background": "#191c1e",
+                        "on-tertiary-container": "#ffede6",
+                        "inverse-surface": "#2e3132",
+                        "surface-container-highest": "#e1e2e4",
+                        "on-tertiary": "#ffffff"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter"],
+                        "display": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .tabular-nums { font-variant-numeric: tabular-nums; }
+    </style>
+</head>
+<body class="bg-background text-on-surface antialiased flex h-screen overflow-hidden text-sm">
+<!-- SideNavBar -->
+<nav class="bg-surface-container-low dark:bg-slate-900 text-primary dark:text-blue-400 font-['Inter'] uppercase text-[10px] font-semibold tracking-widest h-screen w-64 border-r border-outline-variant/15 flex flex-col h-full py-4 gap-1 shrink-0">
+<div class="px-6 mb-8 flex flex-col gap-1">
+<h1 class="text-primary dark:text-blue-500 font-black text-lg tracking-tighter normal-case">CollateralOS</h1>
+<span class="text-on-surface-variant text-[10px] uppercase tracking-widest">Institutional Terminal</span>
+</div>
+<div class="flex-1 flex flex-col gap-1 px-2">
+<a class="text-on-surface-variant hover:bg-surface-container-high transition-all duration-75 scale-100 active:scale-[0.99] flex items-center gap-3 px-4 py-2 rounded" href="#">
+<span class="material-symbols-outlined text-[18px]">dashboard</span>
+                Dashboard
+            </a>
+<a class="text-on-surface-variant hover:bg-surface-container-high transition-all duration-75 scale-100 active:scale-[0.99] flex items-center gap-3 px-4 py-2 rounded" href="#">
+<span class="material-symbols-outlined text-[18px]">account_balance_wallet</span>
+                Inventory
+            </a>
+<a class="text-on-surface-variant hover:bg-surface-container-high transition-all duration-75 scale-100 active:scale-[0.99] flex items-center gap-3 px-4 py-2 rounded" href="#">
+<span class="material-symbols-outlined text-[18px]">swap_horiz</span>
+                Repo Desk
+            </a>
+<a class="bg-surface-container-lowest text-primary border-r-4 border-primary transition-all duration-75 scale-100 active:scale-[0.99] flex items-center gap-3 px-4 py-2 rounded-l rounded-r-none" href="#">
+<span class="material-symbols-outlined text-[18px]">analytics</span>
+                Margin Monitor
+            </a>
+<a class="text-on-surface-variant hover:bg-surface-container-high transition-all duration-75 scale-100 active:scale-[0.99] flex items-center gap-3 px-4 py-2 rounded" href="#">
+<span class="material-symbols-outlined text-[18px]">security</span>
+                Risk Analysis
+            </a>
+<a class="text-on-surface-variant hover:bg-surface-container-high transition-all duration-75 scale-100 active:scale-[0.99] flex items-center gap-3 px-4 py-2 rounded" href="#">
+<span class="material-symbols-outlined text-[18px]">description</span>
+                Reporting
+            </a>
+</div>
+<div class="mt-auto flex flex-col gap-1 px-2 border-t border-outline-variant/15 pt-4">
+<a class="text-on-surface-variant hover:bg-surface-container-high transition-all duration-75 scale-100 active:scale-[0.99] flex items-center gap-3 px-4 py-2 rounded" href="#">
+<span class="material-symbols-outlined text-[18px]">support_agent</span>
+                Support
+            </a>
+<a class="text-on-surface-variant hover:bg-surface-container-high transition-all duration-75 scale-100 active:scale-[0.99] flex items-center gap-3 px-4 py-2 rounded" href="#">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+                System Status
+            </a>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-1 flex flex-col overflow-y-auto bg-surface relative">
+<!-- Header -->
+<header class="px-8 py-6 flex justify-between items-end shrink-0">
+<div>
+<h1 class="text-2xl font-bold tracking-tight text-on-surface leading-tight">Margin Monitor</h1>
+<p class="text-on-surface-variant mt-1">Real-time exposure · 2 deficits require action</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="bg-surface-container-high text-on-surface hover:bg-surface-container-highest px-4 py-2 rounded font-medium transition-colors border border-outline-variant/15 shadow-[0_1px_3px_rgba(10,15,30,0.08)]">
+                    Export
+                </button>
+<button class="bg-error text-on-error hover:bg-error/90 px-4 py-2 rounded font-medium transition-colors shadow-[0_1px_3px_rgba(10,15,30,0.08)]">
+                    Run Margin Call
+                </button>
+</div>
+</header>
+<!-- Alert Banner -->
+<div class="mx-8 mb-6 bg-error-container text-on-error-container pl-4 pr-6 py-3 rounded relative flex items-center justify-between border-l-4 border-error">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-error">warning</span>
+<span class="font-medium">2 counterparties require immediate margin calls — Danube Capital (-RON 390K) and Carpathia Bank (-RON 180K)</span>
+</div>
+<button class="text-error font-semibold hover:text-error/80 uppercase text-xs tracking-wider">
+                Review All
+            </button>
+</div>
+<div class="px-8 pb-8 flex flex-col gap-6 flex-1">
+<!-- Exposure Summary Row -->
+<div class="grid grid-cols-4 gap-4 shrink-0">
+<div class="bg-surface-container-lowest p-5 rounded border-l-2 border-outline-variant/50 shadow-[0_1px_3px_rgba(10,15,30,0.08)] flex flex-col justify-between">
+<span class="text-on-surface-variant uppercase text-[10px] font-semibold tracking-widest mb-2">Total Exposure</span>
+<span class="text-2xl font-bold tabular-nums tracking-tight">RON 144.2M</span>
+</div>
+<div class="bg-surface-container-lowest p-5 rounded border-l-2 border-[#10b981] shadow-[0_1px_3px_rgba(10,15,30,0.08)] flex flex-col justify-between">
+<span class="text-on-surface-variant uppercase text-[10px] font-semibold tracking-widest mb-2">In Compliance</span>
+<span class="text-2xl font-bold tabular-nums tracking-tight text-[#10b981]">7</span>
+</div>
+<div class="bg-surface-container-lowest p-5 rounded border-l-2 border-error shadow-[0_1px_3px_rgba(10,15,30,0.08)] flex flex-col justify-between">
+<span class="text-on-surface-variant uppercase text-[10px] font-semibold tracking-widest mb-2">Margin Deficits</span>
+<span class="text-2xl font-bold tabular-nums tracking-tight text-error">2</span>
+</div>
+<div class="bg-surface-container-lowest p-5 rounded border-l-2 border-tertiary shadow-[0_1px_3px_rgba(10,15,30,0.08)] flex flex-col justify-between">
+<span class="text-on-surface-variant uppercase text-[10px] font-semibold tracking-widest mb-2">Pending Calls</span>
+<span class="text-2xl font-bold tabular-nums tracking-tight text-tertiary">RON 570K</span>
+</div>
+</div>
+<!-- Main Table -->
+<div class="bg-surface-container-lowest rounded shadow-[0_1px_3px_rgba(10,15,30,0.08)] border border-outline-variant/15 flex flex-col overflow-hidden shrink-0">
+<div class="px-5 py-3 border-b border-outline-variant/15 bg-surface-container-low flex justify-between items-center">
+<h2 class="font-semibold text-on-surface">Counterparty Margin Status</h2>
+<div class="flex gap-2">
+<button class="p-1 hover:bg-surface-variant rounded text-on-surface-variant transition-colors"><span class="material-symbols-outlined text-[18px]">filter_list</span></button>
+<button class="p-1 hover:bg-surface-variant rounded text-on-surface-variant transition-colors"><span class="material-symbols-outlined text-[18px]">more_vert</span></button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-outline-variant/10 text-[10px] uppercase tracking-widest text-on-surface-variant bg-surface-container-low/50">
+<th class="px-5 py-3 font-semibold">Counterparty</th>
+<th class="px-5 py-3 font-semibold text-right">Exposure</th>
+<th class="px-5 py-3 font-semibold text-right">Collateral Posted</th>
+<th class="px-5 py-3 font-semibold text-right">Buffer</th>
+<th class="px-5 py-3 font-semibold">Status</th>
+<th class="px-5 py-3 font-semibold text-right">Threshold</th>
+<th class="px-5 py-3 font-semibold text-center">Action</th>
+</tr>
+</thead>
+<tbody class="text-sm font-medium tabular-nums divide-y divide-outline-variant/5">
+<tr class="h-[44px] hover:bg-surface-container-low/50 transition-colors bg-error-container/20">
+<td class="px-5 text-on-surface font-semibold flex items-center h-[44px]">Danube Capital</td>
+<td class="px-5 text-right">RON 42.5M</td>
+<td class="px-5 text-right">RON 42.11M</td>
+<td class="px-5 text-right text-error">-0.92%</td>
+<td class="px-5">
+<span class="bg-error/10 text-error px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-bold">Deficit</span>
+</td>
+<td class="px-5 text-right text-on-surface-variant">RON 500K</td>
+<td class="px-5 text-center">
+<button class="text-error border border-error/30 hover:bg-error/10 px-3 py-1 rounded text-xs transition-colors">Resolve</button>
+</td>
+</tr>
+<tr class="h-[44px] hover:bg-surface-container-low/50 transition-colors bg-error-container/20">
+<td class="px-5 text-on-surface font-semibold flex items-center h-[44px]">Carpathia Bank</td>
+<td class="px-5 text-right">RON 28.1M</td>
+<td class="px-5 text-right">RON 27.92M</td>
+<td class="px-5 text-right text-error">-0.64%</td>
+<td class="px-5">
+<span class="bg-error/10 text-error px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-bold">Deficit</span>
+</td>
+<td class="px-5 text-right text-on-surface-variant">RON 250K</td>
+<td class="px-5 text-center">
+<button class="text-error border border-error/30 hover:bg-error/10 px-3 py-1 rounded text-xs transition-colors">Resolve</button>
+</td>
+</tr>
+<tr class="h-[44px] hover:bg-surface-container-low/50 transition-colors">
+<td class="px-5 text-on-surface font-semibold flex items-center h-[44px]">Transylvania Trust</td>
+<td class="px-5 text-right">RON 15.2M</td>
+<td class="px-5 text-right">RON 15.25M</td>
+<td class="px-5 text-right text-tertiary">+0.32%</td>
+<td class="px-5">
+<span class="bg-tertiary/10 text-tertiary px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-bold">Warning</span>
+</td>
+<td class="px-5 text-right text-on-surface-variant">RON 100K</td>
+<td class="px-5 text-center">
+<button class="text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high px-3 py-1 rounded text-xs transition-colors">View</button>
+</td>
+</tr>
+<tr class="h-[44px] hover:bg-surface-container-low/50 transition-colors">
+<td class="px-5 text-on-surface font-semibold flex items-center h-[44px]">Balkan Equities</td>
+<td class="px-5 text-right">RON 31.0M</td>
+<td class="px-5 text-right">RON 33.5M</td>
+<td class="px-5 text-right text-[#10b981]">+8.06%</td>
+<td class="px-5">
+<span class="bg-[#10b981]/10 text-[#10b981] px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-bold">Compliant</span>
+</td>
+<td class="px-5 text-right text-on-surface-variant">RON 1.0M</td>
+<td class="px-5 text-center">
+<button class="text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high px-3 py-1 rounded text-xs transition-colors">View</button>
+</td>
+</tr>
+<tr class="h-[44px] hover:bg-surface-container-low/50 transition-colors">
+<td class="px-5 text-on-surface font-semibold flex items-center h-[44px]">Olt Financial</td>
+<td class="px-5 text-right">RON 8.4M</td>
+<td class="px-5 text-right">RON 9.1M</td>
+<td class="px-5 text-right text-[#10b981]">+8.33%</td>
+<td class="px-5">
+<span class="bg-[#10b981]/10 text-[#10b981] px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-bold">Compliant</span>
+</td>
+<td class="px-5 text-right text-on-surface-variant">RON 500K</td>
+<td class="px-5 text-center">
+<button class="text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high px-3 py-1 rounded text-xs transition-colors">View</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Bottom Section -->
+<div class="grid grid-cols-2 gap-6 min-h-[300px]">
+<!-- Chart placeholder -->
+<div class="bg-surface-container-lowest rounded shadow-[0_1px_3px_rgba(10,15,30,0.08)] border border-outline-variant/15 flex flex-col p-5">
+<h3 class="font-semibold text-on-surface mb-4">Margin Coverage by Counterparty</h3>
+<div class="flex-1 border-b border-l border-outline-variant/20 relative flex flex-col justify-end gap-3 pb-2 pl-2">
+<!-- Simulated Chart Bars -->
+<div class="flex items-center w-full gap-2 group">
+<span class="w-20 text-[10px] text-on-surface-variant text-right truncate">Danube</span>
+<div class="h-4 bg-error/80 w-[40%] rounded-r-sm group-hover:bg-error transition-colors"></div>
+</div>
+<div class="flex items-center w-full gap-2 group">
+<span class="w-20 text-[10px] text-on-surface-variant text-right truncate">Carpathia</span>
+<div class="h-4 bg-error/80 w-[25%] rounded-r-sm group-hover:bg-error transition-colors"></div>
+</div>
+<div class="flex items-center w-full gap-2 group">
+<span class="w-20 text-[10px] text-on-surface-variant text-right truncate">Transylvania</span>
+<div class="h-4 bg-tertiary/80 w-[55%] rounded-r-sm group-hover:bg-tertiary transition-colors"></div>
+</div>
+<div class="flex items-center w-full gap-2 group">
+<span class="w-20 text-[10px] text-on-surface-variant text-right truncate">Balkan</span>
+<div class="h-4 bg-[#10b981]/80 w-[85%] rounded-r-sm group-hover:bg-[#10b981] transition-colors"></div>
+</div>
+<div class="flex items-center w-full gap-2 group">
+<span class="w-20 text-[10px] text-on-surface-variant text-right truncate">Olt Fin</span>
+<div class="h-4 bg-[#10b981]/80 w-[90%] rounded-r-sm group-hover:bg-[#10b981] transition-colors"></div>
+</div>
+</div>
+</div>
+<!-- History -->
+<div class="bg-surface-container-lowest rounded shadow-[0_1px_3px_rgba(10,15,30,0.08)] border border-outline-variant/15 flex flex-col p-5">
+<h3 class="font-semibold text-on-surface mb-4">Margin Call History</h3>
+<div class="flex-1 overflow-y-auto pr-2">
+<div class="relative pl-4 border-l border-outline-variant/20 space-y-6">
+<div class="relative">
+<div class="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-none bg-surface border-2 border-tertiary"></div>
+<div class="flex justify-between items-start">
+<div>
+<p class="text-sm font-semibold text-on-surface">Danube Capital</p>
+<p class="text-xs text-on-surface-variant mt-0.5">Call Issued - Pending Confirmation</p>
+</div>
+<div class="text-right">
+<p class="text-sm font-bold tabular-nums text-tertiary">RON 390K</p>
+<p class="text-[10px] text-on-surface-variant mt-0.5">Today, 09:14</p>
+</div>
+</div>
+</div>
+<div class="relative">
+<div class="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-none bg-[#10b981] border-2 border-[#10b981]"></div>
+<div class="flex justify-between items-start">
+<div>
+<p class="text-sm font-semibold text-on-surface text-on-surface-variant">Balkan Equities</p>
+<p class="text-xs text-on-surface-variant mt-0.5">Resolved - Collateral Received</p>
+</div>
+<div class="text-right">
+<p class="text-sm font-bold tabular-nums text-on-surface-variant">RON 1.2M</p>
+<p class="text-[10px] text-on-surface-variant mt-0.5">Yesterday, 14:30</p>
+</div>
+</div>
+</div>
+<div class="relative">
+<div class="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-none bg-[#10b981] border-2 border-[#10b981]"></div>
+<div class="flex justify-between items-start">
+<div>
+<p class="text-sm font-semibold text-on-surface text-on-surface-variant">Olt Financial</p>
+<p class="text-xs text-on-surface-variant mt-0.5">Resolved - Collateral Received</p>
+</div>
+<div class="text-right">
+<p class="text-sm font-bold tabular-nums text-on-surface-variant">RON 250K</p>
+<p class="text-[10px] text-on-surface-variant mt-0.5">12 Oct, 10:15</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

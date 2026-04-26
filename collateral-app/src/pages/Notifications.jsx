@@ -169,9 +169,9 @@ export function Notifications({ notifications, onDismissNotification, openRepo }
         <KpiCard title="Resolved This Session" value={String(acknowledged + escalated)} description={`${acknowledged} acknowledged · ${escalated} escalated`} icon={CheckCircle2} trendUp={acknowledged + escalated > 0} />
       </div>
 
-      <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
+      <Card className="rounded border-slate-200 shadow-sm">
         <CardContent className="grid gap-4 px-5 py-5 lg:grid-cols-[1.25fr,0.85fr]">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-4">
+          <div className="rounded border border-slate-200 bg-slate-50/80 px-4 py-4">
             <div className="flex items-center gap-2 text-sm font-medium text-slate-800">
               <ShieldAlert className="h-4 w-4 text-amber-600" />
               Response playbook
@@ -180,18 +180,18 @@ export function Notifications({ notifications, onDismissNotification, openRepo }
               Treat critical margin, settlement, and limit events as fast-path items. Acknowledge to claim ownership, escalate when desk coordination is needed, and use repo deep-links to jump directly into the affected trade context.
             </div>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
+          <div className="rounded border border-slate-200 bg-white px-4 py-4">
             <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">SLA windows</div>
             <div className="mt-3 grid gap-2">
-              <div className="flex items-center justify-between rounded-xl bg-red-50 px-3 py-2 text-sm">
+              <div className="flex items-center justify-between rounded bg-red-50 px-3 py-2 text-sm">
                 <span className="font-medium text-red-700">Critical</span>
                 <span className="text-red-600">2h acknowledge</span>
               </div>
-              <div className="flex items-center justify-between rounded-xl bg-amber-50 px-3 py-2 text-sm">
+              <div className="flex items-center justify-between rounded bg-amber-50 px-3 py-2 text-sm">
                 <span className="font-medium text-amber-700">Warning</span>
                 <span className="text-amber-600">6h review</span>
               </div>
-              <div className="flex items-center justify-between rounded-xl bg-blue-50 px-3 py-2 text-sm">
+              <div className="flex items-center justify-between rounded bg-blue-50 px-3 py-2 text-sm">
                 <span className="font-medium text-blue-700">Info</span>
                 <span className="text-blue-600">24h review</span>
               </div>
@@ -201,7 +201,7 @@ export function Notifications({ notifications, onDismissNotification, openRepo }
       </Card>
 
       {notifications.length === 0 ? (
-        <Card className="rounded-[1.5rem] shadow-sm">
+        <Card className="rounded shadow-sm">
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <CheckCircle2 className="h-10 w-10 text-emerald-400 mb-4" />
             <div className="font-semibold text-slate-700">All clear</div>
@@ -214,7 +214,7 @@ export function Notifications({ notifications, onDismissNotification, openRepo }
             const meta = SEVERITY_META[group.severity];
             const Icon = meta.icon;
             return (
-              <Card key={group.severity} className="rounded-[1.5rem] shadow-sm">
+              <Card key={group.severity} className="rounded shadow-sm">
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-2">
                     <Icon className={`h-4 w-4 ${meta.color}`} />
@@ -255,7 +255,7 @@ export function Notifications({ notifications, onDismissNotification, openRepo }
       <Separator />
 
       {/* SLA policy reference */}
-      <Card className="rounded-[1.5rem] border-dashed bg-slate-50">
+      <Card className="rounded border-dashed bg-slate-50">
         <CardContent className="p-4">
           <div className="text-xs text-slate-500 space-y-1.5">
             <div className="font-semibold text-slate-700 mb-2">SLA Policy — Internal Operations</div>

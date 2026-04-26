@@ -73,7 +73,13 @@
       "Bash(curl -fsSL \"https://github.com/railwayapp/cli/releases/latest\" -o /tmp/railway-release.html)",
       "Bash(curl -fsSL \"https://github.com/railwayapp/cli/releases/download/v4.36.1/railway-v4.36.1-aarch64-apple-darwin.tar.gz\" -o /tmp/railway.tar.gz)",
       "Bash(tar -xzf /tmp/railway.tar.gz -C __TRACKED_VAR__/.local/bin)",
-      "Bash(node node_modules/.bin/vite build --mode development)"
+      "Bash(node node_modules/.bin/vite build --mode development)",
+      "mcp__Vibe_Prospecting__autocomplete",
+      "mcp__Vibe_Prospecting__fetch-entities",
+      "mcp__Vibe_Prospecting__match-business",
+      "mcp__Vibe_Prospecting__enrich-prospects",
+      "mcp__Vibe_Prospecting__export-to-csv",
+      "mcp__Vibe_Prospecting__match-prospects"
     ]
   }
 }

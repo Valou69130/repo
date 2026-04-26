@@ -176,14 +176,14 @@ export function Repos({ repos, assets, openRepo, createDemoRepo, role, permissio
       <RoleBanner role={role} perms={permissions} />
 
       <Tabs defaultValue="book" className="space-y-4">
-        <TabsList className="rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
+        <TabsList className="rounded-none border border-slate-200 bg-white p-1 shadow-sm">
           <TabsTrigger value="book">New Repo</TabsTrigger>
           <TabsTrigger value="list">Repo Book</TabsTrigger>
         </TabsList>
 
         {/* ── CREATE REPO ─────────────────────────────────────────── */}
         <TabsContent value="book">
-          <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
+          <Card className="rounded border-slate-200 shadow-sm">
             <CardHeader className="pb-5">
               <CardTitle>Create Repo Transaction</CardTitle>
               <CardDescription>Multi-step workflow: trade terms → eligibility → collateral basket → approval.</CardDescription>
@@ -483,13 +483,13 @@ export function Repos({ repos, assets, openRepo, createDemoRepo, role, permissio
 
         {/* ── REPO BOOK ──────────────────────────────────────────────── */}
         <TabsContent value="list">
-          <Card className="rounded-[1.5rem] border-slate-200 shadow-sm">
+          <Card className="rounded border-slate-200 shadow-sm">
             {/* Filter bar */}
             <CardContent className="border-b p-4 flex gap-3 flex-col md:flex-row md:items-center">
               <div className="relative flex-1 max-w-xs">
                 <Search className="h-4 w-4 absolute left-3 top-2.5 text-slate-400" />
                 <Input value={search} onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search repo ID or counterparty…" className="pl-9 rounded-xl h-9 text-sm" />
+                  placeholder="Search repo ID or counterparty…" className="pl-9 rounded-none h-9 text-sm border-slate-200" />
               </div>
               {/* State filter chips */}
               <div className="flex items-center gap-1.5 flex-wrap">

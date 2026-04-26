@@ -75,16 +75,16 @@ const SECTIONS = [
 
 export function Sidebar({ current, setCurrent, notificationCount = 0 }) {
   return (
-    <div className="w-60 flex-shrink-0 flex flex-col border-r border-slate-800/60 bg-slate-950">
+    <div className="w-[220px] flex-shrink-0 flex flex-col border-r border-slate-800/60 bg-[#0a0f1e]">
       {/* Brand */}
-      <div className="border-b border-slate-800/60 px-5 py-[18px]">
+      <div className="border-b border-slate-800/60 px-4 py-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg shadow-blue-900/40">
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center bg-blue-600">
             <Landmark className="h-4 w-4 text-white" />
           </div>
           <div>
-            <div className="text-[13px] font-semibold tracking-tight text-white">CollateralOS</div>
-            <div className="text-[10px] font-medium text-blue-400/70 tracking-wide">EU Pilot · Romania</div>
+            <div className="text-[12px] font-black uppercase tracking-widest text-white">CollateralOS</div>
+            <div className="text-[9px] font-medium text-slate-500 uppercase tracking-widest mt-0.5">Institutional Terminal</div>
           </div>
         </div>
       </div>
@@ -93,7 +93,7 @@ export function Sidebar({ current, setCurrent, notificationCount = 0 }) {
       <nav className="flex-1 overflow-y-auto py-2">
         {SECTIONS.map((section) => (
           <div key={section.label} className="mb-1">
-            <div className="px-4 pb-1 pt-3 text-[9.5px] font-bold uppercase tracking-[0.2em] text-slate-600">
+            <div className="px-4 pb-1 pt-3 text-[9px] font-bold uppercase tracking-[0.22em] text-slate-600">
               {section.label}
             </div>
             {section.items.map((item) => {
@@ -103,20 +103,16 @@ export function Sidebar({ current, setCurrent, notificationCount = 0 }) {
                 <button
                   key={item.key}
                   onClick={() => setCurrent(item.key)}
-                  className={`group relative mx-2 flex w-[calc(100%-1rem)] items-center gap-2.5 rounded-lg px-3 py-[7px] text-left text-[13px] transition-all duration-150 ${
+                  className={`group relative flex w-full items-center gap-2.5 border-l-2 px-4 py-2.5 text-left transition-colors duration-100 ${
                     active
-                      ? "bg-slate-800/80 text-white shadow-sm"
-                      : "text-slate-400 hover:bg-slate-900/70 hover:text-slate-100"
+                      ? "border-l-blue-500 bg-white/5 text-white"
+                      : "border-l-transparent text-slate-400 hover:bg-white/5 hover:text-slate-100"
                   }`}
                 >
-                  {/* Active left-border accent */}
-                  {active && (
-                    <span className="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-r bg-blue-500" />
-                  )}
-                  <Icon className={`h-[15px] w-[15px] flex-shrink-0 transition-colors ${active ? "text-blue-400" : "text-slate-500 group-hover:text-slate-300"}`} />
-                  <span className="flex-1 truncate font-[450]">{item.label}</span>
+                  <Icon className={`h-[14px] w-[14px] flex-shrink-0 transition-colors ${active ? "text-blue-400" : "text-slate-500 group-hover:text-slate-300"}`} />
+                  <span className={`flex-1 truncate text-[11px] font-semibold uppercase tracking-wide`}>{item.label}</span>
                   {item.key === "notifications" && notificationCount > 0 && (
-                    <span className="flex h-4 min-w-[16px] flex-shrink-0 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
+                    <span className="flex h-4 min-w-[16px] flex-shrink-0 items-center justify-center bg-red-500 px-1 text-[9px] font-bold text-white">
                       {notificationCount > 9 ? "9+" : notificationCount}
                     </span>
                   )}

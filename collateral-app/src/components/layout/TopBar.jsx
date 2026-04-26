@@ -153,7 +153,7 @@ export function TopBar({
                 <Bell className={`h-4 w-4 ${critical > 0 ? "text-red-500" : "text-slate-500"}`} />
                 <span className="font-semibold text-slate-900 text-sm">Notifications</span>
                 {unread > 0 && (
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${critical > 0 ? "bg-red-100 text-red-700" : "bg-slate-100 text-slate-600"}`}>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-sm ${critical > 0 ? "bg-red-100 text-red-700" : "bg-slate-100 text-slate-600"}`}>
                     {unread}
                   </span>
                 )}
@@ -162,7 +162,7 @@ export function TopBar({
                 <button className="text-xs text-blue-600 hover:text-blue-800 font-medium" onClick={() => { setBellOpen(false); onNavigate?.("notifications"); }}>
                   View all
                 </button>
-                <button onClick={() => setBellOpen(false)} className="p-1 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition">
+                <button onClick={() => setBellOpen(false)} className="p-1 text-slate-400 hover:text-slate-700 rounded hover:bg-slate-100 transition">
                   <X className="h-4 w-4" />
                 </button>
               </div>
@@ -209,7 +209,7 @@ export function TopBar({
         <div className="flex items-center gap-3 flex-shrink-0">
           <span className="text-[13px] font-semibold text-slate-800 tracking-tight">Banca Demo Romania</span>
           <span className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-600">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            <span className="h-1.5 w-1.5 rounded-sm bg-emerald-500" />
             Connected
           </span>
           {/* EoD Lock — real banking function, stays visible */}
@@ -235,7 +235,7 @@ export function TopBar({
         {/* Centre: search */}
         <div className="flex-1 max-w-lg relative" ref={searchRef}>
           <button
-            className="w-full flex items-center gap-2 h-9 px-3.5 bg-slate-50 hover:bg-slate-100 rounded-lg text-xs text-slate-400 transition border border-slate-200/80 hover:border-slate-300"
+            className="w-full flex items-center gap-2 h-9 px-3.5 bg-slate-50 hover:bg-slate-100 rounded text-xs text-slate-400 transition border border-slate-200/80 hover:border-slate-300"
             onClick={() => { setSearchOpen(true); setTimeout(() => inputRef.current?.focus(), 50); }}
           >
             <Search className="h-3.5 w-3.5 flex-shrink-0" />
@@ -243,7 +243,7 @@ export function TopBar({
             <kbd className="text-[10px] bg-white border border-slate-200 rounded px-1 py-px font-mono hidden sm:block">⌘K</kbd>
           </button>
           {searchOpen && (
-            <div className="absolute top-10 left-0 right-0 bg-white border border-slate-200 shadow-xl z-50 rounded-lg overflow-hidden">
+            <div className="absolute top-10 left-0 right-0 bg-white border border-slate-200 shadow-xl z-50 rounded overflow-hidden">
               <div className="flex items-center gap-2 px-3 py-2.5 border-b border-slate-100">
                 <Search className="h-4 w-4 text-slate-400 flex-shrink-0" />
                 <input
@@ -276,12 +276,12 @@ export function TopBar({
         <div className="flex items-center gap-1 flex-shrink-0">
           {/* Bell */}
           <button
-            className={`relative h-9 w-9 flex items-center justify-center rounded-lg hover:bg-slate-100 transition ${critical > 0 ? "text-red-500" : "text-slate-500"}`}
+            className={`relative h-9 w-9 flex items-center justify-center rounded hover:bg-slate-100 transition ${critical > 0 ? "text-red-500" : "text-slate-500"}`}
             onClick={() => setBellOpen((o) => !o)}
           >
             <Bell className="h-4 w-4" />
             {unread > 0 && (
-              <span className={`absolute top-1.5 right-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full text-[8px] font-bold text-white ${critical > 0 ? "bg-red-500" : "bg-slate-500"}`}>
+              <span className={`absolute top-1.5 right-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-sm text-[8px] font-bold text-white ${critical > 0 ? "bg-red-500" : "bg-slate-500"}`}>
                 {unread > 9 ? "9+" : unread}
               </span>
             )}
@@ -290,10 +290,10 @@ export function TopBar({
           {/* User profile */}
           <div className="relative ml-1" ref={profileRef}>
             <button
-              className="flex items-center gap-2 h-9 pl-1 pr-2.5 rounded-lg hover:bg-slate-100 transition"
+              className="flex items-center gap-2 h-9 pl-1 pr-2.5 rounded hover:bg-slate-100 transition"
               onClick={() => setProfileOpen((o) => !o)}
             >
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-800 text-[11px] font-bold text-white flex-shrink-0">
+              <div className="flex h-7 w-7 items-center justify-center rounded-sm bg-slate-800 text-[11px] font-bold text-white flex-shrink-0">
                 {initials(role)}
               </div>
               <span className="hidden md:block text-[12px] font-medium text-slate-700 max-w-[120px] truncate">{role}</span>
@@ -301,11 +301,11 @@ export function TopBar({
             </button>
 
             {profileOpen && (
-              <div className="absolute right-0 top-11 w-64 bg-white border border-slate-200 shadow-xl z-50 rounded-lg overflow-hidden">
+              <div className="absolute right-0 top-11 w-64 bg-white border border-slate-200 shadow-xl z-50 rounded overflow-hidden">
                 {/* User info header */}
                 <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-800 text-[13px] font-bold text-white flex-shrink-0">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-sm bg-slate-800 text-[13px] font-bold text-white flex-shrink-0">
                       {initials(role)}
                     </div>
                     <div>
@@ -325,7 +325,7 @@ export function TopBar({
                       onClick={() => { onSwitchRole?.(r); setProfileOpen(false); }}
                     >
                       {r.name}
-                      {r.name === role && <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />}
+                      {r.name === role && <span className="h-1.5 w-1.5 rounded-sm bg-blue-500" />}
                     </button>
                   ))}
                 </div>

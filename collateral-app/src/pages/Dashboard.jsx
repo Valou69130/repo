@@ -451,11 +451,11 @@ export function Dashboard({
                         </span>
                       </div>
                       <div className="grid grid-cols-2 gap-3 text-xs">
-                        <div className="rounded-xl bg-white/80 px-3 py-3">
+                        <div className="rounded bg-white/80 px-3 py-3">
                           <div className="text-slate-400">Cash Due</div>
                           <div className="mt-1 font-semibold text-slate-700">{fmtMoney(d.cash)}</div>
                         </div>
-                        <div className="rounded-xl bg-white/80 px-3 py-3 text-right">
+                        <div className="rounded bg-white/80 px-3 py-3 text-right">
                           <div className="text-slate-400">Collateral</div>
                           <div className="mt-1 font-semibold text-emerald-600">
                             +{fmtMoney(d.collateral)}
