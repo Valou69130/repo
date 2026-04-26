@@ -13,7 +13,7 @@ body {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1, "kern" 1;
   /* Warm white base — softer than pure #fff */
-  background-color: #f8f9fb;
+  background-color: #f4f5f7;
   color: #0f172a;
 }
 

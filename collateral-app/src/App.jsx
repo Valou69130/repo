@@ -526,7 +526,7 @@ function AppContent() {
               <button onClick={loadData} className="ml-auto text-red-600 underline hover:text-red-800">Retry</button>
             </div>
           )}
-          <main className="p-6 md:p-8 flex-1 overflow-auto bg-[#f8f9fb]">
+          <main className="p-5 flex-1 overflow-auto bg-[#f4f5f7]">
             <ScrollArea className="h-[calc(100vh-96px)] pr-4">
               <Suspense fallback={<PageFallback />}>
                 <ErrorBoundary key={current}>
