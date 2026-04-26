@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { Bell, BookOpen, LogOut, RefreshCw, Search, X, AlertTriangle, Info, AlertCircle, Lock, FileText, ChevronDown, UserCheck } from "lucide-react";
+import { Bell, LogOut, Search, X, AlertTriangle, Info, AlertCircle, Lock, FileText, ChevronDown, RefreshCw, BookOpen, UserCheck } from "lucide-react";
 
 const SEVERITY_ICON = {
   Critical: AlertTriangle,
-  Warning: AlertCircle,
-  Info: Info,
+  Warning:  AlertCircle,
+  Info:     Info,
 };
 const SEVERITY_COLOR = {
   Critical: "text-red-400",
@@ -26,8 +26,8 @@ const DEMO_ROLES = [
 
 function SearchResult({ result, onSelect }) {
   const typeColor = {
-    repo: "text-blue-600 bg-blue-50",
-    asset: "text-emerald-600 bg-emerald-50",
+    repo:         "text-blue-600 bg-blue-50",
+    asset:        "text-emerald-600 bg-emerald-50",
     counterparty: "text-purple-600 bg-purple-50",
   };
   return (
@@ -46,33 +46,36 @@ function SearchResult({ result, onSelect }) {
   );
 }
 
+// Role initials helper
+function initials(name) {
+  return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+}
+
 export function TopBar({
   notifications, role, onLogout, onDismissNotification, onReset,
   repos, assets, onNavigate, onEodLock, onSwitchRole, onStartTour,
 }) {
-  const [bellOpen, setBellOpen]   = useState(false);
-  const [resetting, setResetting] = useState(false);
+  const [bellOpen, setBellOpen]     = useState(false);
+  const [resetting, setResetting]   = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [roleOpen, setRoleOpen]   = useState(false);
-  const [query, setQuery]         = useState("");
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [query, setQuery]           = useState("");
   const [eodLocking, setEodLocking] = useState(false);
-  const [eodDone, setEodDone]     = useState(false);
+  const [eodDone, setEodDone]       = useState(false);
 
-  const searchRef = useRef(null);
-  const roleRef   = useRef(null);
-  const inputRef  = useRef(null);
+  const searchRef  = useRef(null);
+  const profileRef = useRef(null);
+  const inputRef   = useRef(null);
 
-  // Close dropdowns on outside click
   useEffect(() => {
     function handle(e) {
-      if (searchRef.current && !searchRef.current.contains(e.target)) setSearchOpen(false);
-      if (roleRef.current && !roleRef.current.contains(e.target)) setRoleOpen(false);
+      if (searchRef.current  && !searchRef.current.contains(e.target))  setSearchOpen(false);
+      if (profileRef.current && !profileRef.current.contains(e.target)) setProfileOpen(false);
     }
     document.addEventListener("mousedown", handle);
     return () => document.removeEventListener("mousedown", handle);
   }, []);
 
-  // ⌘K / Ctrl+K global shortcut
   useEffect(() => {
     function handle(e) {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -80,13 +83,12 @@ export function TopBar({
         setSearchOpen(true);
         setTimeout(() => inputRef.current?.focus(), 50);
       }
-      if (e.key === "Escape") { setSearchOpen(false); setQuery(""); setBellOpen(false); }
+      if (e.key === "Escape") { setSearchOpen(false); setQuery(""); setBellOpen(false); setProfileOpen(false); }
     }
     document.addEventListener("keydown", handle);
     return () => document.removeEventListener("keydown", handle);
   }, []);
 
-  // Build search results
   const results = (() => {
     if (!query || query.length < 2) return [];
     const q = query.toLowerCase();
@@ -115,8 +117,8 @@ export function TopBar({
     setSearchOpen(false);
     setQuery("");
     if (!onNavigate) return;
-    if (result.type === "repo")          onNavigate("repo-detail", result.id);
-    else if (result.type === "asset")    onNavigate("inventory");
+    if (result.type === "repo")              onNavigate("repo-detail", result.id);
+    else if (result.type === "asset")        onNavigate("inventory");
     else if (result.type === "counterparty") onNavigate("counterparties");
   };
 
@@ -138,17 +140,14 @@ export function TopBar({
 
   return (
     <>
-      {/* ── Notification drawer (full-height right panel, overlays content) ── */}
+      {/* ── Notification drawer ─────────────────────────────────────────── */}
       {bellOpen && (
         <div className="fixed inset-0 z-40 flex justify-end" onClick={() => setBellOpen(false)}>
-          {/* Backdrop */}
           <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-[1px]" />
-          {/* Panel */}
           <div
             className="relative z-50 w-96 h-full bg-white shadow-2xl flex flex-col border-l border-slate-200"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Panel header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
                 <Bell className={`h-4 w-4 ${critical > 0 ? "text-red-500" : "text-slate-500"}`} />
@@ -160,10 +159,7 @@ export function TopBar({
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <button
-                  className="text-xs text-blue-600 hover:text-blue-800 font-medium"
-                  onClick={() => { setBellOpen(false); onNavigate?.("notifications"); }}
-                >
+                <button className="text-xs text-blue-600 hover:text-blue-800 font-medium" onClick={() => { setBellOpen(false); onNavigate?.("notifications"); }}>
                   View all
                 </button>
                 <button onClick={() => setBellOpen(false)} className="p-1 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition">
@@ -171,8 +167,6 @@ export function TopBar({
                 </button>
               </div>
             </div>
-
-            {/* Notification list */}
             <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
               {notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-48 gap-2 text-slate-400">
@@ -187,14 +181,9 @@ export function TopBar({
                       <Icon className={`h-4 w-4 mt-0.5 flex-shrink-0 ${SEVERITY_COLOR[n.severity] ?? "text-slate-400"}`} />
                       <div className="flex-1 min-w-0">
                         <div className="text-sm text-slate-800 leading-snug font-medium">{n.text}</div>
-                        {n.target && (
-                          <div className="text-[11px] text-slate-400 mt-1 font-mono">{n.target}</div>
-                        )}
+                        {n.target && <div className="text-[11px] text-slate-400 mt-1 font-mono">{n.target}</div>}
                       </div>
-                      <button
-                        onClick={() => onDismissNotification(n.id)}
-                        className="p-1 text-slate-300 hover:text-slate-600 flex-shrink-0 rounded hover:bg-white/60 transition"
-                      >
+                      <button onClick={() => onDismissNotification(n.id)} className="p-1 text-slate-300 hover:text-slate-600 flex-shrink-0 rounded hover:bg-white/60 transition">
                         <X className="h-3.5 w-3.5" />
                       </button>
                     </div>
@@ -202,14 +191,9 @@ export function TopBar({
                 })
               )}
             </div>
-
-            {/* Panel footer */}
             {notifications.length > 0 && (
               <div className="px-5 py-3 border-t border-slate-100 bg-slate-50">
-                <button
-                  className="text-xs text-slate-500 hover:text-slate-700 transition"
-                  onClick={() => { setBellOpen(false); onNavigate?.("notifications"); }}
-                >
+                <button className="text-xs text-slate-500 hover:text-slate-700 transition" onClick={() => { setBellOpen(false); onNavigate?.("notifications"); }}>
                   Manage all notifications →
                 </button>
               </div>
@@ -218,42 +202,55 @@ export function TopBar({
         </div>
       )}
 
-      {/* ── TopBar ── */}
-      <div className="flex items-center justify-between px-6 py-0 h-14 border-b border-slate-200/60 bg-white/98 backdrop-blur-sm flex-shrink-0 gap-3 relative z-30">
-        {/* Left: institution context */}
+      {/* ── TopBar ─────────────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between px-6 h-14 border-b border-slate-200/70 bg-white flex-shrink-0 gap-4 relative z-30">
+
+        {/* Left: institution + status */}
         <div className="flex items-center gap-3 flex-shrink-0">
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-medium text-slate-400 uppercase tracking-widest hidden md:block">Institution</span>
-            <span className="text-sm font-semibold text-slate-800">Banca Demo Romania</span>
-          </div>
-          <div className="hidden h-4 w-px bg-slate-200 md:block" />
-          {/* Demo badge — subtle, not distracting */}
-          <span className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10.5px] font-medium text-slate-500 tracking-wide">
-            <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-            Demo
+          <span className="text-[13px] font-semibold text-slate-800 tracking-tight">Banca Demo Romania</span>
+          <span className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-600">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            Connected
           </span>
+          {/* EoD Lock — real banking function, stays visible */}
+          <div className="hidden h-4 w-px bg-slate-200 xl:block" />
+          <button
+            className={`hidden xl:flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[11px] font-medium transition disabled:opacity-40 ${
+              eodDone
+                ? "text-emerald-700 bg-emerald-50 border border-emerald-200"
+                : "text-slate-500 border border-slate-200 hover:border-slate-300 hover:text-slate-700 hover:bg-slate-50"
+            }`}
+            onClick={handleEodLock}
+            disabled={eodLocking}
+            title="Mark End-of-Day — confirm all positions and write audit snapshot"
+          >
+            {eodDone
+              ? <><FileText className="h-3 w-3" /> EoD Confirmed</>
+              : eodLocking
+              ? <><Lock className="h-3 w-3 animate-pulse" /> Locking…</>
+              : <><Lock className="h-3 w-3" /> EoD Lock</>}
+          </button>
         </div>
 
-        {/* Centre: global search */}
-        <div className="flex-1 max-w-md relative" ref={searchRef}>
+        {/* Centre: search */}
+        <div className="flex-1 max-w-lg relative" ref={searchRef}>
           <button
-            className="w-full flex items-center gap-2 h-10 px-3.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs text-slate-400 transition border border-transparent hover:border-slate-200"
+            className="w-full flex items-center gap-2 h-9 px-3.5 bg-slate-50 hover:bg-slate-100 rounded-lg text-xs text-slate-400 transition border border-slate-200/80 hover:border-slate-300"
             onClick={() => { setSearchOpen(true); setTimeout(() => inputRef.current?.focus(), 50); }}
           >
             <Search className="h-3.5 w-3.5 flex-shrink-0" />
-            <span className="flex-1 text-left">Search repos, assets, counterparties…</span>
+            <span className="flex-1 text-left">Search entity, LEI, ISIN, repo ID…</span>
             <kbd className="text-[10px] bg-white border border-slate-200 rounded px-1 py-px font-mono hidden sm:block">⌘K</kbd>
           </button>
-
           {searchOpen && (
-            <div className="absolute top-10 left-0 right-0 bg-white border border-slate-200 shadow-xl z-50 rounded overflow-hidden">
-              <div className="flex items-center gap-2 px-3 py-2 border-b border-slate-100">
+            <div className="absolute top-10 left-0 right-0 bg-white border border-slate-200 shadow-xl z-50 rounded-lg overflow-hidden">
+              <div className="flex items-center gap-2 px-3 py-2.5 border-b border-slate-100">
                 <Search className="h-4 w-4 text-slate-400 flex-shrink-0" />
                 <input
                   ref={inputRef}
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search repos, assets, counterparties…"
+                  placeholder="Search entity, LEI, ISIN, repo ID…"
                   className="flex-1 text-sm outline-none bg-transparent text-slate-900 placeholder:text-slate-400"
                 />
                 {query && (
@@ -263,111 +260,102 @@ export function TopBar({
                 )}
               </div>
               {query.length < 2 ? (
-                <div className="px-3 py-3 text-xs text-slate-400">Type at least 2 characters to search…</div>
+                <div className="px-3 py-3 text-xs text-slate-400">Type at least 2 characters…</div>
               ) : results.length === 0 ? (
                 <div className="px-3 py-3 text-xs text-slate-400">No results for "{query}"</div>
               ) : (
                 <div className="max-h-64 overflow-y-auto">
-                  {results.map((r, i) => (
-                    <SearchResult key={i} result={r} onSelect={handleSelect} />
-                  ))}
+                  {results.map((r, i) => <SearchResult key={i} result={r} onSelect={handleSelect} />)}
                 </div>
               )}
             </div>
           )}
         </div>
 
-        {/* Right: controls */}
+        {/* Right: bell + user profile */}
         <div className="flex items-center gap-1 flex-shrink-0">
-          {/* Role switcher */}
-          <div className="relative mr-2" ref={roleRef}>
-            <button
-              className="flex h-8 items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-100 px-3 text-xs font-medium text-slate-600 hover:bg-slate-200 transition"
-              onClick={() => setRoleOpen((o) => !o)}
-              title="Switch demo role"
-            >
-              <UserCheck className="h-3 w-3 text-slate-400" />
-              {role}
-              <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform ${roleOpen ? "rotate-180" : ""}`} />
-            </button>
-            {roleOpen && (
-              <div className="absolute right-0 top-9 w-52 bg-white border border-slate-200 shadow-lg z-50 rounded overflow-hidden">
-                <div className="px-3 py-2 border-b border-slate-100">
-                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">Switch demo role</span>
-                </div>
-                {DEMO_ROLES.map((r) => (
-                  <button
-                    key={r.name}
-                    className={`w-full text-left px-3 py-2.5 text-xs hover:bg-slate-50 transition flex items-center justify-between ${r.name === role ? "text-blue-700 font-semibold bg-blue-50" : "text-slate-700"}`}
-                    onClick={() => { onSwitchRole?.(r); setRoleOpen(false); }}
-                  >
-                    {r.name}
-                    {r.name === role && <span className="text-[10px] text-blue-500">active</span>}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* EoD Lock */}
+          {/* Bell */}
           <button
-            className={`h-9 px-3 flex items-center gap-1.5 text-xs rounded-xl transition disabled:opacity-40 ${
-              eodDone
-                ? "text-emerald-700 bg-emerald-50 border border-emerald-200"
-                : "text-slate-500 border border-transparent hover:text-slate-800 hover:bg-slate-100"
-            }`}
-            onClick={handleEodLock}
-            disabled={eodLocking}
-            title="Mark End-of-Day — confirm all positions and write audit snapshot"
-          >
-            {eodDone
-              ? <><FileText className="h-3.5 w-3.5" /> EoD Confirmed</>
-              : eodLocking
-              ? <><Lock className="h-3.5 w-3.5 animate-pulse" /> Locking…</>
-              : <><Lock className="h-3.5 w-3.5" /> EoD Lock</>}
-          </button>
-
-          {/* Bell — triggers slide panel */}
-          <button
-            className={`relative h-9 w-9 flex items-center justify-center rounded-xl hover:bg-slate-100 transition ${critical > 0 ? "text-red-600" : "text-slate-500"}`}
+            className={`relative h-9 w-9 flex items-center justify-center rounded-lg hover:bg-slate-100 transition ${critical > 0 ? "text-red-500" : "text-slate-500"}`}
             onClick={() => setBellOpen((o) => !o)}
           >
             <Bell className="h-4 w-4" />
             {unread > 0 && (
-              <span className={`absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white ${critical > 0 ? "bg-red-500" : "bg-slate-500"}`}>
+              <span className={`absolute top-1.5 right-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full text-[8px] font-bold text-white ${critical > 0 ? "bg-red-500" : "bg-slate-500"}`}>
                 {unread > 9 ? "9+" : unread}
               </span>
             )}
           </button>
 
-          {/* Tour */}
-          <button
-            className="h-9 rounded-xl px-3 flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition"
-            onClick={onStartTour}
-            title="Guided tour"
-          >
-            <BookOpen className="h-3.5 w-3.5" />
-            Tour
-          </button>
+          {/* User profile */}
+          <div className="relative ml-1" ref={profileRef}>
+            <button
+              className="flex items-center gap-2 h-9 pl-1 pr-2.5 rounded-lg hover:bg-slate-100 transition"
+              onClick={() => setProfileOpen((o) => !o)}
+            >
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-800 text-[11px] font-bold text-white flex-shrink-0">
+                {initials(role)}
+              </div>
+              <span className="hidden md:block text-[12px] font-medium text-slate-700 max-w-[120px] truncate">{role}</span>
+              <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform ${profileOpen ? "rotate-180" : ""}`} />
+            </button>
 
-          {/* Reset */}
-          <button
-            className="h-9 rounded-xl px-3 flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition disabled:opacity-40"
-            onClick={handleReset}
-            disabled={resetting}
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${resetting ? "animate-spin" : ""}`} />
-            {resetting ? "Resetting…" : "Reset"}
-          </button>
+            {profileOpen && (
+              <div className="absolute right-0 top-11 w-64 bg-white border border-slate-200 shadow-xl z-50 rounded-lg overflow-hidden">
+                {/* User info header */}
+                <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-800 text-[13px] font-bold text-white flex-shrink-0">
+                      {initials(role)}
+                    </div>
+                    <div>
+                      <div className="text-[13px] font-semibold text-slate-800">{role}</div>
+                      <div className="text-[11px] text-slate-400">Banca Demo Romania</div>
+                    </div>
+                  </div>
+                </div>
 
-          {/* Logout */}
-          <button
-            className="h-9 w-9 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition"
-            onClick={onLogout}
-            title="Sign out"
-          >
-            <LogOut className="h-3.5 w-3.5" />
-          </button>
+                {/* Role switcher */}
+                <div className="px-3 py-1.5 border-b border-slate-100">
+                  <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-1 pb-1">Switch role</div>
+                  {DEMO_ROLES.map((r) => (
+                    <button
+                      key={r.name}
+                      className={`w-full text-left px-2 py-2 text-xs rounded-md transition flex items-center justify-between ${r.name === role ? "text-blue-700 font-semibold bg-blue-50" : "text-slate-600 hover:bg-slate-50"}`}
+                      onClick={() => { onSwitchRole?.(r); setProfileOpen(false); }}
+                    >
+                      {r.name}
+                      {r.name === role && <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Actions */}
+                <div className="px-3 py-2">
+                  <button
+                    className="w-full flex items-center gap-2 px-2 py-2 text-xs text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-md transition"
+                    onClick={() => { setProfileOpen(false); onStartTour?.(); }}
+                  >
+                    <BookOpen className="h-3.5 w-3.5" /> Guided tour
+                  </button>
+                  <button
+                    className="w-full flex items-center gap-2 px-2 py-2 text-xs text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-md transition disabled:opacity-40"
+                    onClick={() => { setProfileOpen(false); handleReset(); }}
+                    disabled={resetting}
+                  >
+                    <RefreshCw className={`h-3.5 w-3.5 ${resetting ? "animate-spin" : ""}`} />
+                    {resetting ? "Resetting…" : "Reset demo data"}
+                  </button>
+                  <button
+                    className="w-full flex items-center gap-2 px-2 py-2 text-xs text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md transition"
+                    onClick={() => { setProfileOpen(false); onLogout?.(); }}
+                  >
+                    <LogOut className="h-3.5 w-3.5" /> Sign out
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </>
