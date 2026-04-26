@@ -3,6 +3,12 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { fmtMoney } from "@/domain/format";
 import { deriveActionItems } from "@/components/dashboard/RecommendedActions";
+import { AgentStatusStrip } from "@/components/dashboard/AgentStatusStrip";
+import { SuggestedCallsPanel } from "@/components/dashboard/SuggestedCallsPanel";
+import { PendingApprovalsWidget } from "@/components/dashboard/PendingApprovalsWidget";
+import { AIReasoningPanel } from "@/ai/components/AIReasoningPanel";
+import { useAICall } from "@/ai/hooks/useAI";
+import { api } from "@/lib/api";
 import { FileText, Lock } from "lucide-react";
 
 const ASSET_COLORS = {
@@ -93,6 +99,9 @@ export function Dashboard({
       .slice(0, 7)
   , [repos]);
 
+  const portfolioAI = useAICall(api.aiAnalysePortfolio);
+  const correlateAI = useAICall(api.aiCorrelate);
+
   const SEVERITY_BORDER = {
     "margin-deficit":           "border-l-red-500",
     "coverage-watch":           "border-l-amber-400",
@@ -107,17 +116,15 @@ export function Dashboard({
       {/* ── Page header ──────────────────────────────────────────────────────── */}
       <div className="flex items-end justify-between border-b border-slate-200 pb-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight leading-none">Dashboard</h1>
-          <p className="mt-1 text-xs font-semibold text-slate-400 uppercase tracking-wide">
-            Morning briefing · {dateLabel}
-          </p>
+          <h1 className="text-2xl font-semibold text-slate-900 tracking-tight leading-none">Dashboard</h1>
+          <p className="mt-1 text-sm text-slate-500">Morning briefing · {dateLabel}</p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="flex items-center gap-1.5 border border-slate-200 px-3 h-8 text-xs font-semibold uppercase tracking-wide text-slate-600 hover:bg-slate-50 transition">
+          <button className="flex items-center gap-1.5 border border-slate-200 px-3 h-8 text-sm text-slate-600 hover:bg-slate-50 transition">
             <FileText className="h-3.5 w-3.5" />
             Generate Report
           </button>
-          <button className="flex items-center gap-1.5 bg-blue-600 px-3 h-8 text-xs font-semibold uppercase tracking-wide text-white hover:bg-blue-700 transition">
+          <button className="flex items-center gap-1.5 bg-blue-600 px-3 h-8 text-sm text-white hover:bg-blue-700 transition">
             <Lock className="h-3.5 w-3.5" />
             EoD Valuations
           </button>
@@ -161,13 +168,55 @@ export function Dashboard({
         </div>
       </div>
 
+      {/* ── Agent status strip ───────────────────────────────────────────────── */}
+      <AgentStatusStrip repos={repos} assets={assets} notifications={notifications} actionItems={actionItems} />
+
+      {/* ── AI panels ────────────────────────────────────────────────────────── */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <AIReasoningPanel
+          title="AI portfolio briefing"
+          description="Claude reviews open deficits and produces a prioritised treasury brief."
+          loading={portfolioAI.loading}
+          error={portfolioAI.error}
+          text={portfolioAI.text}
+          meta={portfolioAI.meta}
+          onRun={() => portfolioAI.run()}
+          onReset={portfolioAI.reset}
+          buttonLabel="Generate brief"
+        />
+        <AIReasoningPanel
+          title="Exception correlation"
+          description="Clusters today's alerts into coherent action items by root cause and counterparty."
+          loading={correlateAI.loading}
+          error={correlateAI.error}
+          text={correlateAI.text}
+          meta={correlateAI.meta}
+          onRun={() => correlateAI.run()}
+          onReset={correlateAI.reset}
+          buttonLabel="Correlate alerts"
+        />
+      </div>
+
+      {/* ── Suggested margin calls ────────────────────────────────────────────── */}
+      <SuggestedCallsPanel onOpenAgreement={onOpenAgreement} />
+
+      {/* ── 4-eye approvals ──────────────────────────────────────────────────── */}
+      <PendingApprovalsWidget
+        pendingSubstitutions={pendingSubstitutions}
+        assets={assets}
+        repos={repos}
+        role={role}
+        onApproveSubstitution={onApproveSubstitution}
+        onRejectSubstitution={onRejectSubstitution}
+      />
+
       {/* ── Two-column section ───────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
 
         {/* Left — Recommended Actions (7 cols / 58%) */}
         <div className="xl:col-span-7 border border-slate-200 bg-white flex flex-col">
           <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-100 bg-slate-50">
-            <span className="text-xs font-bold text-slate-800 uppercase tracking-wide">Recommended Actions</span>
+            <span className="text-xs font-semibold text-slate-700">Recommended Actions</span>
             <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Priority Queue</span>
           </div>
           <div className="flex flex-col divide-y divide-slate-100">
@@ -215,7 +264,7 @@ export function Dashboard({
           {/* Collateral breakdown donut */}
           <div className="border border-slate-200 bg-white flex flex-col">
             <div className="px-4 py-2.5 border-b border-slate-100 bg-slate-50">
-              <span className="text-xs font-bold text-slate-800 uppercase tracking-wide">Collateral Breakdown</span>
+              <span className="text-xs font-semibold text-slate-700">Collateral Breakdown</span>
             </div>
             <div className="flex items-center gap-5 p-4">
               <div style={{ width: 96, height: 96, flexShrink: 0 }}>
@@ -251,7 +300,7 @@ export function Dashboard({
           {/* Margin exposure mini-table */}
           <div className="border border-slate-200 bg-white flex flex-col flex-1">
             <div className="px-4 py-2.5 border-b border-slate-100 bg-slate-50">
-              <span className="text-xs font-bold text-slate-800 uppercase tracking-wide">Top Exposure</span>
+              <span className="text-xs font-semibold text-slate-700">Top Exposure</span>
             </div>
             <div className="flex flex-col">
               <div className="grid grid-cols-3 px-4 py-1.5 bg-slate-50 border-b border-slate-100">
@@ -276,7 +325,7 @@ export function Dashboard({
       {/* ── Active Repo Transactions table ───────────────────────────────────── */}
       <div className="border border-slate-200 bg-white">
         <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-100 bg-slate-50">
-          <span className="text-xs font-bold text-slate-800 uppercase tracking-wide">Active Repo Transactions</span>
+          <span className="text-xs font-semibold text-slate-700">Active Repo Transactions</span>
           <button
             onClick={() => onNavigate?.("repos")}
             className="text-[11px] font-bold text-blue-600 uppercase tracking-wide hover:text-blue-800 transition"

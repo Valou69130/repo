@@ -83,8 +83,8 @@ export function Sidebar({ current, setCurrent, notificationCount = 0 }) {
             <Landmark className="h-4 w-4 text-white" />
           </div>
           <div>
-            <div className="text-[12px] font-black uppercase tracking-widest text-white">CollateralOS</div>
-            <div className="text-[9px] font-medium text-slate-500 uppercase tracking-widest mt-0.5">Institutional Terminal</div>
+            <div className="text-[13px] font-semibold tracking-tight text-white">CollateralOS</div>
+            <div className="text-[10px] font-medium text-blue-400/70 tracking-wide">EU Pilot · Romania</div>
           </div>
         </div>
       </div>
@@ -110,7 +110,7 @@ export function Sidebar({ current, setCurrent, notificationCount = 0 }) {
                   }`}
                 >
                   <Icon className={`h-[14px] w-[14px] flex-shrink-0 transition-colors ${active ? "text-blue-400" : "text-slate-500 group-hover:text-slate-300"}`} />
-                  <span className={`flex-1 truncate text-[11px] font-semibold uppercase tracking-wide`}>{item.label}</span>
+                  <span className="flex-1 truncate text-[12px] font-[450]">{item.label}</span>
                   {item.key === "notifications" && notificationCount > 0 && (
                     <span className="flex h-4 min-w-[16px] flex-shrink-0 items-center justify-center bg-red-500 px-1 text-[9px] font-bold text-white">
                       {notificationCount > 9 ? "9+" : notificationCount}
